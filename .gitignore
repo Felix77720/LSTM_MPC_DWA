@@ -21,24 +21,18 @@ __pycache__/
 venv/
 env/
 
-# Keep the reproducibility model, but ignore generated experiment outputs.
-/results/*
-!/results/lstm_predictor.mat
+# All experiment outputs, models, figures and run logs are archived separately.
+/results/
 
 # The Zenodo data-package staging area is intentionally not part of the code repo.
 /reproducibility_release_v1.0.0/
+
+# Local manuscript, result and AI/debug working archive.
+/_local_archive/
 
 # The bundled CasADi distribution is kept locally but not committed to GitHub.
 /MPC_DWA_Fusion/third_party/casadi-3.8.0-windows64-matlab2018b/**
 !/MPC_DWA_Fusion/third_party/casadi-3.8.0-windows64-matlab2018b/README.md
 
-# Generated manuscript and LaTeX build products
-paper/**/*.pdf
-paper/**/*.docx
-paper/**/*.log
-paper/**/*.aux
-paper/**/*.out
-paper/**/*.synctex*
-paper/**/*.fls
-paper/**/*.fdb_latexmk
-paper/**/__pycache__/
+# The complete manuscript workspace is kept out of the code repository.
+/paper/

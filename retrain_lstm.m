@@ -19,7 +19,9 @@ cfg.dyn.muY = muY; cfg.dyn.sigY = sigY;
 fprintf('Training LSTM predictor...\n');
 [net, trainingInfo, trainingProtocol] = train_lstm_predictor(X, Y, cfg, groupId, splitInfo);
 
-outfile = fullfile(here, 'results', 'lstm_predictor.mat');
+outdir = fullfile(here, 'results');
+if ~exist(outdir, 'dir'), mkdir(outdir); end
+outfile = fullfile(outdir, 'lstm_predictor.mat');
 save(outfile, 'net', 'muX', 'sigX', 'muY', 'sigY', 'trainingInfo', ...
     'trainingProtocol', 'splitInfo', '-v7.3');
 fprintf('Saved retrained predictor to %s\n', outfile);
