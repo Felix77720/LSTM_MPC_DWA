@@ -1,0 +1,514 @@
+\documentclass[11pt,a4paper]{ctexart}
+\usepackage[left=2.4cm,right=2.4cm,top=2.2cm,bottom=2.2cm]{geometry}
+\setCJKmainfont{SimSun}
+\setCJKsansfont{SimSun}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\captionsetup{font=small,labelfont=bf,labelsep=space}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0pt}
+\setlength{\tabcolsep}{3pt}
+\emergencystretch=3em
+\title{基于 LSTM 预测增强的 MPC-DWA 无人机动态避障方法}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\begin{abstract}
+\noindent\textbf{摘要：}
+
+针对三维动态障碍环境中“观测—预测—规划”不同步导致的无人机避障失效问题，本文在双向耦合的模型预测控制（model predictive control, MPC）—动态窗口法（dynamic window approach, DWA）框架中引入长短期记忆网络（long short-term memory, LSTM）轨迹预测器。预测器以最近 1 s 的障碍历史为输入，预测未来 3 s 的三维位置，并将同一组时序预测同时注入 MPC 的时变安全代价和 DWA 的候选轨迹净空评分。训练协议使用 800 条独立轨迹，按轨迹划分 640/160 条训练/验证数据，仅用训练集统计量归一化，并采用带正确时间基准的噪声/延迟历史增强、早停和最佳验证损失模型选择。评估包含四个固定路线交叉场景和 12 个独立生成的随机混合机动场景。固定场景中，每种方法运行 12 次：LSTM 成功 12/12、0 次碰撞；static、匀速外推和 Kalman 分别成功 10/12、9/12 和 9/12。LSTM 的平均真实最小净空为 0.967 m，平均碰撞步数为 0。固定历史—未来窗口上的 LSTM ADE/FDE 为 0.49/1.14 m，Kalman 为 0.56/1.31 m，匀速外推为 0.51/1.23 m，静态冻结为 2.07/3.92 m。12 个随机场景的 36 次匹配运行中，LSTM 成功 36/36、0 次碰撞，优于 cv 和 Kalman 的 33/36 以及 static 的 26/36。本文同时报告逐次运行结果、失败类型和预测/DWA/MPC/状态指标计算时间分解。当前证据支持的是经过验证训练协议的 LSTM 在本文仿真及所测试感知压力下改善闭环预测—规划一致性，而不是对任意传感器延迟的普适鲁棒性。
+
+\noindent\textbf{关键词：} 无人机；动态避障；模型预测控制；动态窗口法；LSTM；Kalman 滤波；轨迹预测
+
+\end{abstract}
+
+\begin{abstract}
+\noindent\textbf{Abstract. }
+
+Dynamic obstacles can invalidate local UAV planning when observation, prediction and control are not temporally aligned. This paper introduces an LSTM trajectory predictor into a bidirectionally coupled model predictive control (MPC) and dynamic window approach (DWA) framework. The predictor receives the latest 1 s of an obstacle history and forecasts its three-dimensional position over the next 3 s; the same time-indexed forecast is injected into the MPC safety cost and the DWA candidate-clearance score. The revised training protocol uses 800 independent trajectories, a trajectory-level 640/160 training–validation split, training-only normalization statistics, correctly aligned noisy/delayed-history augmentation, early stopping and best-validation-loss model selection. Evaluation covers four fixed route-crossing scenes and 12 independently generated random mixed-maneuver scenes. In the fixed scenes, each method is evaluated in 12 matched closed-loop trials: LSTM succeeds in 12/12 trials with zero collision trials, compared with 10/12 for static freezing and 9/12 for both constant-velocity extrapolation and the Kalman filter. The LSTM achieves a mean true minimum clearance of 0.967 m. On fixed history–future windows, its ADE/FDE is 0.49/1.14 m, compared with 0.56/1.31 m for Kalman, 0.51/1.23 m for constant velocity and 2.07/3.92 m for static freezing. Across 12 random scenes and 36 matched trials per method, LSTM succeeds in 36/36 trials with zero collision steps, compared with 33/36 for both constant velocity and Kalman and 26/36 for static freezing. Per-run outcomes, failure types and prediction/DWA/MPC/state-metric timing components are reported. The evidence supports improved prediction–planning consistency under the tested simulation and sensing conditions, while not establishing universal robustness to arbitrary sensor delay or real-flight conditions.
+
+\textbf{Keywords:} UAV; dynamic obstacle avoidance; model predictive control; dynamic window approach; LSTM; Kalman filter; trajectory prediction
+
+\end{abstract}
+
+\section{引言}
+
+无人机在存在运动体的三维环境中需要同时完成目标到达、动力学可执行和碰撞规避。静态障碍规划可以把几何占据视为固定约束，但动态障碍的未来位置会在规划执行期间改变；因此，仅依赖当前观测的局部规划器可能在短时轨迹真正执行前失去有效性。障碍物转弯、变速或短时悬停后重新机动时，匀速外推也会出现系统性偏差。
+
+MPC 能够在动力学模型和输入约束下进行有限时域优化，DWA 则可在当前动态窗口中筛选可执行控制。二者结合可以同时利用前瞻优化和局部可执行性，但效果依赖于障碍物未来轨迹是否以相同时间索引提供给两个模块。若 MPC 与 DWA 使用不同的障碍物假设，规划器可能产生内在不一致的行为：MPC 预期障碍物将转弯，而 DWA 仍按静态或匀速轨迹筛选候选控制。
+
+本文研究的问题是：在固定三维动态场景和扩展随机场景中，将一个共享的学习型障碍轨迹预测器同步注入 MPC 和 DWA，是否能相对于静态冻结、匀速外推和 Kalman 基线提高闭环到达率并降低碰撞风险？本文的工作包括：
+
+\begin{enumerate}[leftmargin=*]
+\item 构建一个以 10 步历史预测 30 步未来的 LSTM-MPC-DWA 闭环，使用统一时间对齐规则将预测位置送入 MPC 安全代价和 DWA 时序净空评分。
+\item 采用 800 条独立训练轨迹和轨迹级训练/验证划分，加入经典 Kalman 基线，并以 3 个匹配运行种子比较四种方法。
+\item 新增 12 个固定随机种子生成的混合机动场景，报告逐次运行结果、失败类型、预测/DWA/MPC/状态指标计算时间，并通过 clean、噪声、延迟及联合压力测试界定方法边界。
+\end{enumerate}
+
+本文的主要结论限定为：在本文的仿真动力学、评估场景和观测条件下，LSTM 预测增强的双层 MPC-DWA 注入改善了部分闭环安全指标；该结论不等同于 LSTM 在每一个预测误差或非理想传感器条件下都优于基线。
+
+\section{相关工作}
+
+MPC-DWA 分层规划将中期模型预测与短时可执行控制联系起来，适合处理无人机的速度、角速度和动力学约束[1–4]。经典 DWA 通过动态窗口和短时轨迹评分保证候选控制具有可执行性[5,6]；MPC 则通过滚动优化生成面向目标的参考序列，并可在约束条件下分析稳定性与最优性[11]。学习型 MPC 的综述也指出，数据驱动模型必须与约束和在线优化共同考虑[12]。
+
+动态障碍预测可使用静态冻结、匀速模型、Kalman 滤波器或学习型序列模型。Kalman 滤波为线性动态系统提供了经典的递推状态估计基线[7]；静态冻结计算代价低但对运动障碍物缺乏时序信息；匀速外推在直线运动下有效，却不能描述加速、转弯、变速和航点切换。LSTM 能从历史序列中提取局部运动模式[8]，并已被用于交互式运动预测[9]。面向动态障碍的 DWA 预测增强方法[4]和带物理先验的 LSTM-DWA 方法[10]进一步说明，预测结果只有在时间索引与规划器一致时才可能转化为闭环收益。本文不把预测器独立看作完整避障方法，而是研究其与 MPC-DWA 双层执行链的一致耦合。
+
+\section{方法}
+
+\subsection{无人机动力学与闭环时序}
+
+仿真步长为 $dt=0.1$ s。无人机状态写为
+
+\[
+\mathbf{x}=[x,y,z,\theta,\psi,v]^\mathsf{T},\quad
+\mathbf{u}=[v_c,\omega_\theta,\omega_\psi]^\mathsf{T}.
+\]
+
+采用一阶速度响应模型：
+
+\[
+\begin{aligned}
+x_{t+1}&=x_t+dt\,v_t\cos\theta_t\cos\psi_t,\\
+y_{t+1}&=y_t+dt\,v_t\cos\theta_t\sin\psi_t,\\
+z_{t+1}&=z_t+dt\,v_t\sin\theta_t,\\
+\theta_{t+1}&=\theta_t+dt\,\omega_{\theta,t},\\
+\psi_{t+1}&=\psi_t+dt\,\omega_{\psi,t},\\
+v_{t+1}&=v_t+dt(v_{c,t}-v_t)/\tau,
+\end{aligned}
+\]
+
+其中 $\tau=0.5$ s。初始状态为 $[1,1,1]^{\mathsf T}$，目标为 $[18,18,8]^{\mathsf T}$；仿真空间为 $[0,20]\times[0,20]\times[0,10]$ m，最大仿真步数为 650。控制输入满足 $0\leq v_c\leq2.0$ m/s、$|\omega_\theta|,|\omega_\psi|\leq0.8$ rad/s，最大加速度为 1.0 m/s$^2$，俯仰/偏航角加速度上限为 0.5 rad/s$^2$，最大减速度为 1.0 m/s$^2$。目标到达条件为无人机与目标的三维距离小于 0.5 m 且整个轨迹无碰撞。
+
+\subsection{LSTM 障碍物轨迹预测与训练验证协议}
+
+每个动态障碍物独立使用同一个网络。输入为最近 $T_h=10$ 步的 8 维特征
+
+\[
+[x,y,z,v_x,v_y,v_z,\cos\psi,\sin\psi],
+\]
+
+输出为未来 $N_p=30$ 步的三维位移增量，覆盖 3 s。预测绝对位置由当前历史末端位置加位移增量得到。训练数据由 800 条独立生成的随机轨迹构成，包含直线、转弯、螺旋（helix）、加速、悬停后机动、正弦变速、之字形和航点跟随等模式，共提取 25,569 个按时间对齐的输入—输出窗口；训练增强后实际使用 40,910 个训练序列和 10,228 个验证序列。
+
+轨迹级随机划分得到 640 条训练轨迹和 160 条验证轨迹；S1–S4 及随机评估轨迹均不参与训练。输入和目标的均值/标准差只由训练窗口估计，并固定用于验证和测试，避免归一化统计量泄漏。网络结构为 8 维序列输入、96 单元 LSTM（仅输出末时刻）、0.2 dropout、96 单元全连接 ReLU 层和 90 维回归输出。
+
+训练采用 Adam 优化器，学习率为 $10^{-3}$，批大小为 128，最大 180 个 epoch，$L_2=10^{-4}$，梯度阈值为 1.0。训练历史按每个窗口增加一份标准差 0.03 m 的位置扰动视图，并增加一步延迟历史窗口；噪声视图的位移目标相对于其最新观测点重算，避免绝对位置偏移标签错误。验证集保留干净窗口并增加同分布的 0.03 m 压力视图。每 50 次更新计算一次验证损失，连续 12 次验证未改善时早停，并恢复最佳验证损失对应的网络。训练随机种子固定为 20260905，训练协议和划分元数据随模型文件保存。模型元数据记录选中的 \texttt{OutputNetworkIteration=5150}，归一化目标空间中的最终验证损失和 RMSE 分别为 3.4524295 和 2.6277099；这两个数值不是米制预测误差。
+
+观测存在噪声和延迟时，闭环额外采用因果位置平滑窗口和延迟补偿：平滑只使用当前及过去样本，并保留最新观测位置；对延迟历史产生的预测则丢弃已落后的前 $d$ 步并以预测末端速度补齐尾部。带噪声的完整观测流在每次闭环运行开始时只生成一次，并由 MPC 与 DWA 的所有预测调用共享。
+
+\subsection{双层预测注入的 MPC-DWA}
+
+MPC 在 $N=30$ 步时域内生成参考轨迹。对障碍物 $j$ 在未来 $k$ 步的预测位置 $\hat{\mathbf{o}}_{j,k}$，定义带符号净空
+
+\[
+d_{j,k}=\|\mathbf{p}_k-\hat{\mathbf{o}}_{j,k}\|-r_j-r_e,
+\]
+
+其中 $r_j$ 为障碍物半径，$r_e=0.3$ m 为无人机半径。规划时刻记为 $t$，用 $\mathbf{p}_{t+k|t}$ 与 $\hat{\mathbf{o}}_{j,t+k|t}$ 表示第 $k$ 步的规划位置和障碍预测位置；代码中的预测第 $k$ 行严格对应规划状态的 $X(:,k+1)$。MPC 障碍代价为
+
+\[
+J_{obs}=\sum_{k,j}\left[w_{obs}\max(0,-d_{j,k})^2
++w_s\max(0,d_s-d_{j,k})^2\right],
+\]
+
+其中 $w_{obs}=20000$，$w_s=12000$，安全软边界 $d_s=0.35$ m。为避免反复绕行后永久偏离标称航线，增加起点—目标线的三维横向软代价，主实验权重为 $w_{route}=3$。
+
+完整的 MPC 目标写为
+
+\[
+J=J_{goal}+J_{ctrl}+J_{smooth}+J_{route}+J_{obs},
+\]
+
+\[
+\begin{aligned}
+J_{goal}&=w_{pos}\sum_{k=0}^{N-1}\|\mathbf p_k-\mathbf g\|_2^2+w_{term}\|\mathbf p_N-\mathbf g\|_2^2,\\
+J_{ctrl}&=w_{ctrl}\sum_{k=0}^{N-1}\|\mathbf u_k\|_2^2,\\
+J_{smooth}&=w_{smooth}\sum_{k=1}^{N-1}\|\mathbf u_k-\mathbf u_{k-1}\|_2^2,\\
+J_{route}&=w_{route}\sum_{k=1}^{N}\left\|\mathbf e_k-\frac{\mathbf e_k^{\mathsf T}\mathbf a}{\|\mathbf a\|_2^2}\mathbf a\right\|_2^2,
+\quad \mathbf e_k=\mathbf p_k-\mathbf s,\ \mathbf a=\mathbf g-\mathbf s.
+\end{aligned}
+\]
+
+其中 $w_{pos}=w_{term}=1$、$w_{ctrl}=10$、$w_{smooth}=50$；$\mathbf s$ 和 $\mathbf g$ 分别为起点和目标。代码中的障碍代价、路线恢复代价、输入幅值和输入变化率约束共同组成上述优化问题。
+
+DWA 根据当前控制、最大加速度和最大角速度构造动态窗口。候选控制由 MPC 首步控制附近的采样和探索采样组成，并通过短时轨迹检查制动可行性及预测最小净空。候选的预测净空不大于 0.25 m 时被拒绝；若没有满足条件的候选，则在动态窗口内选择预测重叠最小的控制并记录一次回退步。DWA 的障碍评分和 MPC 使用同一组带时间索引的预测轨迹。DWA 最终控制以安全控制盒形式反馈给下一次 MPC，形成 MPC—DWA 双向耦合。
+
+\subsection{实现与复现参数}
+
+所有方法使用相同的无人机动力学、场景轨迹、MPC 代价和 DWA 动态窗口；仅障碍物未来轨迹接口不同。MPC 使用 CasADi 接口调用 IPOPT，最大迭代次数为 300、容差为 $10^{-6}$。DWA 基础采样数为 300，并按信任度自适应增加；引导采样比例为 0.35，探索强度参数为 3。DWA 的采样数按 $N_s=\operatorname{round}[N_{base}(1+\alpha e^{-\beta\tau})]$ 计算，其中 $N_{base}=300$、$\alpha=1$、$\beta=3$；引导采样位于 MPC 首步控制附近半径 0.35 的区域，其余样本在动态窗口内均匀探索。信任度使用 $d_{safe}=1$ m、$d_{sense}=5$ m、$\alpha_T=3$ 和 $\sigma=(0.35,0.30,0.15,0.20)$ 计算。评价权重由斜率 $K=8$、中点 $\tau_0=0.5$ 的 sigmoid 映射得到：$w_{pos}\in[0.10,0.30]$、$w_{head}\in[0.08,0.22]$、$w_{vel}=0.12(1+sigmoid)$、$w_{obs}\in[0.20,0.45]$，最后归一化为和为 1；另以 $w_{vertical}=0.25$ 抑制不必要的垂向逃逸。软件环境为 MATLAB R2025a、CasADi 3.8.0 和 Deep Learning Toolbox。固定主实验的随机种子按 $1000\times$运行种子$+$场景编号生成，随机场景按 $100000\times$运行种子$+$场景编号生成，压力测试按 $700000+10000\times$条件编号$+$运行种子生成；场景生成种子和训练种子均为 20260905。
+
+\begin{table}[t]
+\centering
+\small
+\caption{主要实现与复现参数}
+\label{tab:table-1}
+\begin{tabularx}{\linewidth}{YYY}
+\toprule
+参数 & 设置 & 作用 \\
+\midrule
+仿真步长 $dt$ & 0.1 s & 闭环更新周期 \\
+MPC / 预测时域 $N,N_p$ & 30 步 / 3 s & 规划与预测的共同时间范围 \\
+历史长度 $T_h$ & 10 步 / 1 s & LSTM 输入窗口 \\
+LSTM & 96 单元，dropout=0.2 & 序列编码器 \\
+训练 & 800 轨迹；640/160 轨迹级划分；Adam，最多 180 epoch，batch=128，$lr=10^{-3}$ & 训练/验证与优化协议 \\
+增强与选择 & 0.03 m 历史扰动 + 1 步延迟窗口；$L_2=10^{-4}$；梯度阈值 1.0；早停 12 次验证 & 抗观测扰动与防过拟合 \\
+DWA 采样 & $N_{base}=300$，$r_{guide}=0.35$，$\alpha=1,\beta=3$ & 候选控制生成 \\
+安全参数 & $r_e=0.3$ m，$d_s=0.35$ m，$d_{reject}=0.25$ m；飞行高度带 $z\in[0.5,9.5]$ m，距标称高度带宽 3.0 m & 净空约束、候选拒绝与垂向逃逸抑制 \\
+回线软代价 & $w_{route}=3$ & 抑制绕行后的永久侧向偏移 \\
+控制边界 & $v_c\in[0,2.0]$ m/s；角速度上限 0.8 rad/s；加速度上限 1.0 m/s$^2$；角加速度上限 0.5 rad/s$^2$；最大减速度 1.0 m/s$^2$ & 动力学可执行性与制动检查 \\
+环境与终止 & 起点 $[1,1,1]$ m；目标 $[18,18,8]$ m；空间 $20\times20\times10$ m；最大 650 步 & 场景边界和运行终止 \\
+求解器 & CasADi + IPOPT，max\_iter=300，tol=$10^{-6}$ & MPC 数值求解 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{实验设计}
+
+\subsection{评估场景与比较方法}
+
+S1–S4 为四个固定三维场景，障碍数量从 2、4、5 增加到 6，障碍半径约为 1.2–2.0 m，且均与无人机从 $[1,1,1]^\mathsf{T}$ 到 $[18,18,8]^\mathsf{T}$ 的标称航线发生交叉。运动类型覆盖直线、正弦变速、加速、转弯、之字形、悬停后机动和航点跟随。障碍轨迹在实验开始前固定生成，不读取或响应无人机状态。
+
+比较方法为：static 表示静态冻结当前障碍位置；cv 表示由最近观测速度进行匀速外推；kalman 表示常速度状态模型的 Kalman 递推滤波器并输出未来位置；lstm 表示本文 LSTM 预测并同步注入 MPC 与 DWA。
+
+每个固定场景使用随机种子 1–3 进行匹配运行，共 12 次/方法、48 次固定场景运行。另由场景种子 20260905 固定生成 12 个随机场景，每个场景包含 3–8 个障碍物和混合机动类型；随机场景按相同 3 个运行种子对四种方法进行比较，共 144 次扩展运行。随机性来自 DWA 候选采样；场景、动力学、网络参数和控制器权重保持一致。
+
+\subsection{评价指标与独立单位}
+
+离线预测使用平均位移误差（average displacement error, ADE）和最终位移误差（final displacement error, FDE）。固定窗口共有 17 个障碍、每个障碍 20 个时间窗，即 340 条/方法；这些窗口存在时间重叠，只作为预测误差的描述性测量，不作为 340 个独立重复。
+
+闭环指标包括成功率、失败类型、碰撞时间步数、碰撞事件数、真实最小净空、路径长度、到标称航线的三维跟踪 RMSE、DWA 回退步数和每步计算时间。对第 $j$ 个障碍物在时刻 $t$ 的预测误差 $e_{j,t,k}=\|\hat{\mathbf o}_{j,t+k|t}-\mathbf o_{j,t+k}\|_2$，代码先对每个时刻的 $N_p$ 个未来步求平均，再对该时刻可见的障碍物求平均，并对闭环时刻求平均；FDE 使用同一聚合的 $k=N_p$ 误差，即
+
+\[
+ADE=\frac{1}{T}\sum_t\frac{1}{M_t}\sum_{j=1}^{M_t}\frac{1}{N_p}\sum_{k=1}^{N_p}e_{j,t,k},\qquad
+FDE=\frac{1}{T}\sum_t\frac{1}{M_t}\sum_{j=1}^{M_t}e_{j,t,N_p}.
+\]
+
+真实最小净空定义为 $d_{min}=\min_{t,j}(\|\mathbf p_t-\mathbf o_{j,t}\|_2-r_j-r_e)$；负值表示几何重叠。碰撞步是 $d_{j,t}<0$ 的时间步，碰撞事件是碰撞状态由非碰撞变为碰撞的跃迁。成功指标为 $\mathbb{1}(\|\mathbf p_{end}-\mathbf g\|_2<0.5\ \mathrm m\ \land\text{碰撞步数}=0)$。计算时间进一步分为预测、DWA 候选处理、MPC 求解和状态更新/指标计算四部分；步骤 P95 用于识别长尾延迟，且不包含 $t=0$ 的初始 MPC 求解。主实验的独立重复单位是匹配的“场景—随机种子—方法”闭环运行，不对同一运行内的时间步进行伪重复显著性检验。
+
+\subsection{追加实验}
+
+为识别闭环增益来源，进行了单种子结构消融：$w_{route}=0$ 与 3、仅 MPC 注入 LSTM、仅 DWA 注入 LSTM、预测注入两层，以及 $H_{inj}=10,20,30$。该实验用于机制诊断，不替代多种子主比较。
+
+在 S4 中加入标准差 0.05 m 的位置观测噪声和 1 步延迟，并对四种方法各运行 3 个匹配种子；该压力套件的 \texttt{maxSteps=650}。每次运行只生成一次完整带噪观测流，之后由所有预测调用复用。该套件只包含一个固定的 S4 六障碍场景，四种条件各有 3 个种子和 4 种方法，共 48 条逐运行记录；因此它用于界定感知非理想条件下的边界，而非与干净观测主实验混合，也不构成多场景总体鲁棒性结论。由于每个条件每种方法仅有 $n=3$，成功率的 95\% Wilson 区间很宽；例如 LSTM 在 2/3 时为 20.8\%–93.9\%，联合条件 1/3 时为 6.1\%–79.2\%，这里只作描述性报告。
+
+\section{结果}
+
+\subsection{固定窗口预测}
+
+\begin{table}[t]
+\centering
+\small
+\caption{固定历史—未来窗口预测误差}
+\label{tab:table-2}
+\begin{tabularx}{\linewidth}{YYYY}
+\toprule
+方法 & 窗口数 & ADE/m & FDE/m \\
+\midrule
+static & 340 & 2.07 & 3.92 \\
+cv & 340 & 0.51 & 1.23 \\
+kalman & 340 & 0.56 & 1.31 \\
+lstm & 340 & 0.49 & 1.14 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+固定窗口上，LSTM 相对 cv 的 ADE 和 FDE 分别降低约 3.9\% 和 7.3\%，相对 Kalman 的 ADE 和 FDE 分别降低约 12.5\% 和 13.0\%。S1–S4 分组中，LSTM 的 ADE/FDE 分别为 0.576/1.203、0.363/0.833、0.256/0.603 和 0.751/1.760 m；Kalman 分别为 0.433/0.958、0.367/0.913、0.478/1.067 和 0.803/1.903 m。LSTM 的优势主要出现在 S3 非线性走廊压缩场景，S1 上并非所有窗口均优于传统模型；该结果支持有条件的非线性预测优势，但不单独证明闭环安全。
+
+\subsection{多种子闭环比较}
+
+\begin{table}[t]
+\centering
+\small
+\caption{固定场景三种子闭环运行汇总（均值±标准差）}
+\label{tab:table-3}
+\begin{tabularx}{\linewidth}{YYYYYYYY}
+\toprule
+方法 & 运行数 & 成功率（95\% Wilson CI） & 碰撞步数（均值±SD） & 真实最小净空/m（均值±SD） & 闭环 ADE/m（均值±SD） & 闭环 FDE/m（均值±SD） & 步时/ms（均值±SD） \\
+\midrule
+static & 12 & 83.3\%（55.2–95.3\%） & 0.50±1.17 & 0.688±0.579 & 2.103±0.553 & 3.996±1.103 & 95.12±24.56 \\
+cv & 12 & 75.0\%（46.8–91.1\%） & 2.42±5.65 & 0.665±0.923 & 0.490±0.171 & 1.179±0.433 & 96.17±27.47 \\
+kalman & 12 & 75.0\%（46.8–91.1\%） & 5.33±9.95 & 0.528±0.974 & 0.538±0.188 & 1.251±0.454 & 96.55±25.92 \\
+lstm & 12 & 100.0\%（75.8–100.0\%） & 0.00±0.00 & 0.967±0.788 & 0.570±0.313 & 1.287±0.707 & 99.00±26.54 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+上表的步时均值按逐运行 \texttt{MeanStepTime\_ms} 计算；固定场景逐运行均值分别为 95.12、96.17、96.55 和 99.00 ms，逐步标准差与完整 P95、预测/DWA/MPC/状态指标时间分解保存在 \texttt{results/multiseed\_comparison.csv}，避免将时间步当作独立样本。LSTM 在 12 次固定场景闭环运行中成功 12 次；static、cv 和 Kalman 分别失败 2、3 和 3 次。失败类型包括 \texttt{collision|dwa\_no\_safe\_candidate}、\texttt{collision|goal\_not\_reached|dwa\_no\_safe\_candidate}，以及 cv 在 S3 seed 3 的 \texttt{goal\_not\_reached|dwa\_no\_safe\_candidate}；LSTM 无失败。
+
+LSTM 的平均真实最小净空高于两种传统运动模型，且在 S4 三个种子中均成功；cv 在 S4 仅成功 1/3，Kalman 0/3。LSTM 的固定窗口 ADE 并非在每个场景都最低，但其闭环成功率和碰撞指标最好，说明避障能力由预测、时间同步、MPC 安全代价、飞行带约束和 DWA 候选筛选共同决定，而不是由单一 ADE/FDE 排名决定。
+
+\begin{table}[t]
+\centering
+\small
+\caption{固定场景主实验的时间分解（逐运行均值的再汇总，ms）}
+\label{tab:table-4}
+\begin{tabularx}{\linewidth}{YYYYYY}
+\toprule
+方法 & 预测 & DWA & MPC & 状态/指标 & 步骤 P95 \\
+\midrule
+static & 0.112 & 73.856 & 20.901 & 0.045 & 117.03 \\
+cv & 0.122 & 73.654 & 22.132 & 0.045 & 111.39 \\
+kalman & 3.366 & 71.751 & 21.211 & 0.043 & 111.21 \\
+lstm & 4.375 & 73.263 & 21.115 & 0.043 & 117.26 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small
+\caption{固定场景主实验的失败类型计数（12 次/方法）}
+\label{tab:table-5}
+\begin{tabularx}{\linewidth}{YYYYY}
+\toprule
+方法 & success & collision + dwa\_no\_safe\_candidate & collision + goal\_not\_reached + dwa\_no\_safe\_candidate & goal\_not\_reached + dwa\_no\_safe\_candidate \\
+\midrule
+static & 10 & 2 & 0 & 0 \\
+cv & 9 & 0 & 2 & 1 \\
+kalman & 9 & 3 & 0 & 0 \\
+lstm & 12 & 0 & 0 & 0 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small
+\caption{固定场景的逐场景闭环汇总（成功数/3；均值）}
+\label{tab:table-6}
+\begin{tabularx}{\linewidth}{YYYYY}
+\toprule
+场景 & 方法 & 成功/3 & 平均碰撞步数 & 平均最小净空/m \\
+\midrule
+S1 & static / cv / kalman / lstm & 3 / 3 / 3 / 3 & 0.00 / 0.00 / 0.00 / 0.00 & 1.209 / 1.938 / 1.930 / 2.136 \\
+S2 & static / cv / kalman / lstm & 3 / 3 / 3 / 3 & 0.00 / 0.00 / 0.00 / 0.00 & 1.251 / 0.628 / 0.611 / 1.052 \\
+S3 & static / cv / kalman / lstm & 3 / 2 / 3 / 3 & 0.00 / 0.00 / 0.00 / 0.00 & 0.298 / 0.387 / 0.231 / 0.262 \\
+S4 & static / cv / kalman / lstm & 1 / 1 / 0 / 3 & 2.00 / 9.67 / 21.33 / 0.00 & −0.008 / −0.292 / −0.660 / 0.419 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/S1 双障碍轻度交叉.png}
+\caption{S1 双障碍轻度交叉场景的三维闭环轨迹}
+\label{fig:figure-1}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/S2 四障碍走廊交错.png}
+\caption{S2 四障碍走廊交错场景的三维闭环轨迹}
+\label{fig:figure-2}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/S3 五障碍非线性走廊压缩.png}
+\caption{S3 五障碍非线性走廊压缩场景的三维闭环轨迹}
+\label{fig:figure-3}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/S4 六障碍密集走廊压缩.png}
+\caption{S4 六障碍密集走廊压缩场景的三维闭环轨迹}
+\label{fig:figure-4}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/S1 双障碍轻度交叉_pred.png}
+\caption{S1 中段时刻的障碍物历史与未来预测对比}
+\label{fig:figure-5}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/S2 四障碍走廊交错_pred.png}
+\caption{S2 中段时刻的障碍物历史与未来预测对比}
+\label{fig:figure-6}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/S4 六障碍密集走廊压缩_pred.png}
+\caption{S4 中段时刻的障碍物历史与未来预测对比}
+\label{fig:figure-7}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/lstm_detour_evidence_S1.png}
+\caption{S1 LSTM 绕行与真实净空证据}
+\label{fig:figure-8}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/lstm_detour_evidence_S2.png}
+\caption{S2 LSTM 绕行与真实净空证据}
+\label{fig:figure-9}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/lstm_detour_evidence_S3.png}
+\caption{S3 LSTM 绕行与真实净空证据}
+\label{fig:figure-10}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{../../results/figures_unified/lstm_detour_evidence_S4.png}
+\caption{S4 LSTM 绕行与真实净空证据}
+\label{fig:figure-11}
+\end{figure}
+
+为使固定场景的轨迹证据覆盖完整，图 8–11 分别给出 S1–S4 的 LSTM 三维真实轨迹、沿程横向偏移、横/垂向偏移和真实净空。图中 \texttt{detours} 按代码中的 ±0.5 m 横向偏移事件定义；因此并非每个场景都会出现事件标记，S3 的标记不应被解读为其他场景缺少证据。随机场景和感知压力测试是多运行套件，正文以逐运行 CSV、汇总表、失败类型和压力条件统计为主要证据，单张代表性轨迹图不替代总体估计。
+
+\subsection{结构消融与重复遭遇}
+
+在独立重复遭遇场景的单种子诊断中，双层 LSTM 注入（MPC 和 DWA）在 $w_{route}=3$ 时的真实最小净空为 1.939 m；仅 MPC 注入为 1.111 m，仅 DWA 注入为 1.921 m。相同场景下，$w_{route}=0$ 的 LSTM 运行仍成功，但路线恢复代价用于抑制绕行后的永久侧向偏移。注入时域从 10、20 增加到 30 步时，真实最小净空从 0.858 增加到 1.727 和 1.939 m。由于该消融目前是单种子，数值用于机制诊断，不能解释为稳定的总体效应量。
+
+\subsection{观测噪声和延迟压力测试}
+
+在 S4 中分别设置 clean、0.05 m 位置噪声、1 步延迟和噪声+延迟联合四种条件；这里的 clean 仅指压力套件中的单场景基线。每个条件由 3 个匹配种子组成，四种方法共享相同的观测随机流，共 48 条逐运行记录。最终结果如下。
+
+\begin{table}[t]
+\centering
+\small
+\caption{S4 感知压力测试指标汇总（3 次/方法；均值）}
+\label{tab:table-7}
+\begin{tabularx}{\linewidth}{YYYYYYY}
+\toprule
+条件 & 方法 & 成功/3 & 碰撞步数 & 最小净空/m & ADE/FDE/m & 步时/ms \\
+\midrule
+clean & static & 1 & 2.33 & −0.006 & 2.575/4.839 & 126.62 \\
+clean & cv & 0 & 14.00 & −0.779 & 0.764/1.884 & 161.90 \\
+clean & kalman & 0 & 22.00 & −0.659 & 0.838/1.991 & 153.61 \\
+clean & lstm & 2 & 0.00 & 0.365 & 0.684/1.554 & 166.13 \\
+噪声 0.05 m & static & 0 & 18.00 & −0.681 & 2.578/4.839 & 205.79 \\
+噪声 0.05 m & cv & 1 & 7.33 & −0.093 & 1.089/2.353 & 192.17 \\
+噪声 0.05 m & kalman & 2 & 5.33 & 0.202 & 0.956/2.152 & 197.84 \\
+噪声 0.05 m & lstm & 2 & 0.00 & 0.316 & 0.741/1.622 & 188.27 \\
+延迟 1 步 & static & 0 & 6.00 & −0.120 & 2.734/4.980 & 132.48 \\
+延迟 1 步 & cv & 0 & 23.00 & −0.665 & 0.828/1.979 & 124.15 \\
+延迟 1 步 & kalman & 0 & 24.00 & −0.723 & 0.909/2.093 & 128.21 \\
+延迟 1 步 & lstm & 2 & 0.00 & 0.770 & 0.731/1.625 & 138.40 \\
+噪声+延迟 & static & 0 & 6.67 & −0.129 & 2.738/4.981 & 134.61 \\
+噪声+延迟 & cv & 3 & 0.00 & 0.519 & 1.170/2.462 & 126.58 \\
+噪声+延迟 & kalman & 3 & 0.00 & 0.526 & 1.028/2.249 & 130.84 \\
+噪声+延迟 & lstm & 1 & 0.00 & 0.572 & 0.788/1.681 & 141.61 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small
+\caption{S4 感知压力测试时间分解（均值；ms）}
+\label{tab:table-8}
+\begin{tabularx}{\linewidth}{YYYYYYY}
+\toprule
+条件 & 方法 & 预测 & DWA & MPC & 状态/指标 & 步骤 P95 \\
+\midrule
+clean & static & 0.151 & 100.502 & 25.616 & 0.063 & 150.74 \\
+clean & cv & 0.196 & 112.091 & 49.192 & 0.071 & 263.44 \\
+clean & kalman & 5.329 & 104.989 & 42.926 & 0.066 & 186.59 \\
+clean & lstm & 7.866 & 113.077 & 44.764 & 0.068 & 204.36 \\
+噪声 0.05 m & static & 0.696 & 132.632 & 71.904 & 0.099 & 267.18 \\
+噪声 0.05 m & cv & 0.635 & 122.617 & 68.375 & 0.091 & 244.70 \\
+噪声 0.05 m & kalman & 6.507 & 123.309 & 67.531 & 0.089 & 248.45 \\
+噪声 0.05 m & lstm & 9.422 & 121.902 & 56.461 & 0.082 & 260.57 \\
+延迟 1 步 & static & 0.203 & 102.380 & 29.528 & 0.058 & 160.37 \\
+延迟 1 步 & cv & 0.213 & 94.811 & 28.767 & 0.058 & 147.87 \\
+延迟 1 步 & kalman & 4.735 & 94.583 & 28.593 & 0.057 & 148.85 \\
+延迟 1 步 & lstm & 6.113 & 103.813 & 28.141 & 0.056 & 159.72 \\
+噪声+延迟 & static & 0.434 & 105.140 & 28.681 & 0.056 & 157.96 \\
+噪声+延迟 & cv & 0.435 & 97.794 & 28.000 & 0.056 & 153.98 \\
+噪声+延迟 & kalman & 4.922 & 98.420 & 27.210 & 0.056 & 154.01 \\
+噪声+延迟 & lstm & 6.481 & 105.600 & 29.202 & 0.057 & 163.35 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+压力结果显示，在这个单一 S4 六障碍场景中，LSTM 在 clean、噪声和单独延迟条件下均保持 2/3 成功且 0 碰撞；联合条件下 LSTM 为 1/3，而 cv 和 Kalman 为 3/3。LSTM 的压力失败均为 \texttt{goal\_not\_reached|dwa\_no\_safe\_candidate}，未出现碰撞；传统方法的失败主要包含碰撞和无安全候选。因而本文只主张 LSTM 提供较好的无碰撞裕度和部分压力鲁棒性，不主张其在联合感知扰动下全面优于所有基线，也不把该单场景压力结果外推为普适鲁棒性。完整逐运行结果、失败类型和 P95 时间见 \texttt{results/robustness\_unified/sensing\_20260906\_160557/sensing\_comparison.csv} 与 \texttt{sensing\_summary.csv}。
+
+\subsection{扩展随机场景}
+
+扩展套件由场景种子 20260905 生成 12 个场景，每个场景随机包含 3–8 个障碍物，并从 straight、turn、sine\_speed、accel、hover\_go、zigzag 和 waypoints 中混合抽取机动类型。每个随机场景使用运行种子 1–3 对四种方法进行匹配运行，共 144 次；每次运行保存 MAT 结果、轨迹时间分解 CSV 和统一模型 SHA-256。随机套件的整体成功数、碰撞步数、失败类型、ADE/FDE 和时间分解由 \texttt{results/random\_eval/random12\_20260906\_134750/random\_summary.csv} 逐字段复核。
+
+\begin{table}[t]
+\centering
+\small
+\caption{扩展随机场景的闭环汇总（均值）}
+\label{tab:table-9}
+\begin{tabularx}{\linewidth}{YYYYYYYY}
+\toprule
+方法 & 运行数 & 成功率（95\% Wilson CI） & 平均碰撞步数 & 平均最小净空/m & 平均 ADE/FDE/m & 平均步时/ms & 失败类型计数 \\
+\midrule
+static & 36 & 72.2\%（26/36；56.0–84.2\%） & 9.78 & 0.678 & 1.797 / 3.439 & 121.05 & collision + dwa\_no\_safe\_candidate: 10 \\
+cv & 36 & 91.7\%（33/36；78.2–97.1\%） & 2.00 & 0.749 & 0.397 / 1.026 & 121.27 & collision + dwa\_no\_safe\_candidate: 3 \\
+kalman & 36 & 91.7\%（33/36；78.2–97.1\%） & 2.03 & 0.733 & 0.443 / 1.098 & 125.04 & collision + dwa\_no\_safe\_candidate: 3 \\
+lstm & 36 & 100.0\%（36/36；90.4–100.0\%） & 0.00 & 1.108 & 0.327 / 0.764 & 127.33 & success: 36 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+在 12 个随机场景中，LSTM 无失败，ADE/FDE 和平均最小净空均优于 cv 与 Kalman；static 有 10 次、cv 和 Kalman 各有 3 次 \texttt{collision|dwa\_no\_safe\_candidate} 失败。Wilson 区间仅用于刻画成功率估计的不确定性，不用于四种方法的显著性检验。随机套件支持本文机制不只适用于 S1–S4，但它仍是固定生成器下的仿真证据，不能替代真实传感器和硬件在环验证。
+
+\section{讨论}
+
+本文的证据链分为三层：固定窗口预测误差、固定场景闭环行为和感知压力边界。LSTM 在总体固定窗口上略优于 cv 与 Kalman，并在 S3 非线性走廊中优势更明显；在固定场景中，LSTM 成功 12/12，且 S4 的三个匹配种子均无碰撞。压力实验进一步显示，LSTM 在单独噪声或单独延迟下保持 2/3 成功，而在联合条件下为 1/3，说明预测精度改善不能直接等价为无干扰闭环保证。
+
+当前实现的工程性贡献是将预测器作为 MPC 与 DWA 共享的时序接口。路线恢复软代价、安全边界惩罚、预测候选拒绝和双层注入共同构成闭环保护链；单层消融的较低净空支持这种解释，但由于消融为单种子，不能将每个组件的增益独立归因到精确比例。随机场景套件用于检验该机制是否仅适用于 S1–S4，不替代真实传感器和硬件在环验证。
+
+本文仍存在四个边界。第一，障碍轨迹来自固定合成生成器，尚未覆盖真实传感器遮挡、漏检、障碍物交互和多智能体博弈，不能直接外推到真实飞行。第二，训练/验证协议已补齐，但模型选择不确定性仍只有单次训练划分，尚未进行多模型种子或交叉验证。第三，主实验使用干净观测，压力实验表明联合噪声和延迟会显著削弱 LSTM 的终点可达性，且联合条件下不超过 CV/Kalman。第四，固定主实验平均每步计算时间约为 95–99 ms，但压力条件可升至约 126–206 ms，当前结果不支持稳定 10 Hz 实时部署的声明；Kalman 的在线预测时间也显示了实现层面的开销。下一步应使用更丰富的联合感知扰动、漏检和时间延迟训练数据，并在真实或硬件在环平台上检验安全约束与计算预算。
+
+\section{结论}
+
+本文提出了一个将 LSTM 障碍物轨迹预测同时注入 MPC 和 DWA 的三维无人机动态避障方法，并通过固定窗口、Kalman 基线、3 种子闭环对照、结构消融、四条件感知压力测试和扩展随机场景构成证据链。新训练协议使用轨迹级训练/验证划分、训练集归一化统计量、正确时间基准的历史扰动增强、早停和最佳验证损失选择。固定场景中，LSTM 达到 12/12 成功，固定窗口 ADE/FDE 为 0.49/1.14 m；在单一 S4 六障碍场景的四条件压力测试中，LSTM 在 clean、噪声、延迟和联合条件下分别达到 2/3、2/3、2/3 和 1/3 成功，所有压力失败均无碰撞。12 个随机场景的 36 次匹配运行中，LSTM 达到 36/36 成功，ADE/FDE 为 0.327/0.764 m。因而本文支持的结论是：正确时间对齐的 LSTM 预测能够在本文的中等复杂度动态障碍仿真中改善 MPC-DWA 的闭环安全和随机场景成功率，但单场景联合感知扰动、模型不确定性、实时部署和真实飞行验证仍是关键问题。
+
+\section*{参考文献}
+\begin{thebibliography}{99}
+\bibitem{ref1} 常绪成，王敬宇，党帅龙，等. 基于 MPC-DWA 策略的无人机路径规划算法研究[J/OL]. 电光与控制，1–9 [2026-09-07]. \url{https://link.cnki.net/urlid/41.1227.TN.20260325.1153.006}.
+
+\bibitem{ref2} 滕菲，王迎春，姚永辉，张坤. 基于深度强化学习的无人机动态避障规划. 北京航空航天大学学报，2025 网络优先. DOI: 10.13700/j.bh.1001-5965.2025.0084.
+
+\bibitem{ref3} 史培龙，等. Dynamic obstacle avoidance control of intelligent vehicle on large curvature roads considering trajectory prediction. 长安大学学报（自然科学版），2024（4）：161–174. DOI: 10.19721/j.cnki.1671-8879.2024.04.015.
+
+\bibitem{ref4} Hahn B. Enhancing obstacle avoidance in dynamic window approach via dynamic obstacle behavior prediction. Actuators, 2025, 14(5): 207. DOI: 10.3390/act14050207.
+
+\bibitem{ref5} Yu H, Zhang Z. Dynamic obstacle avoidance algorithm for UUV based on physics prior LSTM network model and dynamic window approach. Ocean Engineering, 2026, 124503. DOI: 10.1016/j.oceaneng.2026.124503.
+
+\bibitem{ref6} Fox D, Burgard W, Thrun S. The dynamic window approach to collision avoidance. IEEE Robotics \& Automation Magazine, 1997, 4(1): 23–33. DOI: 10.1109/100.580977.
+
+\bibitem{ref7} Kalman R E. A new approach to linear filtering and prediction problems. Journal of Basic Engineering, 1960, 82(1): 35–45. DOI: 10.1115/1.3662552.
+
+\bibitem{ref8} Hochreiter S, Schmidhuber J. Long short-term memory. Neural Computation, 1997, 9(8): 1735–1780. DOI: 10.1162/neco.1997.9.8.1735.
+
+\bibitem{ref9} Alahi A, Goovaerts T, Ramanathan V, et al. Social LSTM: Human trajectory prediction in crowded spaces. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, 2016: 961–971. DOI: 10.1109/CVPR.2016.110.
+
+\bibitem{ref10} Cao Z, Chi W. Dynamic obstacle avoidance of UAV using chance constrained model predictive control. Optimal Control Applications and Methods, 2025, 46(5): 1914–1931. DOI: 10.1002/oca.3298.
+
+\bibitem{ref11} Mayne D Q, Rawlings J B, Rao C V, Scokaert P O M. Constrained model predictive control: Stability and optimality. Automatica, 2000, 36(6): 789–814. DOI: 10.1016/S0005-1098(99)00214-9.
+
+\bibitem{ref12} Hewing L, Wabersich K P, Menner M, Zeilinger M N. Learning-based model predictive control: Toward safe learning in control. Annual Review of Control, Robotics, and Autonomous Systems, 2020, 3: 269–296. DOI: 10.1146/annurev-control-090419-075625.
+
+\bibitem{ref13} Andersson J A E, Gillis J, Horn G, Rawlings J B, Diehl M. CasADi: A software framework for nonlinear optimization and optimal control. Mathematical Programming Computation, 2019, 11: 1–36. DOI: 10.1007/s12532-018-0139-4.
+
+\end{thebibliography}
+
+\section{数据与复现说明}
+
+本文数值来自固定窗口预测、固定场景三种子闭环比较、结构消融、四条件噪声—延迟压力测试和扩展随机场景的逐运行记录。固定窗口存在时间重叠，不作为独立重复；闭环运行以场景—随机种子—方法为独立单位。当前模型文件 \texttt{results/lstm\_predictor.mat} 的 SHA-256 为 \texttt{61d84f53263b9ed568c15a3a0fa2dc2fb04d7b1b4e4f669ae38effc4e3e3c25d}。固定场景结果为 \texttt{results/multiseed\_comparison.csv}（SHA-256：\texttt{88d21b7681bd1ef4a763082d1691921aaebf5c601aa5ec2d86fdc428e522e802}）和 \texttt{results/multiseed\_summary.csv}（\texttt{584be9010fbcbc29e06ec1d1ebd0c795b7b4af4fdd34c9cbec804fddd1349a9f}）；预测误差为 \texttt{results/prediction\_fixed/fixed\_window\_group\_summary.csv}（\texttt{a68524109f29712185ca7c07b8d6d2a691600715d5abd39724bb1421b960aeb4}）和 \texttt{fixed\_window\_summary.csv}（\texttt{b1f8ca62e5c302aa61db7545275b35eb1189f34b41116a8d497af2e4b5136b66}）。压力结果位于 \texttt{results/robustness\_unified/sensing\_20260906\_160557/}；该目录的压力 CSV 由单一 S4 六障碍场景生成，包含 4 个感知条件 × 3 个运行种子 × 4 种方法 = 48 条逐运行记录。压力结果 \texttt{sensing\_comparison.csv}、\texttt{sensing\_summary.csv} 和汇总 MAT 的 SHA-256 分别为 \texttt{14877879bf5a3ea24397993d51699a325ef436c1afddd067848953c046c8da85}、\texttt{7f9ec7d2b2d6d155e84f6f69e5cdc48df37d70c766af55ef001d2892094fb16f} 和 \texttt{6367a465db10ed8442d47fcd9105b572d1834d20abd4dbe6a388e7e4f70a06cc}。随机场景结果位于 \texttt{results/random\_eval/random12\_20260906\_134750/}，其中 \texttt{random\_scenarios.csv}、\texttt{random\_comparison.csv} 和 \texttt{random\_summary.csv} 的 SHA-256 分别为 \texttt{640ba3085a725f0f99077f09a36b9035c34074c8dd0727a7e91677c21aea0d96}、\texttt{31302bfd452fcafae0bdafd2316775a3c5058d1652803d3348a97486d6413ba1} 和 \texttt{b45c5babec3e3979484e157a0eb1a3c58937b607d2e3051948578c3f2f0b83e0}。正式投稿时应提供可访问的代码、模型和逐运行数据归档链接；作者单位等投稿元数据另行填写。
+
+\end{document}

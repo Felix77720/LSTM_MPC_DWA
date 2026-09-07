@@ -1,0 +1,44 @@
+# Operating-system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# MATLAB temporary and generated files
+*.asv
+*.m~
+slprj/
+*.mexw64
+*.mexmaci64
+*.mexa64
+*.dll
+*.lib
+*.a
+
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Keep the reproducibility model, but ignore generated experiment outputs.
+/results/*
+!/results/lstm_predictor.mat
+
+# The Zenodo data-package staging area is intentionally not part of the code repo.
+/reproducibility_release_v1.0.0/
+
+# The bundled CasADi distribution is kept locally but not committed to GitHub.
+/MPC_DWA_Fusion/third_party/casadi-3.8.0-windows64-matlab2018b/**
+!/MPC_DWA_Fusion/third_party/casadi-3.8.0-windows64-matlab2018b/README.md
+
+# Generated manuscript and LaTeX build products
+paper/**/*.pdf
+paper/**/*.docx
+paper/**/*.log
+paper/**/*.aux
+paper/**/*.out
+paper/**/*.synctex*
+paper/**/*.fls
+paper/**/*.fdb_latexmk
+paper/**/__pycache__/
