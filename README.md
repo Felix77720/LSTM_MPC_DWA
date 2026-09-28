@@ -24,6 +24,10 @@ The metadata records 800 independent trajectories, a trajectory-level
 and one-step-delay history augmentation, early stopping, and best-validation-
 loss selection. A newly retrained local model is a new artifact and must be
 hashed separately.
+The compact configuration, cluster-bootstrap and sensing-pressure summaries
+used to interpret the archived evaluation are versioned in
+[`supplementary/`](supplementary/); raw run-level records remain separate
+because they are large experimental artifacts.
 
 ## Citation and archived results
 

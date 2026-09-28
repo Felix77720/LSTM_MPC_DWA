@@ -1,0 +1,33 @@
+group,parameter,value,unit_or_definition
+workspace,dimensions,20 x 20 x 10,m
+workspace,start_position,"[1, 1, 1]^T",m
+workspace,goal_position,"[18, 18, 8]^T",m
+dynamics,sampling_interval,0.1,s
+dynamics,velocity_response_constant,0.5,s
+constraints,vertical_band,"[0.5, 9.5]",m
+constraints,effective_uav_radius,0.3,m
+forecast,history_length_T_h,10,observations
+forecast,planning_horizon_N,30,steps
+predictor,hidden_units,96,units
+predictor,dropout,0.2,fraction
+predictor,ReLU_output_head,96,units
+predictor,output_dimension,90,dimensions
+training,synthetic_trajectories,800,trajectories
+training,motion_families,"straight; turning; helical; accelerating; hover-then-manoeuvre; sinusoidal-speed; zigzag; waypoint-following",synthetic motion classes
+training,training_validation_split,"640 / 160",trajectory-disjoint
+training,optimizer,Adam,optimizer
+training,learning_rate,1e-3,dimensionless
+training,batch_size,128,samples
+training,maximum_epochs,180,epochs
+training,L2_regularization,1e-4,dimensionless
+training,gradient_threshold,1.0,dimensionless
+MPC,overlap_weight_w_o,20000,dimensionless
+MPC,soft_margin_weight_w_s,12000,dimensionless
+MPC,soft_safety_boundary_d_s,0.35,m
+DWA,injected_horizon_H_inj,30,steps
+DWA,base_sample_count_N_base,300,candidates
+DWA,sampler_scale_alpha,1,dimensionless
+DWA,sampler_scale_beta,3,dimensionless
+DWA,rejection_clearance_d_reject,0.25,m
+DWA,allowable_deceleration_a_dec,1.0,m s^-2
+ablation,injected_horizons,"10; 20; 30",steps
