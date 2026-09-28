@@ -70,9 +70,7 @@ It writes 48 matched closed-loop rows (4 scenarios x 3 seeds x 4 methods) to
 `run_sensing_robustness`: it writes a unified four-condition suite (clean,
 0.05-m noise, one-step delay, and joint noise-delay) under
 `results/robustness_unified/sensing_<timestamp>`, with one shared observation
-stream per matched trial. `run_robustness_experiments` is retained only as a
-legacy joint-condition compatibility entry point and is not the authoritative
-robustness scope. The current Chinese manuscript and archived result tables
+stream per matched trial. The current Chinese manuscript and archived result tables
 are kept outside this code-only repository in the local
 archive/reproducibility package. The matched three-seed ablation is reproduced
 by `run_ablation_multiseed`, which writes 18 run-level records and variant
@@ -87,8 +85,6 @@ written under `results/statistical_analysis/`.
   four-method comparison -> ablation -> visualization).
 - `run_sensing_robustness.m`: authoritative unified sensing suite with clean,
   noise-only, delay-only and joint conditions on the fixed S4 pressure scene.
-- `run_robustness_experiments.m`: legacy joint-condition compatibility entry
-  point; it is not the current unified robustness evidence.
 - `config_LSTM.m`: extended configuration.
 - `generate_obstacle_trajectory.m` / `generate_training_data.m` /
   `generate_eval_scenarios.m`: independent dynamic obstacle trajectory
