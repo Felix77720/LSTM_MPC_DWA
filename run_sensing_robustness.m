@@ -5,6 +5,10 @@ function run_sensing_robustness()
 % seeds across static, CV, Kalman, and LSTM.  This keeps the observation and
 % DWA randomness matched while exposing the individual effects of noise,
 % delayed observations, and their combination.
+% Current archived scope: 4 conditions x 3 seeds x 4 methods = 48 rows in
+% results/robustness_unified/sensing_20260906_160557. The LSTM reference
+% artifact uses 800 trajectories and SHA-256
+% 61d84f53263b9ed568c15a3a0fa2dc2fb04d7b1b4e4f669ae38effc4e3e3c25d.
 
 here = fileparts(mfilename('fullpath'));
 addpath(here);

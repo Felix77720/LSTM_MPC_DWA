@@ -5,6 +5,9 @@ function run_random_multiseed()
 % method.  A separate seed is used for the stochastic DWA sampling.  The
 % runner writes one row per trial and one trajectory CSV per trial so that
 % success, failure type, collision events, and timing can be audited.
+% Results are model-bound through ModelSHA256; the archived reference model
+% was trained from 800 independent trajectories and hashes to
+% 61d84f53263b9ed568c15a3a0fa2dc2fb04d7b1b4e4f669ae38effc4e3e3c25d.
 
 here = fileparts(mfilename('fullpath'));
 addpath(here);

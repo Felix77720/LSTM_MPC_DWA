@@ -1,5 +1,9 @@
 % run_experiments - Main entry point for LSTM-enhanced MPC-DWA experiments.
 % Usage: cd to this folder in MATLAB, then run run_experiments.
+% The archived reference model uses 800 independent trajectories (640/160
+% trajectory-level split) and has SHA-256
+% 61d84f53263b9ed568c15a3a0fa2dc2fb04d7b1b4e4f669ae38effc4e3e3c25d. A
+% newly trained local model must be treated as a new hash-bound artifact.
 
 clear; close all; clc;
 

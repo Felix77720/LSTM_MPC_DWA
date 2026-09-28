@@ -30,6 +30,13 @@ env/
 # Local manuscript, result and AI/debug working archive.
 /_local_archive/
 
+# Locally retained AI-generated review, release-planning and status records.
+/release/
+/REVISION_STATUS.md
+
+# A presentation asset, not part of the executable research package.
+/project_intro_poster.png
+
 # The bundled CasADi distribution is kept locally but not committed to GitHub.
 /MPC_DWA_Fusion/third_party/casadi-3.8.0-windows64-matlab2018b/**
 !/MPC_DWA_Fusion/third_party/casadi-3.8.0-windows64-matlab2018b/README.md

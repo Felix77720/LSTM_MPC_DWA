@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the versioned release."
+title: "Prediction–Planning Consistent LSTM-Enhanced MPC-DWA for UAV Dynamic Obstacle Avoidance"
+version: "1.1.0"
+date-released: "2026-09-28"
+type: software
+abstract: >-
+  MATLAB and CasADi source code for an LSTM-enhanced MPC-DWA framework for
+  three-dimensional UAV dynamic-obstacle avoidance. The code includes
+  trajectory generation, LSTM prediction, time-aligned MPC/DWA injection,
+  matched closed-loop comparisons, sensing-pressure tests, random-scene
+  evaluation and audit-oriented result export.
+authors:
+  - family-names: Fu
+    given-names: Zhenhui
+keywords:
+  - UAV
+  - dynamic obstacle avoidance
+  - model predictive control
+  - dynamic window approach
+  - LSTM
+  - trajectory prediction
+repository-code: "https://github.com/Felix77720/LSTM_MPC_DWA"

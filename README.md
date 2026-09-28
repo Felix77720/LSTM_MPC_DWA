@@ -13,6 +13,26 @@ experiments in an EI conference paper.
   directory README for the expected layout)
 - Deep Learning Toolbox (installed)
 
+## Reproducibility binding
+
+The latest archived evaluation uses the saved artifact
+`model/lstm_predictor.mat` from the reproducibility data package. Its SHA-256
+is `61d84f53263b9ed568c15a3a0fa2dc2fb04d7b1b4e4f669ae38effc4e3e3c25d`.
+The metadata records 800 independent trajectories, a trajectory-level
+640/160 training/validation split, 10-step history, 30-step prediction,
+96 hidden units, training seed `20260905`, training-only normalization, noise
+and one-step-delay history augmentation, early stopping, and best-validation-
+loss selection. A newly retrained local model is a new artifact and must be
+hashed separately.
+
+## Citation and archived results
+
+Use [`CITATION.cff`](CITATION.cff) to cite the versioned software release. The
+trained model, run-level outputs and generated figures are intentionally kept
+outside the source tree because they are large experimental artifacts. The
+source repository contains every MATLAB entry point required to regenerate
+them; a new model created by retraining must be recorded with its own hash.
+
 ## Design Choice
 
 LSTM training and inference use the MATLAB Deep Learning Toolbox directly,
@@ -42,16 +62,29 @@ PNGs, prediction-comparison PNGs, and `lstm_predictor.mat`.
 For the publication protocol, run `run_multiseed` after the model is trained.
 It writes 48 matched closed-loop rows (4 scenarios x 3 seeds x 4 methods) to
 `results/multiseed_comparison.csv` and the descriptive method summary to
-`results/multiseed_summary.csv`. `run_robustness_experiments` adds the S4
-5-cm-observation-noise plus one-step-delay stress test; each run now generates
-one fixed noisy observation stream shared by MPC and DWA. The current Chinese
-manuscript and archived result tables are kept outside this code-only
-repository in the local archive/reproducibility package.
+`results/multiseed_summary.csv`. For the current robustness evidence, run
+`run_sensing_robustness`: it writes a unified four-condition suite (clean,
+0.05-m noise, one-step delay, and joint noise-delay) under
+`results/robustness_unified/sensing_<timestamp>`, with one shared observation
+stream per matched trial. `run_robustness_experiments` is retained only as a
+legacy joint-condition compatibility entry point and is not the authoritative
+robustness scope. The current Chinese manuscript and archived result tables
+are kept outside this code-only repository in the local
+archive/reproducibility package. The matched three-seed ablation is reproduced
+by `run_ablation_multiseed`, which writes 18 run-level records and variant
+summaries under `results/ablation_multiseed/`. Scene-level uncertainty for the
+12 random scenes is reproduced by `analyze_cluster_bootstrap`, using the
+complete scene as the resampling unit and 20,000 resamples; its outputs are
+written under `results/statistical_analysis/`.
 
 ## Directory Structure
 
 - `run_experiments.m`: main entry point (data generation -> training ->
   four-method comparison -> ablation -> visualization).
+- `run_sensing_robustness.m`: authoritative unified sensing suite with clean,
+  noise-only, delay-only and joint conditions on the fixed S4 pressure scene.
+- `run_robustness_experiments.m`: legacy joint-condition compatibility entry
+  point; it is not the current unified robustness evidence.
 - `config_LSTM.m`: extended configuration.
 - `generate_obstacle_trajectory.m` / `generate_training_data.m` /
   `generate_eval_scenarios.m`: independent dynamic obstacle trajectory
@@ -101,17 +134,21 @@ not evidence of universal real-time or flight performance.
 The fixed-window prediction evaluation contains 340 overlapping windows per
 method. Static/CV/Kalman/LSTM ADE-FDE are 2.07/3.92, 0.51/1.23, 0.56/1.31
 and 0.49/1.14 m. Overlapping windows are descriptive prediction measurements,
-not independent replicates. The unified sensing suite is a single fixed S4
-scene with six obstacles, four conditions, three seeds and four methods (48
-rows) at `results/robustness_unified/sensing_20260906_160557`; LSTM succeeds
-2/3, 2/3, 2/3 and 1/3 across clean, noise-only, delay-only and joint
-conditions. The joint result is a boundary observation, not a universal
-robustness claim.
+not independent replicates. The authoritative unified sensing suite is a
+single fixed S4 scene with six obstacles, four conditions, three seeds and
+four methods (48 rows) at
+`results/robustness_unified/sensing_20260906_160557`; all rows bind to the
+saved model hash above. LSTM succeeds 2/3, 2/3, 2/3 and 1/3 across clean,
+noise-only, delay-only and joint conditions. The joint result is a boundary
+observation, not a universal robustness claim.
 
 The expanded random suite contains 12 fixed-seed scenes × 3 run seeds × 4
 methods = 144 closed-loop trials. Success is static 26/36, CV 33/36, Kalman
 33/36 and LSTM 36/36; full per-run failure and timing data are in the separate
-reproducibility data package.
+reproducibility data package. The scene-cluster bootstrap estimates an LSTM
+success-rate difference of 8.3 percentage points versus both CV and Kalman,
+with 95% cluster intervals [0, 25.0] percentage points; the interval includes
+zero, so this is reported descriptively rather than as a significance claim.
 
 Run the multi-seed comparison with:
 
@@ -120,8 +157,30 @@ cd('<path-to-cloned-LSTM_MPC_DWA>')
 run_multiseed
 ```
 
+Run the current sensing suite with:
+
+```matlab
+run_sensing_robustness
+```
+
 Outputs: `results/multiseed_comparison.csv` and
 `results/multiseed_summary.csv`.
+
+Run the three-seed structural ablation with:
+
+```matlab
+run_ablation_multiseed
+```
+
+Run the scene-cluster statistical summary with:
+
+```matlab
+analyze_cluster_bootstrap
+```
+
+The reproducibility archive records the exact timestamped output directories
+used by the manuscript, including the 18 ablation records and the 20,000-
+resample cluster summaries.
 
 ## Obstacle Trajectories
 
@@ -157,7 +216,7 @@ in that directory's README.
 The entry points create a local `results/` directory for generated outputs. The
 fixed trained model used by the archived runs is included in the separate data
 package; it is not committed to the code repository. Run `retrain_lstm` first
-in a fresh clone, then run the evaluation entry points. Manuscripts, previous
+in a fresh clone, then run the evaluation entry points and record the new model
+hash. Manuscripts, previous
 results and AI/debug working material are kept only in the ignored local
-`_local_archive/` directory. Replace the `TODO` archive fields in the release
-metadata after Zenodo publication.
+`_local_archive/` directory.

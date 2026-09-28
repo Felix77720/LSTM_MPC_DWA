@@ -5,6 +5,8 @@
 % run seeds and four prediction methods (48 run-level records in total).
 % DWA sampling is stochastic, so the summary reports matched multi-seed means
 % and standard deviations.
+% The archived reference model is the 800-trajectory artifact with SHA-256
+% 61d84f53263b9ed568c15a3a0fa2dc2fb04d7b1b4e4f669ae38effc4e3e3c25d.
 
 clear; close all; clc;
 

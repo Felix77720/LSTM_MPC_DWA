@@ -1,11 +1,10 @@
 function run_robustness_experiments()
-% run_robustness_experiments - Stress test under delayed, noisy observations.
+% run_robustness_experiments - Legacy joint-condition compatibility runner.
 %
-% The main comparison uses clean observations. This complementary experiment
-% keeps the held-out dense S4 scene and controller settings fixed, then adds a
-% 50-mm isotropic position-observation noise and one-step observation delay.
-% The same seeds are reset for each method so that the stochastic observation
-% sequence is matched across methods.
+% Use run_sensing_robustness for the authoritative four-condition scope
+% (clean, noise-only, delay-only, and joint noise-delay). This older entry
+% point is retained for compatibility and is not the source of the archived
+% unified sensing evidence.
 
 here = fileparts(mfilename('fullpath'));
 addpath(here);

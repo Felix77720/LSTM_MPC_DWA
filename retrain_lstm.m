@@ -1,5 +1,7 @@
 % retrain_lstm - Generate training data from the current maneuver set and
 % train a fresh LSTM predictor, then save it to results/lstm_predictor.mat.
+% The current archived protocol uses 800 independent trajectories with a
+% trajectory-level 640/160 split. Retraining creates a new model hash.
 
 clear; close all; clc;
 
