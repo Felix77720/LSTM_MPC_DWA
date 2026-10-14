@@ -1,0 +1,53 @@
+# Supplementary methods and retained baseline experiments
+
+This supplement preserves controller details, historical baselines, and diagnostic results. It reports two distinct evidence sets: a completed historical five-controller comparison (7,500 runs; 1-s DWA screening) and a separate Stage-1 trust-weight development study (4,320 episodes; 3-s configuration). The Stage-1 selection was not applied to the historical benchmark. Stage-2 and held-out seven-controller outcomes are not included, and the two evidence sets must not be pooled.
+
+## Stage-1 trust-weight development (4,320 episodes)
+
+Six candidate weight vectors were evaluated across five integrated MPC--DWA branches, 48 development scenes, and three matched seeds ($6\times5\times48\times3=4{,}320$ episodes). The prespecified equal-arm macro-average selected $[0.15,0.15,0.15,0.55]$, with a development collision-free-arrival rate of 0.8042. At that vector, the development rates were 0.8958 for shared LSTM, 0.7431 for CV-coupled MPC--DWA, 0.8194 for LSTM-to-MPC-only, 0.8958 for LSTM-to-DWA-only, and 0.6667 for latest-position hold. These are descriptive values from the same development scenes used for selection, not held-out or independent comparative estimates. All collisions and non-arrivals counted as failures. The Stage-1 recovery audit revalidated all 4,320 existing episode records and recomputed the selection without creating new simulations; see `../04_review/v12a_stage1_recovery_audit_20261014.md`. The earlier 864-episode six-setting experiment used another protocol and was not reused.
+
+## Historical five-controller comparison (1-s DWA screening)
+
+This historical comparison used 500 independently generated scenes and three matched sampling seeds per scene. Five controllers contribute 1,500 runs each (7,500 total): reconstructed coupled MPC–DWA with latest-position obstacle handling in both layers, standalone DWA + LSTM, standalone MPC + LSTM, integrated MPC–DWA with LSTM supplied to DWA only, and integrated MPC–DWA with a shared LSTM forecast. In the LSTM-integrated arms, the network returns 30 positions over 3 s; DWA screens a 1-s reachable-action rollout against positions 1–10, while shared MPC plans against positions 1–30. MPC instead uses latest positions in the reconstructed and DWA-only MPC conditions.
+
+Shared LSTM reached 936/1,500 goals without collision (62.4%); the reconstructed latest-position MPC–DWA baseline reached 33/1,500 (2.2%). The paired difference is +60.20 percentage points (95% scene-cluster CI +56.20 to +64.20), and collision runs fell from 624/1,500 (41.6%) to zero. Relative to the integrated DWA-only LSTM arm, shared forecasting improved collision-free arrival from 836/1,500 (55.7%) by +6.67 points (95% CI +4.20 to +9.20).
+
+The standalone controllers provide secondary, unadjusted context. The versioned fairness rerun reports standalone DWA + LSTM at 1,236/1,500 (82.4%) without a collision run and standalone MPC + LSTM at 1,428/1,500 (95.2%) with 36 collision runs (2.4%). The earlier v08 DWA implementation reports 1,146/1,500 (76.4%) without a collision run; its emergency-screen implementation differs, so both DWA estimates are retained separately and are not pooled. In this historical benchmark, shared LSTM was the best tested coupled MPC–DWA variant, not the best controller across all tested architectures.
+
+- `confirmatory_method_summary.csv`, `confirmatory_run_audit.csv`, `confirmatory_cluster_bootstrap.csv`, `confirmatory_scene_cluster_means.csv`, and `scenario_manifest.csv` — all 3,000 primary runs and scene-level analysis records.
+- `original_baseline_*` — frozen direct latest-position MPC–DWA protocol, 1,500 baseline runs, paired comparison with shared LSTM and bootstrap outputs.
+- `five_method_run_audit.csv`, `five_method_terminal_outcomes.csv`, `five_method_summary.csv`, `five_method_paired_bootstrap.csv`, and `five_method_absolute_bootstrap.csv` — merged 7,500-run audit, exhaustive mutually exclusive terminal accounting and five-controller summaries used for aggregate outcome tables and paired contrasts. Figure 2 is a separate single-scene route illustration.
+- `paired_scene_outcome_counts.csv` — descriptive count of scenes where shared LSTM produced more, the same number, or fewer goal-reaching runs across the three matched seeds. These categories explain the scene-level distribution; the primary inference remains the paired scene-cluster difference and its bootstrap interval.
+- `scene_generation_specification.md` — obstacle counts, initial-state ranges, motion-family probabilities and family-specific parameter ranges for the 500-scene distribution; `scenario_manifest.csv` gives the exact scene-by-scene assignments.
+- `confirmatory_experiment_protocol.md` — the frozen 500-scene design, paired contrast, resampling unit and decision rule. The earlier 48-scene protocol remains under `historical_48scene/`.
+- `confirmatory_protocol_clarification.md` — a post-run documentation addendum stating the primary observation condition and the exact 0.9-s span of ten samples spaced 0.1 s apart. It does not modify the frozen protocol or simulation records.
+- Online DWA screening compares the ten time-aligned rollout states at 0.1-s intervals; the saved collision-free-arrival endpoint separately uses continuous piecewise-linear closest approach between consecutive true simulator states. The timing bootstrap uses a scene-level median over three run means before the paired scene average, whereas the method summary reports the pooled median over 1,500 run means.
+- `figures/route_comparison.{pdf,svg,png,tiff}` — one route-only 3-D overlay of the five historical scene-404, seed-2 controller trajectories; it has no aggregate-rate panel. Dashed tracks show the in-workspace portions of obstacle motion, and every route ends at its logged terminal state.
+- `figures/primary_500scene_route_pair.pdf` — retained earlier route-pair visualization; it is not the final main-paper aggregate figure.
+- `stage1_development/` — the 4,320-row recovered Stage-1 outcome CSV, per-episode checkpoint-hash index, calibration artifact hash register, selection and recovery manifests, and a data-scope README. The original 4,320 MAT checkpoints remain unchanged under `results/v12a_pooled_weight_development_inclusive_dev48_20261012/episodes/` and are not duplicated in the ZIP; their hashes are included.
+- `reproducibility_package_v13.zip` — the current allowlisted archive of the main/supplement sources and PDFs, bilingual reader, vector figures, historical run-level evidence, Stage-1 recovered outcomes and integrity manifests, audit records, and relevant scripts. Its external checksum is `reproducibility_package_v13.zip.sha256`; an internal `SHA256SUMS.txt` covers the archived files. No Stage-2 or seven-method held-out result payloads are included. The older `reproducibility_package.zip.sha256` is preserved as historical metadata and does not validate this v13 archive.
+
+## Earlier baseline experiments kept separate
+
+The initial pilot compared static-position, CV, Kalman and shared-LSTM forecasts across four fixed and 12 random scenes. In the random suite, goal arrivals were 26/36, 33/36, 33/36 and 36/36; the shared-LSTM minus CV estimate was +8.3 percentage points (95% CI 0.0 to 25.0), with a broad interval reflecting the 12-scene pilot. Its original result chart and compact CSV records are retained in `figures/historical_36run_results.pdf` and `historical_36run_records/`.
+
+The subsequent six-setting comparison covered 48 scenes and three matched seeds per method (864 runs). Goal arrivals were Static 97/144, CV 103/144, Kalman 106/144, MPC-only LSTM 109/144, DWA-only LSTM 122/144 and shared LSTM 125/144. Its prespecified shared-LSTM versus CV contrast was +15.28 percentage points (95% scene-cluster CI +6.25 to +25.69); the earlier shared-versus-DWA-only estimate was +2.08 points (95% CI -1.39 to +6.94). This benchmark used a 1-s DWA rollout; its estimates are reported alongside, and independently of, the current protocol.
+
+- `historical_48scene/` — run audit, raw outcomes, scene summaries, paired bootstrap contrasts, manifest and protocol for all six settings.
+- `figures/historical_48scene_baselines.pdf` — goal-arrival rates and paired differences for all six methods.
+- `figures/historical_36run_scenario_paths_original.pdf` — unchanged archive of the earlier composite scene-and-route figure. The main paper uses a route-only comparison so the problem-scene schematic remains a separate figure.
+- `historical_36run_records/` — earlier configuration, cluster contrasts and sensing summaries.
+
+## Tables, diagnostics and reproduction details
+
+- The supplementary PDF contains ten editable, captioned tables (S1–S10) with explanatory text before or after each table. They cover predictor training, scene and vehicle settings, planner parameters, runtime, two-arm outcomes, five-controller summaries, exhaustive terminal accounting, the sensing diagnostic, the retained 48-scene benchmark and the reproducibility-file index.
+- Table S5 compares the two forecast inputs side by side, highlights collision-free goal arrival and spells out the reasons for other run outcomes. Its brief interpretation and paired interval follow directly below the table.
+- The bilingual table guide is in ../03_bilingual/supplementary_table_guide.md and explains the purpose and evidence limits of all ten tables in English and Chinese.
+
+- `supplementary_methods.tex` / `supplementary_methods.pdf` — MPC objective, LSTM setup, DWA sampling and safety gates, experiment designs, historical outcomes and diagnostic results.
+- The Round 17 audit reconciled the MPC weight order in S1.1 with the implementation and parameter table; the correction changes no simulation data.
+- `../04_review/v13_final_submission_audit_20261014.md` — final full-manuscript, evidence-scope, reference and layout audit.
+- `configuration.csv` and `sensing_summary_revised.csv` — settings and single-scene sensing-pressure diagnostics.
+- `heldout_switchback_*` — 12-trajectory open-loop prediction probe; it evaluates prediction error only.
+
+The historical five-controller evaluation used MATLAB R2025a, Deep Learning Toolbox, CasADi 3.8.0 and Windows 64-bit; reproducing all optimizations requires compatible dependencies. Its archive remains separate from the 4,320-episode development calibration. No Stage-2 or held-out seven-controller result is included, and no public data deposit or DOI is claimed. All reported findings are simulations with prescribed obstacle tracks; real-flight behavior and performance on motion families absent from training remain untested.

@@ -1,0 +1,31 @@
+CandidateIndex,CandidateKey,CandidateLabel,MethodKey,MethodLabel,SafetyWeight,GoalProgressWeight,RouteTrackingWeight,ControlSmoothnessWeight,CorrectedSafeGoalArrivalRate,CorrectedSweptCollisionRuns,MeanSweptClearance_m
+1,equal,Equal,lstm,MPC-DWA (shared LSTM),0.25,0.25,0.25,0.25,0.895833333333333,0,1.21826279661999
+1,equal,Equal,cv,Coupled MPC-DWA (CV),0.25,0.25,0.25,0.25,0.743055555555556,0,1.27948357480344
+1,equal,Equal,lstm_mpc_cv_dwa,MPC-DWA (LSTM to MPC only),0.25,0.25,0.25,0.25,0.8125,0,1.24543252987529
+1,equal,Equal,cv_mpc_lstm_dwa,MPC-DWA (LSTM to DWA only),0.25,0.25,0.25,0.25,0.881944444444444,0,1.17875836940817
+1,equal,Equal,static,Reconstructed MPC-DWA (latest-position hold in both layers),0.25,0.25,0.25,0.25,0.652777777777778,30,0.893619813611872
+2,safety,Safety-focused,lstm,MPC-DWA (shared LSTM),0.55,0.15,0.15,0.15,0.847222222222222,0,1.45526244844169
+2,safety,Safety-focused,cv,Coupled MPC-DWA (CV),0.55,0.15,0.15,0.15,0.743055555555555,0,1.41213313372354
+2,safety,Safety-focused,lstm_mpc_cv_dwa,MPC-DWA (LSTM to MPC only),0.55,0.15,0.15,0.15,0.840277777777778,0,1.37121115753228
+2,safety,Safety-focused,cv_mpc_lstm_dwa,MPC-DWA (LSTM to DWA only),0.55,0.15,0.15,0.15,0.875,0,1.42629766857713
+2,safety,Safety-focused,static,Reconstructed MPC-DWA (latest-position hold in both layers),0.55,0.15,0.15,0.15,0.680555555555555,29,1.03828959637196
+3,goal,Goal-focused,lstm,MPC-DWA (shared LSTM),0.15,0.55,0.15,0.15,0.875,0,1.45130646459645
+3,goal,Goal-focused,cv,Coupled MPC-DWA (CV),0.15,0.55,0.15,0.15,0.715277777777778,0,1.48676636642042
+3,goal,Goal-focused,lstm_mpc_cv_dwa,MPC-DWA (LSTM to MPC only),0.15,0.55,0.15,0.15,0.763888888888889,0,1.43068729758901
+3,goal,Goal-focused,cv_mpc_lstm_dwa,MPC-DWA (LSTM to DWA only),0.15,0.55,0.15,0.15,0.881944444444445,0,1.49356641445603
+3,goal,Goal-focused,static,Reconstructed MPC-DWA (latest-position hold in both layers),0.15,0.55,0.15,0.15,0.631944444444445,22,1.0044439116144
+4,tracking,Tracking-focused,lstm,MPC-DWA (shared LSTM),0.15,0.15,0.55,0.15,0.875,0,1.0924761930311
+4,tracking,Tracking-focused,cv,Coupled MPC-DWA (CV),0.15,0.15,0.55,0.15,0.729166666666667,0,1.26227904512698
+4,tracking,Tracking-focused,lstm_mpc_cv_dwa,MPC-DWA (LSTM to MPC only),0.15,0.15,0.55,0.15,0.784722222222222,0,1.19654598819978
+4,tracking,Tracking-focused,cv_mpc_lstm_dwa,MPC-DWA (LSTM to DWA only),0.15,0.15,0.55,0.15,0.861111111111111,0,1.09098551208599
+4,tracking,Tracking-focused,static,Reconstructed MPC-DWA (latest-position hold in both layers),0.15,0.15,0.55,0.15,0.673611111111111,28,0.885278695761487
+5,smoothness,Smoothness-focused,lstm,MPC-DWA (shared LSTM),0.15,0.15,0.15,0.55,0.895833333333333,0,1.12573751982336
+5,smoothness,Smoothness-focused,cv,Coupled MPC-DWA (CV),0.15,0.15,0.15,0.55,0.743055555555555,0,1.26895397406962
+5,smoothness,Smoothness-focused,lstm_mpc_cv_dwa,MPC-DWA (LSTM to MPC only),0.15,0.15,0.15,0.55,0.819444444444445,0,1.18103697472453
+5,smoothness,Smoothness-focused,cv_mpc_lstm_dwa,MPC-DWA (LSTM to DWA only),0.15,0.15,0.15,0.55,0.895833333333333,0,1.13534982553839
+5,smoothness,Smoothness-focused,static,Reconstructed MPC-DWA (latest-position hold in both layers),0.15,0.15,0.15,0.55,0.666666666666667,30,0.873506735672423
+6,existing_engineering,Existing engineering vector,lstm,MPC-DWA (shared LSTM),0.35,0.3,0.15,0.2,0.868055555555555,0,1.42537178246767
+6,existing_engineering,Existing engineering vector,cv,Coupled MPC-DWA (CV),0.35,0.3,0.15,0.2,0.715277777777778,0,1.39964167166491
+6,existing_engineering,Existing engineering vector,lstm_mpc_cv_dwa,MPC-DWA (LSTM to MPC only),0.35,0.3,0.15,0.2,0.805555555555555,0,1.38253202416554
+6,existing_engineering,Existing engineering vector,cv_mpc_lstm_dwa,MPC-DWA (LSTM to DWA only),0.35,0.3,0.15,0.2,0.875,0,1.37175098786548
+6,existing_engineering,Existing engineering vector,static,Reconstructed MPC-DWA (latest-position hold in both layers),0.35,0.3,0.15,0.2,0.673611111111111,24,1.03760061643693

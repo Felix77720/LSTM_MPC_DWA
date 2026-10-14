@@ -1,0 +1,7 @@
+CandidateIndex,CandidateKey,CandidateLabel,SafetyWeight,GoalProgressWeight,RouteTrackingWeight,ControlSmoothnessWeight,PooledSafeGoalArrivalScore,CorrectedSweptCollisionRuns,PooledMeanSweptClearance_m
+1,equal,Equal,0.25,0.25,0.25,0.25,0.797222222222222,30,1.16311141686375
+2,safety,Safety-focused,0.55,0.15,0.15,0.15,0.797222222222222,29,1.34063880092932
+3,goal,Goal-focused,0.15,0.55,0.15,0.15,0.773611111111111,22,1.37335409093526
+4,tracking,Tracking-focused,0.15,0.15,0.55,0.15,0.784722222222222,28,1.10551308684107
+5,smoothness,Smoothness-focused,0.15,0.15,0.15,0.55,0.804166666666667,30,1.11691700596566
+6,existing_engineering,Existing engineering vector,0.35,0.3,0.15,0.2,0.7875,24,1.32337941652011
