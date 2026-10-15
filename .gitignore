@@ -21,6 +21,13 @@ __pycache__/
 venv/
 env/
 
+# Machine-local credentials, MATLAB preferences, cluster jobs and render caches.
+# Keep these directories on the workstation, but never include them in releases.
+/.codex-tmp/
+/.matlab_prefs*/
+/local_cluster_jobs/
+/tmp/
+
 # All experiment outputs, models, figures and run logs are archived separately.
 /results/
 

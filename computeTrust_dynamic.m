@@ -12,8 +12,8 @@ function tau = computeTrust_dynamic(ref_traj, ref_ctrl, goal, obs_pred, obs_radi
 %   cfg        - configuration struct.
 %   state      - current UAV state (6 x 1).
 % Output:
-%   tau - 4 x 1 trust vector [safety; goal progress; trajectory tracking;
-%         smoothness], scaled by cfg.coupling.sigma.
+%   tau - Scalar weighted trust score in [0, 1], combining normalized safety,
+%         goal-progress, trajectory-tracking and control-smoothness scores.
 
 N = min(size(ref_traj, 1)-1, size(obs_pred, 1));
 M = size(obs_pred, 3);

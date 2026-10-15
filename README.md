@@ -13,6 +13,17 @@ experiments in an EI conference paper.
   directory README for the expected layout)
 - Deep Learning Toolbox (installed)
 
+## Current paper release
+
+The final four-page conference manuscript, editable LaTeX source, supplementary
+methods, bilingual reader, audit report and repository-sized reproducibility
+archive are bundled under
+[`paper/Conference_4Page_Submission/versions/13_final_submission/`](paper/Conference_4Page_Submission/versions/13_final_submission/).
+The archive includes the 100-scene scenario bank, run-level outcomes and full
+saved trajectories. Original episode checkpoints, large historical MAT
+bundles and platform-specific CasADi binaries remain in their existing local
+paths and are not duplicated; SHA-256 manifests record their identities.
+
 ## Reproducibility binding
 
 The latest archived evaluation uses the saved artifact
@@ -31,11 +42,12 @@ because they are large experimental artifacts.
 
 ## Citation and archived results
 
-Use [`CITATION.cff`](CITATION.cff) to cite the versioned software release. The
-trained model, run-level outputs and generated figures are intentionally kept
-outside the source tree because they are large experimental artifacts. The
-source repository contains every MATLAB entry point required to regenerate
-them; a new model created by retraining must be recorded with its own hash.
+Use [`CITATION.cff`](CITATION.cff) to cite the versioned software release.
+Large original episode-checkpoint trees remain outside the source tree because
+they are experimental artifacts. The v13 release package preserves the
+manuscript, analysis outputs and full trajectory records without duplicating
+those checkpoints; a new model created by retraining must be recorded with its
+own hash.
 
 ## Design Choice
 
@@ -70,9 +82,9 @@ It writes 48 matched closed-loop rows (4 scenarios x 3 seeds x 4 methods) to
 `run_sensing_robustness`: it writes a unified four-condition suite (clean,
 0.05-m noise, one-step delay, and joint noise-delay) under
 `results/robustness_unified/sensing_<timestamp>`, with one shared observation
-stream per matched trial. The current Chinese manuscript and archived result tables
-are kept outside this code-only repository in the local
-archive/reproducibility package. The matched three-seed ablation is reproduced
+stream per matched trial. The current Chinese manuscript and archived result
+tables are included in the v13 paper release linked above; the original raw
+checkpoint trees remain in the local results archive. The matched three-seed ablation is reproduced
 by `run_ablation_multiseed`, which writes 18 run-level records and variant
 summaries under `results/ablation_multiseed/`. Scene-level uncertainty for the
 12 random scenes is reproduced by `analyze_cluster_bootstrap`, using the

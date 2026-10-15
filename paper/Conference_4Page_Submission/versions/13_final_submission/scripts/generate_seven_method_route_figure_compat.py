@@ -1,8 +1,8 @@
-"""Render the preselected seven-arm v13 route example from saved records only.
+"""Backward-compatible entry point for the final seven-arm route figure.
 
-The six forecast/controller arms are shown with the static latest-position
-reconstruction. Routes use only their saved UAV states and stop at their saved
-terminal points; no route is smoothed, resampled, interpolated, or extended.
+The canonical generator is ``generate_seven_method_route_figure.py``. This
+legacy filename delegates to it so it cannot overwrite the figure with an
+older layout.
 """
 from __future__ import annotations
 
@@ -29,13 +29,13 @@ FIGURES = REVISION / "02_source" / "figures"
 QA = REVISION / "qa"
 
 METHODS = [
-    ("standalone_dwa_cv", "DWA-CV (standalone)", "#E69F00", "-"),
-    ("standalone_mpc_cv", "MPC-CV (standalone)", "#0072B2", "--"),
-    ("cv", "MPC-DWA (CV)", "#009E73", "-."),
+    ("standalone_dwa_cv", "Standalone DWA-CV", "#E69F00", "-"),
+    ("standalone_mpc_cv", "Standalone MPC-CV", "#0072B2", "--"),
+    ("cv", "Coupled MPC-DWA-CV", "#009E73", "-."),
     ("lstm_mpc_cv_dwa", "MPC-DWA: LSTM to MPC", "#CC79A7", ":"),
     ("cv_mpc_lstm_dwa", "MPC-DWA: LSTM to DWA", "#D55E00", (0, (6, 2, 1, 2))),
     ("lstm", "MPC-DWA: shared LSTM", "#332288", (0, (3, 1, 1, 1))),
-    ("static", "MPC-DWA: latest-position hold", "#6F7780", (0, (1, 1))),
+    ("static", "MPC-DWA: position hold", "#6F7780", (0, (1, 1))),
 ]
 STATUS_METHOD_LABELS = {
     "standalone_dwa_cv": "Standalone DWA (CV)",
@@ -247,7 +247,7 @@ def main() -> None:
             )
 
         ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], color=color,
-                linestyle=linestyle, linewidth=1.65, alpha=0.90, zorder=4)
+                linestyle=linestyle, linewidth=1.4, alpha=0.90, zorder=4)
         ax.scatter(*xyz[-1], marker=endpoint_marker,
                    s=38 if safe else 44, linewidths=1.15, color=color,
                    depthshade=False, zorder=8)
@@ -351,4 +351,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    from generate_seven_method_route_figure import main as canonical_main
+    canonical_main()

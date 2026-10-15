@@ -4,7 +4,10 @@ function res = simulate_dynamic(scenario, method, net, cfg)
 %
 % Inputs:
 %   scenario - scenario struct with fields start, goal, and obstacles.
-%   method   - prediction method key ('static'/'cv'/'kalman'/'lstm').
+%   method   - prediction method key. In addition to a shared predictor
+%              ('static'/'cv'/'kalman'/'lstm'), the v12 matched comparison
+%              supports LSTM-to-MPC-only and LSTM-to-DWA-only with CV in the
+%              other layer.
 %   net      - trained LSTM network (used only for method 'lstm').
 %   cfg      - configuration struct.
 % Output:
@@ -49,6 +52,11 @@ step_clearance = zeros(0,1); nearest_obstacle = zeros(0,1);
 along_track = zeros(0,1); horizontal_offset = zeros(0,1); vertical_offset = zeros(0,1);
 solve_failures = 0;
 fallback_steps = 0;
+fallback_clearance = zeros(0, 1);
+fallback_collision = false(0, 1);
+fallback_predicted_clearance = zeros(0, 1);
+fallback_safety_pass = false(0, 1);
+emergency_infeasible_steps = 0;
 ade_sum = 0; fde_sum = 0; pred_count = 0;
 
 % Initial MPC at t = 0
@@ -130,45 +138,68 @@ for step = 1:cfg.maxSteps
         s_vertical(end + 1) = vertical_corridor_score(traj, start, goal); %#ok<AGROW>
     end
 
+    used_fallback = false;
     if isempty(valid_ctrls)
+        used_fallback = true;
         fallback_steps = fallback_steps + 1;
-        % No candidate satisfies both collision and braking tests.  Choose the
-        % least-overlap candidate and bias its yaw toward the free side of the
-        % nearest predicted obstacle.  This is still bounded by the dynamic
-        % window; it prevents the old straight-line zero-progress fallback.
-        corridor_score = all_clearance;
-        corridor_score(~all_corridor) = -inf;
-        if any(isfinite(corridor_score))
-            [~, risk_idx] = max(corridor_score);
-        else
-            [~, risk_idx] = max(all_clearance);
+        % Build an emergency set from reachable DWA samples plus explicit
+        % low-speed, level-flight, bounded-yaw controls.  Every command is
+        % rolled out and checked before it can be sent to the plant.
+        pitch_brake = max(wt_range(1), min(wt_range(2), -state(4) / cfg.dt));
+        yaw_emergency = unique([wp_range(1), max(wp_range(1), min(wp_range(2), 0)), wp_range(2)]);
+        emergency_ctrls = all_ctrls;
+        for ey = 1:numel(yaw_emergency)
+            emergency_ctrls(end + 1, :) = [v_range(1), pitch_brake, yaw_emergency(ey)]; %#ok<AGROW>
         end
-        best_control = all_ctrls(risk_idx, :)';
-        % Keep the emergency maneuver in the horizontal plane and level the
-        % current pitch.  Leaving the pitch-rate unchanged can accumulate a
-        % large vertical excursion even when the horizontal detour is safe.
-        best_control(2) = max(-cfg.maxPitchRate, min(cfg.maxPitchRate, -state(4) / cfg.dt));
-        ab = goal(1:2) - start(1:2); nline = [-ab(2); ab(1)] / max(norm(ab), 1e-12);
-        oc = squeeze(obs_pred_dwa(1, 1:3, :));
-        if ~isempty(oc)
-            if size(oc,1) ~= 3, oc = oc'; end
-            [~,oj] = min(sqrt(sum((oc' - state(1:3)').^2,2)));
+        emergency_clearance = -inf(size(emergency_ctrls, 1), 1);
+        emergency_corridor = false(size(emergency_ctrls, 1), 1);
+        emergency_brake_ok = false(size(emergency_ctrls, 1), 1);
+        emergency_trajs = cell(size(emergency_ctrls, 1), 1);
+        for ei = 1:size(emergency_ctrls, 1)
+            trial = predictTrajectory3D(state, emergency_ctrls(ei, :)', cfg);
+            clearance_i = calcMinDist3D_dynamic(trial, obs_pred_dwa, obs_radius, cfg, injectH);
+            corridor_i = within_flight_corridor(trial, start, goal, cfg);
+            stop_i = trial(end, 6) <= sqrt(2 * cfg.maxDec * max(clearance_i, 0));
+            emergency_trajs{ei} = trial;
+            emergency_clearance(ei) = clearance_i;
+            emergency_corridor(ei) = corridor_i;
+            emergency_brake_ok(ei) = stop_i;
         end
-        % MATLAB does not permit indexed expressions as function inputs on
-        % older releases; recompute the selected obstacle scalar explicitly.
-        if ~isempty(oc)
-            ovec = oc(:,oj(1:1)); obs_lat = dot(ovec(1:2) - start(1:2), nline);
-            desired = -sign(obs_lat); if desired == 0, desired = 1; end
-            hxy = [cos(state(5)); sin(state(5))]; yaw_sign = sign(hxy(1)*desired*nline(2) - hxy(2)*desired*nline(1));
-            % Use a bounded horizontal sidestep and slow down while the
-            % obstacle occupies the reachable set; taking the extreme yaw
-            % sample caused a 5 m overshoot and merged all encounters.
-            yaw_cap = min([0.35, abs(wp_range(1)), abs(wp_range(2))]);
-            if yaw_sign >= 0, best_control(3) = yaw_cap; else, best_control(3) = -yaw_cap; end
-            best_control(1) = v_range(1);
-        end
-        best_traj = [];
+        emergency_safe = emergency_clearance > 0 & emergency_corridor & emergency_brake_ok;
         mpc_box = [];
+        if any(emergency_safe)
+            candidate_idx = find(emergency_safe);
+            % Prefer maximum predicted separation, breaking near-ties toward
+            % the lower terminal speed.
+            terminal_speed = cellfun(@(x) x(end, 6), emergency_trajs(candidate_idx));
+            sort_key = [-emergency_clearance(candidate_idx), terminal_speed(:)];
+            [~, order] = sortrows(sort_key, [1 2]);
+            risk_idx = candidate_idx(order(1));
+            best_control = emergency_ctrls(risk_idx, :)';
+            best_traj = predictTrajectory3D(state, best_control, cfg);
+            % Final-command re-screen: this is deliberately repeated after
+            % selection so later edits cannot bypass the emergency gate.
+            final_clearance = calcMinDist3D_dynamic(best_traj, obs_pred_dwa, obs_radius, cfg, injectH);
+            final_corridor = within_flight_corridor(best_traj, start, goal, cfg);
+            final_brake_ok = best_traj(end, 6) <= sqrt(2 * cfg.maxDec * max(final_clearance, 0));
+            fallback_safety_pass(end + 1, 1) = final_clearance > 0 && final_corridor && final_brake_ok; %#ok<AGROW>
+            fallback_predicted_clearance(end + 1, 1) = final_clearance; %#ok<AGROW>
+            if ~fallback_safety_pass(end)
+                emergency_infeasible_steps = emergency_infeasible_steps + 1;
+            end
+        else
+            fallback_safety_pass(end + 1, 1) = false; %#ok<AGROW>
+            fallback_predicted_clearance(end + 1, 1) = NaN; %#ok<AGROW>
+            emergency_infeasible_steps = emergency_infeasible_steps + 1;
+        end
+        if emergency_infeasible_steps > 0 && ~fallback_safety_pass(end)
+            % Fail closed: record that no screened emergency command exists
+            % and terminate this simulated run without issuing an unchecked
+            % control.  This is a planner infeasibility result, not a claim
+            % that a real UAV can stop instantaneously.
+            dwa_times(end + 1) = toc(dwa_tic); %#ok<AGROW>
+            break;
+        end
     else
         w = dynamicWeights(tau, cfg);
         total = w(1) * s_pos + w(2) * s_head + w(3) * s_vel + w(4) * s_obs;
@@ -177,6 +208,7 @@ for step = 1:cfg.maxSteps
         end
         [~, best_idx] = max(total);
         best_control  = valid_ctrls(best_idx, :)';
+        screened_control = best_control;
         best_traj     = valid_trajs{best_idx};
         mpc_box       = boundingBoxSafe(valid_ctrls, cfg);
         % Once the selected horizon is clear, actively damp residual lateral
@@ -189,6 +221,20 @@ for step = 1:cfg.maxSteps
             heading_target = atan2(goal(2) - state(2), goal(1) - state(1));
             yaw_err = atan2(sin(heading_target - state(5)), cos(heading_target - state(5)));
             best_control(3) = max(-cfg.maxYawRate, min(cfg.maxYawRate, 0.8 * yaw_err));
+        end
+        % The lateral recentering adjustment changes the command after DWA
+        % scoring.  Preserve the screened sample if that adjustment fails
+        % any of the same clearance, corridor or braking tests.
+        adjusted_traj = predictTrajectory3D(state, best_control, cfg);
+        adjusted_clearance = calcMinDist3D_dynamic(adjusted_traj, obs_pred_dwa, obs_radius, cfg, injectH);
+        adjusted_ok = within_flight_corridor(adjusted_traj, start, goal, cfg) && ...
+            adjusted_clearance > reject_clearance && ...
+            adjusted_traj(end, 6) <= sqrt(2 * cfg.maxDec * max(adjusted_clearance, 0));
+        if adjusted_ok
+            best_traj = adjusted_traj;
+        else
+            best_control = screened_control;
+            best_traj = valid_trajs{best_idx};
         end
     end
     dwa_times(end + 1) = toc(dwa_tic); %#ok<AGROW>
@@ -225,6 +271,10 @@ for step = 1:cfg.maxSteps
     step_clearance(end + 1, 1) = clear; %#ok<AGROW>
     nearest_obstacle(end + 1, 1) = nearest; %#ok<AGROW>
     in_collision = clear < 0;
+    if used_fallback
+        fallback_clearance(end + 1, 1) = clear; %#ok<AGROW>
+        fallback_collision(end + 1, 1) = in_collision; %#ok<AGROW>
+    end
     collision_events = collision_events + double(in_collision && ~collision_prev);
     collision_prev = in_collision;
     dxy = goal(1:2) - start(1:2); Lxy = norm(dxy); exy = state(1:2) - start(1:2);
@@ -255,6 +305,11 @@ res.collisionEvents = collision_events;
 res.minClearance = min_clearance;
 res.stepClearance = step_clearance;
 res.nearestObstacle = nearest_obstacle;
+res.fallbackClearance = fallback_clearance;
+res.fallbackCollision = fallback_collision;
+res.fallbackPredictedClearance = fallback_predicted_clearance;
+res.fallbackSafetyPass = fallback_safety_pass;
+res.emergencyInfeasibleSteps = emergency_infeasible_steps;
 res.alongTrack = along_track;
 res.horizontalOffset = horizontal_offset;
 res.verticalOffset = vertical_offset;
@@ -294,12 +349,16 @@ res.obsNoise = getfield_or(cfg.dyn, 'obsNoise', 0);
 res.obsDelaySteps = getfield_or(cfg.dyn, 'obsDelaySteps', 0);
 res.observationStream = observation_stream;
 res.failureType = classify_failure(res.success, res.collisions, res.finalDist, ...
-    cfg.goalTolerance, res.solveFailures, res.fallbackSteps);
+    cfg.goalTolerance, res.solveFailures, res.fallbackSteps, res.emergencyInfeasibleSteps);
 end
 
 function [mpc_method, dwa_method] = split_prediction_method(method)
 key = lower(method);
 switch key
+    case 'lstm_mpc_cv_dwa'
+        mpc_method = 'lstm'; dwa_method = 'cv';
+    case 'cv_mpc_lstm_dwa'
+        mpc_method = 'cv'; dwa_method = 'lstm';
     case 'lstm_mpc_only'
         mpc_method = 'lstm'; dwa_method = 'static';
     case 'lstm_dwa_only'
@@ -498,7 +557,7 @@ function v = percentile_or_zero(x, p)
 if isempty(x), v = 0; else, v = prctile(x, p); end
 end
 
-function label = classify_failure(success, collisions, finalDist, goalTol, solveFailures, fallbackSteps)
+function label = classify_failure(success, collisions, finalDist, goalTol, solveFailures, fallbackSteps, emergencyInfeasibleSteps)
 if success
     label = 'success';
     return;
@@ -508,6 +567,7 @@ if collisions > 0, flags{end + 1} = 'collision'; end %#ok<AGROW>
 if finalDist >= goalTol, flags{end + 1} = 'goal_not_reached'; end %#ok<AGROW>
 if solveFailures > 0, flags{end + 1} = 'mpc_solve_failure'; end %#ok<AGROW>
 if fallbackSteps > 0, flags{end + 1} = 'dwa_no_safe_candidate'; end %#ok<AGROW>
+if emergencyInfeasibleSteps > 0, flags{end + 1} = 'no_feasible_emergency_action'; end %#ok<AGROW>
 if isempty(flags), flags = {'other'}; end
 label = strjoin(flags, '|');
 end

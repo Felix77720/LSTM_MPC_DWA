@@ -278,16 +278,16 @@ $$
 ![Seven recorded 3-D controller paths in the preselected matched scene 1, seed 1; paths end at logged terminal states.](../02_source/figures/route_comparison_seven_method.svg)
 
 <a id="C002"></a>
-**Original caption:** Recorded routes for all seven arms in preselected scene 1, seed 1, ending at their logged terminals without smoothing or extension. Triangle/star mark start/goal; circles mark safe arrivals, squares no-contact non-arrivals, and X marks terminals from runs with swept contact (not the contact point). DWA-CV/MPC-CV are standalone; MPC-DWA labels denote the coupled planner and its forecast allocation. Axes are in metres; numeric ticks and obstacle paths are omitted (see Fig. 1). This example is illustrative; Table 1 reports aggregate outcomes.
+**Original caption:** Recorded three-dimensional paths for all seven arms in the preselected matched scene (scene 1, seed 1). Each path ends at its recorded terminal state; none is smoothed, resampled or extended. The triangle and star mark the shared start and goal; circles mark collision-free goal arrivals, squares mark no-contact non-arrivals, and X marks a terminal state from a run with swept contact, not necessarily the contact location. Colors and line styles identify the arms. Axes are in metres; numeric ticks and obstacle tracks are omitted from this route overlay, while prescribed obstacle motion is shown in Fig. 1. All seven arms reached the goal without contact in this example. It illustrates route geometry only; Table 1 reports aggregate outcomes.
 
-**中文图注：** 预先选定的场景 1、种子 1 中七种方法的记录轨迹，均截至日志终点，未平滑或延伸。三角形/星号表示起点/目标；圆圈表示无碰撞到达，方块表示未碰撞但未到达，X 表示发生过扫掠接触的运行终点（不一定是接触点）。DWA-CV/MPC-CV 为独立方法；MPC-DWA 表示耦合规划器，标签说明其预测输入方式。坐标单位为米；为清晰起见省略数值刻度和障碍物轨迹（场景见图 1）。该示例仅展示路径形态，汇总结果见表 1。
+**中文图注：** 图 2 展示预先选定的匹配场景（场景 1、种子 1）中七种方法记录的三维轨迹。每条轨迹均在其实际记录的终止状态处截止，未经过平滑、重采样或延伸。三角形和星形分别标出共同起点和目标点；圆圈表示无碰撞到达目标，方块表示无接触但未到达目标，X 表示运行中发生扫掠接触的方法的终止点（不一定是接触位置）。颜色和线型区分各方法。坐标轴单位为米；该轨迹图省略数值刻度和障碍物轨迹，障碍物预设运动见图 1。本示例中七种方法均无碰撞到达目标，但该图仅用于说明轨迹几何形态；总体结果见表 1。
 
 <a id="S019"></a>
 **Source:** 02_source/main.tex, first results paragraph
 
-**Original:** Shared LSTM reached the goal without swept-path contact in 221/300 episodes (73.7%). Its paired advantage over the position-hold reconstruction was 16.3 percentage points (simultaneous 95% CI, 5.1--27.6). It was lower than standalone MPC-CV by 18.3 points (-29.6 to -7.0); intervals for standalone DWA-CV, coupled MPC--DWA-CV and both one-layer LSTM arms included zero. Thus, the data do not establish that sharing is best among the tested controllers, and the superiority gate was not met.
+**Original:** Shared LSTM reached the goal without collision in 221/300 episodes (73.7%). Its paired advantage over the position-hold reconstruction was 16.3 percentage points (simultaneous 95% CI, 5.1--27.6). It was lower than standalone MPC-CV by 18.3 points (-29.6 to -7.0); intervals for standalone DWA-CV, coupled MPC--DWA-CV and both one-layer LSTM arms included zero. Thus, the data do not establish that sharing is best among the tested controllers.
 
-**中文:** 共享 LSTM 在 300 次运行中有 221 次到达目标且无扫掠接触（73.7%）。相对最新位置保持重构，其配对优势为 16.3 个百分点（同时 95% CI：5.1–27.6）。相对独立 MPC-CV，共享组低 18.3 个百分点（−29.6 至 −7.0）；相对独立 DWA-CV、耦合 MPC–DWA-CV 和两个单层 LSTM 组的区间均包含零。因此，数据不能证明共享方法在所测控制器中最优，且未通过优越性判定门槛。
+**中文:** 共享 LSTM 在 300 次运行中有 221 次无碰撞到达目标（73.7%）。相对最新位置保持重构，其配对优势为 16.3 个百分点（同时 95% CI：5.1–27.6）。相对独立 MPC-CV，共享组低 18.3 个百分点（−29.6 至 −7.0）；相对独立 DWA-CV、耦合 MPC–DWA-CV 和两个单层 LSTM 组的区间均包含零。因此，现有数据不能证明共享方法在所测控制器中最优。
 
 <a id="T001"></a>
 ### Table 1 / 表 1：七方法探索性仿真结果
