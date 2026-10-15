@@ -1,0 +1,451 @@
+{
+  "source": "results/v13_seven_method_100scene_exploratory_20261015/route_example",
+  "selection": "scene 1, seed 1, fixed before test outcomes",
+  "coordinate_frame": "one shared 3D axis",
+  "axes_count": 1,
+  "target_canvas_width_in": 3.48,
+  "target_canvas_height_in": 3.2,
+  "minimum_plot_text_size_pt": 7.0,
+  "method_keys": [
+    "standalone_dwa_cv",
+    "standalone_mpc_cv",
+    "cv",
+    "lstm_mpc_cv_dwa",
+    "cv_mpc_lstm_dwa",
+    "lstm",
+    "static"
+  ],
+  "trajectory_smoothing": false,
+  "trajectory_interpolation_or_resampling": false,
+  "trajectory_extension_after_terminal": false,
+  "plotted_route_data": "all and only recorded XYZ states from trajectory CSVs",
+  "route_distinguishability": "predeclared method-specific color and line style",
+  "method_line_styles": {
+    "standalone_dwa_cv": "'-'",
+    "standalone_mpc_cv": "'--'",
+    "cv": "'-.'",
+    "lstm_mpc_cv_dwa": "':'",
+    "cv_mpc_lstm_dwa": "(0, (6, 2, 1, 2))",
+    "lstm": "(0, (3, 1, 1, 1))",
+    "static": "(0, (1, 1))"
+  },
+  "obstacle_tracks_included": false,
+  "start_goal_included": true,
+  "endpoint_markers": {
+    "o": "collision-free goal arrival; marker indicates route terminal",
+    "X": "route had a swept collision; marker indicates route terminal, not collision location",
+    "s": "no collision; goal not reached; marker indicates route terminal (stop reason unavailable in route_status.csv)"
+  },
+  "obstacle_geometry_shown": "omitted from the route-only overlay for legibility; moving-obstacle geometry and prescribed paths are shown in the separate Problem Formulation schematic",
+  "obstacles": [
+    {
+      "obstacle_id": 1,
+      "radius_m": 1.61998710131477,
+      "center_track_samples": 469,
+      "track_start_time_s": 0.0,
+      "track_end_time_s": 46.8,
+      "radius_drawn_in_route_figure": false
+    },
+    {
+      "obstacle_id": 2,
+      "radius_m": 1.71056950224337,
+      "center_track_samples": 469,
+      "track_start_time_s": 0.0,
+      "track_end_time_s": 46.8,
+      "radius_drawn_in_route_figure": false
+    },
+    {
+      "obstacle_id": 3,
+      "radius_m": 1.57713564346037,
+      "center_track_samples": 469,
+      "track_start_time_s": 0.0,
+      "track_end_time_s": 46.8,
+      "radius_drawn_in_route_figure": false
+    },
+    {
+      "obstacle_id": 4,
+      "radius_m": 1.60951861596572,
+      "center_track_samples": 469,
+      "track_start_time_s": 0.0,
+      "track_end_time_s": 46.8,
+      "radius_drawn_in_route_figure": false
+    },
+    {
+      "obstacle_id": 5,
+      "radius_m": 1.47948013744017,
+      "center_track_samples": 469,
+      "track_start_time_s": 0.0,
+      "track_end_time_s": 46.8,
+      "radius_drawn_in_route_figure": false
+    },
+    {
+      "obstacle_id": 6,
+      "radius_m": 1.11289822457677,
+      "center_track_samples": 469,
+      "track_start_time_s": 0.0,
+      "track_end_time_s": 46.8,
+      "radius_drawn_in_route_figure": false
+    },
+    {
+      "obstacle_id": 7,
+      "radius_m": 1.03758509676111,
+      "center_track_samples": 469,
+      "track_start_time_s": 0.0,
+      "track_end_time_s": 46.8,
+      "radius_drawn_in_route_figure": false
+    },
+    {
+      "obstacle_id": 8,
+      "radius_m": 1.24035931669919,
+      "center_track_samples": 469,
+      "track_start_time_s": 0.0,
+      "track_end_time_s": 46.8,
+      "radius_drawn_in_route_figure": false
+    }
+  ],
+  "status_terminal_decimal_places": 6,
+  "terminal_match_tolerance_m": 5.1e-07,
+  "start_match_tolerance_m": 1e-08,
+  "exports": [
+    "route_comparison_seven_method.pdf",
+    "route_comparison_seven_method.svg",
+    "route_comparison_seven_method.png",
+    "route_comparison_seven_method.tiff"
+  ],
+  "panel_alignment": {
+    "schema_version": 1,
+    "applicable": false,
+    "auditable": false,
+    "verdict": "NOT APPLICABLE",
+    "backend": "python-matplotlib",
+    "summary": {
+      "fail": 0,
+      "warn": 0,
+      "comparisons": 0,
+      "exemptions": 0
+    },
+    "tolerances": {
+      "alignment_pt": 1.5,
+      "gutter_pt": 1.5
+    },
+    "errors": [],
+    "findings": [],
+    "layout": {
+      "schema_version": 1,
+      "backend": "python-matplotlib",
+      "figure": {
+        "width_pt": 250.56,
+        "height_pt": 230.4
+      },
+      "panels": [
+        {
+          "id": "a",
+          "bbox_pt": [
+            43.185600000000036,
+            66.81600000000002,
+            199.8576,
+            223.488
+          ],
+          "grid_id": "matplotlib-grid-1",
+          "row_start": 0,
+          "row_stop": 1,
+          "col_start": 0,
+          "col_stop": 1
+        }
+      ],
+      "row_groups": [],
+      "column_groups": [],
+      "boundary_groups": [],
+      "exemptions": []
+    }
+  },
+  "methods": [
+    {
+      "method_key": "standalone_dwa_cv",
+      "figure_label": "DWA-CV (standalone)",
+      "route_csv": "trajectory_standalone_dwa_cv.csv",
+      "method_line_style": "'-'",
+      "safe_goal_arrival": true,
+      "swept_collision": false,
+      "endpoint_category": "collision_free_goal_arrival",
+      "endpoint_marker": "o",
+      "recorded_steps": 204,
+      "path_states_plotted": 205,
+      "terminal_time_s": 20.4,
+      "terminal_xyz_m": [
+        17.6318839155572,
+        18.0677453565078,
+        7.69345877265235
+      ],
+      "start_delta_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start_verified": true,
+      "final_goal_distance_m": 0.4838041019024862,
+      "goal_tolerance_m": 0.5,
+      "route_status_terminal_xyz_m": [
+        17.631884,
+        18.067745,
+        7.693459
+      ],
+      "terminal_delta_m": [
+        -8.444279941954846e-08,
+        3.5650780105811464e-07,
+        -2.27347650039178e-07
+      ],
+      "status_terminal_decimal_places": 6,
+      "terminal_match_tolerance_m": 5.1e-07,
+      "terminal_verified": true,
+      "recorded_time_sequence_verified": true,
+      "extended_after_terminal": false
+    },
+    {
+      "method_key": "standalone_mpc_cv",
+      "figure_label": "MPC-CV (standalone)",
+      "route_csv": "trajectory_standalone_mpc_cv.csv",
+      "method_line_style": "'--'",
+      "safe_goal_arrival": true,
+      "swept_collision": false,
+      "endpoint_category": "collision_free_goal_arrival",
+      "endpoint_marker": "o",
+      "recorded_steps": 213,
+      "path_states_plotted": 214,
+      "terminal_time_s": 21.3,
+      "terminal_xyz_m": [
+        17.577687391636,
+        17.7680792675582,
+        8.10209921634879
+      ],
+      "start_delta_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start_verified": true,
+      "final_goal_distance_m": 0.49250321349061527,
+      "goal_tolerance_m": 0.5,
+      "route_status_terminal_xyz_m": [
+        17.577687,
+        17.768079,
+        8.102099
+      ],
+      "terminal_delta_m": [
+        3.9163600007441346e-07,
+        2.6755819959589644e-07,
+        2.1634878955012482e-07
+      ],
+      "status_terminal_decimal_places": 6,
+      "terminal_match_tolerance_m": 5.1e-07,
+      "terminal_verified": true,
+      "recorded_time_sequence_verified": true,
+      "extended_after_terminal": false
+    },
+    {
+      "method_key": "cv",
+      "figure_label": "MPC-DWA (CV)",
+      "route_csv": "trajectory_cv.csv",
+      "method_line_style": "'-.'",
+      "safe_goal_arrival": true,
+      "swept_collision": false,
+      "endpoint_category": "collision_free_goal_arrival",
+      "endpoint_marker": "o",
+      "recorded_steps": 462,
+      "path_states_plotted": 463,
+      "terminal_time_s": 46.2,
+      "terminal_xyz_m": [
+        17.6432028479905,
+        17.6856142085347,
+        7.86226442973514
+      ],
+      "start_delta_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start_verified": true,
+      "final_goal_distance_m": 0.4950896089331077,
+      "goal_tolerance_m": 0.5,
+      "route_status_terminal_xyz_m": [
+        17.643203,
+        17.685614,
+        7.862264
+      ],
+      "terminal_delta_m": [
+        -1.520094983220588e-07,
+        2.0853470061865664e-07,
+        4.2973513991739765e-07
+      ],
+      "status_terminal_decimal_places": 6,
+      "terminal_match_tolerance_m": 5.1e-07,
+      "terminal_verified": true,
+      "recorded_time_sequence_verified": true,
+      "extended_after_terminal": false
+    },
+    {
+      "method_key": "lstm_mpc_cv_dwa",
+      "figure_label": "MPC-DWA: LSTM to MPC",
+      "route_csv": "trajectory_lstm_mpc_cv_dwa.csv",
+      "method_line_style": "':'",
+      "safe_goal_arrival": true,
+      "swept_collision": false,
+      "endpoint_category": "collision_free_goal_arrival",
+      "endpoint_marker": "o",
+      "recorded_steps": 453,
+      "path_states_plotted": 454,
+      "terminal_time_s": 45.3,
+      "terminal_xyz_m": [
+        17.6152968460967,
+        17.7070632026064,
+        7.87447605304177
+      ],
+      "start_delta_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start_verified": true,
+      "final_goal_distance_m": 0.4995645555384585,
+      "goal_tolerance_m": 0.5,
+      "route_status_terminal_xyz_m": [
+        17.615297,
+        17.707063,
+        7.874476
+      ],
+      "terminal_delta_m": [
+        -1.5390330077025283e-07,
+        2.026063974369663e-07,
+        5.304177008724764e-08
+      ],
+      "status_terminal_decimal_places": 6,
+      "terminal_match_tolerance_m": 5.1e-07,
+      "terminal_verified": true,
+      "recorded_time_sequence_verified": true,
+      "extended_after_terminal": false
+    },
+    {
+      "method_key": "cv_mpc_lstm_dwa",
+      "figure_label": "MPC-DWA: LSTM to DWA",
+      "route_csv": "trajectory_cv_mpc_lstm_dwa.csv",
+      "method_line_style": "(0, (6, 2, 1, 2))",
+      "safe_goal_arrival": true,
+      "swept_collision": false,
+      "endpoint_category": "collision_free_goal_arrival",
+      "endpoint_marker": "o",
+      "recorded_steps": 465,
+      "path_states_plotted": 466,
+      "terminal_time_s": 46.5,
+      "terminal_xyz_m": [
+        17.6238644110948,
+        17.7043875808633,
+        7.85786631589138
+      ],
+      "start_delta_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start_verified": true,
+      "final_goal_distance_m": 0.4990657950082351,
+      "goal_tolerance_m": 0.5,
+      "route_status_terminal_xyz_m": [
+        17.623864,
+        17.704388,
+        7.857866
+      ],
+      "terminal_delta_m": [
+        4.110947990909608e-07,
+        -4.1913670045801155e-07,
+        3.1589138060894584e-07
+      ],
+      "status_terminal_decimal_places": 6,
+      "terminal_match_tolerance_m": 5.1e-07,
+      "terminal_verified": true,
+      "recorded_time_sequence_verified": true,
+      "extended_after_terminal": false
+    },
+    {
+      "method_key": "lstm",
+      "figure_label": "MPC-DWA: shared LSTM",
+      "route_csv": "trajectory_lstm.csv",
+      "method_line_style": "(0, (3, 1, 1, 1))",
+      "safe_goal_arrival": true,
+      "swept_collision": false,
+      "endpoint_category": "collision_free_goal_arrival",
+      "endpoint_marker": "o",
+      "recorded_steps": 455,
+      "path_states_plotted": 456,
+      "terminal_time_s": 45.5,
+      "terminal_xyz_m": [
+        17.6162974922827,
+        17.7096055454031,
+        7.87829245138209
+      ],
+      "start_delta_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start_verified": true,
+      "final_goal_distance_m": 0.4963560023609622,
+      "goal_tolerance_m": 0.5,
+      "route_status_terminal_xyz_m": [
+        17.616297,
+        17.709606,
+        7.878292
+      ],
+      "terminal_delta_m": [
+        4.922827017139753e-07,
+        -4.545969005675943e-07,
+        4.513820899276766e-07
+      ],
+      "status_terminal_decimal_places": 6,
+      "terminal_match_tolerance_m": 5.1e-07,
+      "terminal_verified": true,
+      "recorded_time_sequence_verified": true,
+      "extended_after_terminal": false
+    },
+    {
+      "method_key": "static",
+      "figure_label": "MPC-DWA: latest-position hold",
+      "route_csv": "trajectory_static.csv",
+      "method_line_style": "(0, (1, 1))",
+      "safe_goal_arrival": true,
+      "swept_collision": false,
+      "endpoint_category": "collision_free_goal_arrival",
+      "endpoint_marker": "o",
+      "recorded_steps": 468,
+      "path_states_plotted": 469,
+      "terminal_time_s": 46.8,
+      "terminal_xyz_m": [
+        17.7054387573679,
+        17.6339791500972,
+        7.83622003940345
+      ],
+      "start_delta_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "start_verified": true,
+      "final_goal_distance_m": 0.49755548807900957,
+      "goal_tolerance_m": 0.5,
+      "route_status_terminal_xyz_m": [
+        17.705439,
+        17.633979,
+        7.83622
+      ],
+      "terminal_delta_m": [
+        -2.426320975246199e-07,
+        1.5009720044645292e-07,
+        3.9403450280417474e-08
+      ],
+      "status_terminal_decimal_places": 6,
+      "terminal_match_tolerance_m": 5.1e-07,
+      "terminal_verified": true,
+      "recorded_time_sequence_verified": true,
+      "extended_after_terminal": false
+    }
+  ]
+}

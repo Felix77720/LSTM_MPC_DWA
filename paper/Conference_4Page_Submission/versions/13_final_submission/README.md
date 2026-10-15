@@ -1,29 +1,41 @@
-# v13 final submission package
+# Version 13 final submission package
 
-This release contains a four-page simulation study, its editable LaTeX source, a complete English–Chinese side-by-side reader, supplementary methods, retained historical comparisons, and an evidence archive. It does not include new simulation runs. The 08 reviewer revision and original experiment records remain unchanged.
+Release state: compiled and audited on 2026-10-15. This is a revision of the existing project manuscript, not a replacement study. Version 08 remains the audit baseline; historical results, source records, and original simulation data are preserved.
 
 ## Deliverables
 
-- Main paper: [`02_source/main.pdf`](02_source/main.pdf), four IEEE double-column pages; editable source: [`02_source/main.tex`](02_source/main.tex).
-- Supplement: [`03_supplementary/supplementary_methods.pdf`](03_supplementary/supplementary_methods.pdf), 17 pages; editable source and data index: [`03_supplementary/supplementary_methods.tex`](03_supplementary/supplementary_methods.tex) and [`03_supplementary/README.md`](03_supplementary/README.md).
-- Full main-text bilingual reader: [`03_bilingual/paper.md`](03_bilingual/paper.md), with synchronized map, figure assets and translation notes.
-- Reproducibility evidence archive: [`03_supplementary/reproducibility_package_v13.zip`](03_supplementary/reproducibility_package_v13.zip); its SHA-256 is recorded in the adjacent `.sha256` file. The per-file release manifest is [`03_supplementary/final_submission_SHA256_20261014.txt`](03_supplementary/final_submission_SHA256_20261014.txt).
-- Final audit: [`04_review/v13_final_submission_audit_20261014.md`](04_review/v13_final_submission_audit_20261014.md).
+- Four-page IEEE conference paper: [`02_source/main.pdf`](02_source/main.pdf); editable source: [`02_source/main.tex`](02_source/main.tex) and [`02_source/references.bib`](02_source/references.bib).
+- Complete bilingual reader: [`03_bilingual/paper.md`](03_bilingual/paper.md), synchronized with [`03_bilingual/source_map.json`](03_bilingual/source_map.json); the supplemental table guide is [`03_bilingual/supplementary_table_guide.md`](03_bilingual/supplementary_table_guide.md).
+- Supplementary methods: [`03_supplementary/supplementary_methods.pdf`](03_supplementary/supplementary_methods.pdf) (19 pages) and editable [`supplementary_methods.tex`](03_supplementary/supplementary_methods.tex). Historical CV/Kalman and route evidence remain in the supplement.
+- Seven-method route illustration and endpoint audit: [`02_source/figures/route_comparison_seven_method.pdf`](02_source/figures/route_comparison_seven_method.pdf) and [`qa/seven_method_route_endpoint_audit.json`](qa/seven_method_route_endpoint_audit.json).
+- Reproducibility archive: [`03_supplementary/reproducibility_package.zip`](03_supplementary/reproducibility_package.zip), with ZIP SHA-256 sidecar and package-internal `SHA256SUMS.txt`.
+- Current delivery hash list: [`03_supplementary/final_delivery_SHA256.txt`](03_supplementary/final_delivery_SHA256.txt).
+- Final audit: [`04_review/v13_final_submission_audit_20261015.md`](04_review/v13_final_submission_audit_20261015.md).
 
-## Evidence reported
+## New exploratory evaluation
 
-The main results are from the completed historical five-controller comparison: 500 scenes × three matched seeds × five methods = 7,500 runs, with a 1-s DWA screening horizon and a 30-step MPC horizon. Sharing LSTM between MPC and DWA produced 936/1,500 collision-free arrivals (62.4%), compared with 836/1,500 (55.7%) for the integrated DWA-only forecast arm; the paired gain was 6.7 percentage points (95% scene-cluster CI 4.2–9.2). The shared method had higher arrival than the project-local latest-position-hold reconstruction (2.2%), but lower arrival than standalone DWA+LSTM (82.4%) and standalone MPC+LSTM (95.2%). Thus, the manuscript describes it as the best tested coupled MPC–DWA variant; it does not claim overall superiority. Scene 404, seed 2 is one matched illustration only.
+One limited evaluation completed 2,100 valid episodes: 100 simulated scenes × three matched seeds × seven controller arms (300 episodes per arm). It was exploratory under an internal scope amendment, not externally preregistered. Prescribed obstacle tracks and simulation-only evidence were used; no real-flight validation is claimed. No further simulation was run for this finalization.
 
-The 4,320 Stage-1 development episodes (6 candidate vectors × 5 integrated branches × 48 scenes × 3 matched seeds) are reported separately as calibration evidence. Recovery validated all 4,320 existing records and created zero new simulations. The selected trust vector was `[0.15, 0.15, 0.15, 0.55]`; its equal-arm macro-average development collision-free-arrival score was 0.8042. Branch rates and run-level evidence are included in Supplementary Methods and `03_supplementary/stage1_development/`. Because these runs selected the vector, the score is descriptive, not held-out validation. The selected vector was not applied to the 7,500-run historical benchmark. The earlier 864-episode experiment and two standalone-DWA implementations (76.4% and 82.4%) remain separately identified rather than pooled.
+| Controller | Safe goal arrival | Swept contacts |
+|---|---:|---:|
+| Standalone DWA-CV | 234/300 (78.0%) | 0/300 |
+| Standalone MPC-CV | 276/300 (92.0%) | 15/300 |
+| Coupled MPC–DWA-CV | 204/300 (68.0%) | 0/300 |
+| MPC–DWA, LSTM to MPC only | 219/300 (73.0%) | 0/300 |
+| MPC–DWA, LSTM to DWA only | 224/300 (74.7%) | 0/300 |
+| MPC–DWA, shared LSTM | 221/300 (73.7%) | 0/300 |
+| MPC–DWA, latest-position-hold reconstruction | 172/300 (57.3%) | 50/300 |
 
-Stage-2 calibration and the planned seven-method held-out controller study are not reported in this paper. The available evidence is simulation-only, uses prescribed obstacle tracks and point forecasts without uncertainty estimates, and does not establish real-flight performance or global optimality.
+Across the six scene-cluster paired contrasts, shared LSTM minus comparator (percentage points; simultaneous 95% max-|t| CI) was: DWA-CV −4.3 [−16.8, 8.1]; MPC-CV −18.3 [−29.6, −7.0]; coupled MPC–DWA-CV +5.7 [−3.4, 14.7]; LSTM-to-MPC only +0.7 [−9.0, 10.3]; LSTM-to-DWA only −1.0 [−4.8, 2.8]; position-hold reconstruction +16.3 [5.1, 27.6]. Only the position-hold contrast excluded zero in favor of shared LSTM. The decision gate specified in the internal amendment was not met: standalone MPC had the highest observed rate, and the intervals did not favor shared LSTM across all six comparators. The position-hold arm is a project-local reconstruction, not an exact reproduction of the cited paper.
 
-## Reproducibility and provenance
+One additional orphaned attempt (scene 58, seed 2) had an invalid checkpoint sidecar. It is preserved and listed in the output hash inventory, but it is not a planned episode and is excluded from the 2,100 valid episodes. Raw outcomes, invocation/failure logs, analysis outputs and hashes are retained in the results archive; the archive does not duplicate individual episode MAT checkpoints.
 
-The ZIP contains the main and supplementary source/PDFs, final vector figures, bilingual reader, selected historical run-level records and bootstrap tables, the 4,320-row Stage-1 recovered outcome table, Stage-1 selection/recovery manifests and per-episode SHA-256 index, the recovery audit, and the relevant analysis and recovery scripts. The 4,320 original MAT checkpoints (about 1.25 GB) remain in the project results directory and are not duplicated in the ZIP; the package includes their individual hashes and the recovery audit. No Stage-2 payloads are included. Reproduction requires MATLAB R2025a, Deep Learning Toolbox and CasADi 3.8.0 on Windows 64-bit, as recorded in the supplement.
+## Historical evidence and limitations
 
-The supplied MPC–DWA article does not provide dynamic-obstacle prediction code, run-level data or executable settings. Its comparator is therefore identified as a project-local latest-position-hold reconstruction, not an exact reproduction of the cited paper.
+The 7,500-episode historical five-controller study, 4,320 Stage-1 development/calibration episodes, earlier 864-episode comparison, standalone-controller variants, CV/Kalman studies, and scene-404, seed-2 illustration remain separately identified. They are not pooled with the new 100-scene evaluation. The 4,320 runs selected the trust-weight vector; its development score is descriptive, not held-out evidence. The historical scene-404 result is one matched example, not an aggregate claim.
 
-Ten bibliography records were field-checked against publisher, conference, institutional or author-maintained sources. Five are cited in the main paper. Fields absent from the supplied online-first Chang paper, including volume/issue/pages/DOI, are not guessed; the remaining field-level notes are in [`04_review/reference_verification_20261014.md`](04_review/reference_verification_20261014.md).
+The manuscript’s conclusion is therefore limited: shared LSTM improved safe arrival over the latest-position-hold reconstruction, but it did not outperform standalone MPC and does not establish overall superiority or global optimality. The simulator uses prescribed obstacle motion and point forecasts; real-world flight performance remains untested.
 
-The manuscript PDFs were rebuilt from the open source files and visually checked page by page. The main paper is exactly four pages; the supplement is 17 pages. See the final audit for scope, render checks, minor compiler warnings and remaining limitations.
+## Build and verification
+
+The main paper compiled to exactly four pages and the supplement to 19 pages. All four main-paper pages and the updated supplementary pages were rendered and visually inspected; the final supplementary page contains the paired-contrast table. Bibliography fields were checked against publisher/conference/institutional sources; fields absent from the supplied online-first Chang article (volume, issue, pages, DOI) remain unfilled rather than guessed. See the dated audit report for rendering checks, data-integrity notes, citation-field status, and remaining limitations.

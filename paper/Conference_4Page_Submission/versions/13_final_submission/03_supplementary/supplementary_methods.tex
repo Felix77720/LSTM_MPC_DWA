@@ -14,13 +14,15 @@
 \maketitle
 \renewcommand{\thetable}{S\arabic{table}}
 \renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\theequation}{S\arabic{equation}}
 
 \section*{S1. Development controller and trust-weight calibration}
-This supplement distinguishes the 3-s development configuration and its Stage-1 trust-weight calibration (S1--S3) from the completed historical five-controller results used in the main text (S4). Stage 1 comprised 4,320 development episodes and selected a trust-weight vector; these runs are not part of the 7,500-run historical benchmark, and their selected weights were not applied to it. The historical benchmark used 1-s DWA screening and inherited weights listed with the development settings and identified explicitly in S4. Obstacle trajectories are exogenous: they are generated before a run and do not react to the UAV. In the 3-s development configuration, the shared-LSTM arm sends the same time-aligned 30-step forecast to MPC and DWA. One-layer ablations send LSTM only to the named layer and use constant-velocity (CV) extrapolation in the other. DWA samples reachable controls, screens 3-s rollouts and selects the command applied at the next 0.1-s update; MPC optimizes a 3-s control sequence and uses bounds from DWA's passing controls to constrain its first input.
+This supplement documents the 3-s development configuration, Stage-1 trust-weight calibration and LSTM training (S1--S3); preserves the completed historical five-controller benchmark and earlier CV/Kalman studies (S4--S7); and reports the current 100-scene, seven-method exploratory evaluation (S8). Stage 1 comprised 4,320 development episodes and selected a trust-weight vector; these runs are separate from both the 7,500-run historical benchmark and the 2,100 planned exploratory episodes, and their selected weights were not applied to the historical benchmark. The historical benchmark used 1-s DWA screening and inherited weights listed with the development settings and identified explicitly in S4. Obstacle trajectories are exogenous: they are generated before a run and do not react to the UAV. The development and exploratory configurations use 3-s MPC and DWA horizons; in the shared-LSTM arm, the same time-aligned 30-step forecast reaches both layers. One-layer ablations send LSTM only to the named layer and use CV extrapolation in the other. DWA samples reachable controls and selects the command applied at the next 0.1-s update; MPC optimizes a 3-s control sequence and uses bounds from DWA's passing controls to constrain its first input. The three evidence sets are not pooled.
 
 \subsection*{S1.1. MPC objective and first-control constraint}
 The route term measures squared distance from each predicted position to the direct start-to-goal line. The complete objective and its geometric definitions are
-\begin{align}
+\begin{equation}
+\begin{aligned}
 \mathbf{a}&=\mathbf{g}-\mathbf{s},\\
 \eta_{\mathbf a}&=\mathbf a^{\mathsf T}\mathbf a+10^{-12}\,\mathrm m^2,\\
 P_{\mathbf a}&=I_3-\frac{\mathbf a\mathbf a^{\mathsf T}}{\eta_{\mathbf a}},\\
@@ -38,9 +40,10 @@ J_{\mathrm{MPC}}={}&w_p\sum_{k=0}^{N-1}\|\mathbf{p}_{t+k|t}-\mathbf{g}\|_2^2\\
 &0\leq v_{c,t+k|t}\leq2.0~\mathrm{m\,s^{-1}},\\
 &|\omega_{\theta,t+k|t}|\leq0.8~\mathrm{rad\,s^{-1}},\quad
 |\omega_{\psi,t+k|t}|\leq0.8~\mathrm{rad\,s^{-1}},\quad k=1,\ldots,N.
-\end{align}
+\end{aligned}
+\end{equation}
 Here $\mathbf{x}_t=[\mathbf p_t^{\mathsf T},\theta_t,\psi_t,v_t]^{\mathsf T}$ is the current state in the implementation's position--pitch--yaw--speed order, and $f$ is the discrete vehicle update defined in the main text; the constraints initialize the prediction and propagate each planned state. The vectors $\mathbf s$ and $\mathbf g$ are the start and goal, and $\mathbf a=\mathbf g-\mathbf s$ is the start-to-goal route vector. The scalar $\eta_{\mathbf a}=\mathbf a^{\mathsf T}\mathbf a+10^{-12}\,\mathrm m^2$ is the squared route length with the implementation's numerical safeguard; $P_{\mathbf a}=I_3-\mathbf a\mathbf a^{\mathsf T}/\eta_{\mathbf a}$ defines the corresponding regularized cross-track operator. Thus $\mathbf e_{t+k|t}^{\perp}$ is the regularized cross-track residual of predicted position $\mathbf p_{t+k|t}$ from the direct route, and $I_3$ is the 3-D identity. The index $k$ denotes a prediction step, $N=30$ is the MPC horizon, and $\mathbf u_{t+k|t}$ is the three-component command planned at time $t$ for step $t+k$. The obstacle index is $j=1,\ldots,M$; $H_{\mathrm{inj}}=30$ is the number of forecast positions injected into MPC. The predicted signed clearance $\hat d_{j,k}$ is defined in the main text; $\hat d^{(b)}_{j,k}$ below is its candidate-specific counterpart. The soft margin $d_{\mathrm{soft}}=0.35$ m is the desired MPC safety margin. Thus the seven weights multiply, in order, stage goal error, control effort, terminal goal error, command variation, direct-route deviation, predicted overlap and sub-margin clearance.
-The weights for stage position, control effort, terminal position, control smoothing, route deviation, obstacle overlap and the safety margin are 1, 10, 1, 50, 3, 20,000 and 12,000, respectively. The safety margin is 0.35 m. Main simulations use 30 prediction steps and a 0.1 s integration step. The speed and angular-rate controls are squared in their native units without separate normalization; the control weight therefore supplies the scale that balances this term with position-based costs. The route-weight ablation alone removes the direct-route preference; all primary results retain it.
+The weights for stage position, control effort, terminal position, control smoothing, route deviation, obstacle overlap and the safety margin are 1, 10, 1, 50, 3, 20,000 and 12,000, respectively. The safety margin is 0.35 m. Main simulations use 30 prediction steps and a 0.1 s integration step. The code squares speed and angular-rate command values in their native units without cross-channel normalization, so this is a heuristic scalarization rather than a dimensionally homogeneous physical energy; the control weight supplies the numerical scale relative to position-based costs. In its soft penalty, MPC adds a $10^{-12}\,\mathrm m^2$ numerical smoothing term when evaluating distance; DWA gates and swept-collision checks use the exact norm. The route-weight ablation alone removes the direct-route preference; all primary results retain it.
 
 When the current DWA cycle has at least one retained candidate, the accepted actions define a safe control set. Only then are its component-wise extrema defined; the controller expands the bounds by a configured tolerance of 0.1 before forming the box passed to MPC.
 \begin{equation}
@@ -57,9 +60,10 @@ Only the first MPC control is constrained by this box. Let $\mathbf u_0=\mathrm{
 
 \subsection*{S1.2. Heuristic score, sampling and safety gates}
 The four normalized heuristic-score components measure predicted clearance, goal progress, agreement with the preceding MPC reference, and command smoothness. Their definitions are
-\begin{align}
-d_{\min}^{\mathrm{MPC}}&=\min_{1\leq j\leq M,\,1\leq k\leq N}\hat d_{j,k},\qquad
-d_0=\|\mathbf p_{\mathrm{ref},1|t-1}-\mathbf g\|_2,\quad
+\begin{equation}
+\begin{aligned}
+d_{\min}^{\mathrm{MPC}}&=\min_{1\leq j\leq M,\,1\leq k\leq N}\hat d_{j,k},\\
+d_0&=\|\mathbf p_{\mathrm{ref},1|t-1}-\mathbf g\|_2,\quad
 d_N=\|\mathbf p_{\mathrm{ref},N|t-1}-\mathbf g\|_2,\\
 \Delta_p&=\|\mathbf p_t-\mathbf p_{\mathrm{ref},1|t-1}\|_2,\qquad
 \Delta\mathbf u_k=\mathbf u_k-\mathbf u_{k-1},\\
@@ -76,16 +80,17 @@ d_N=\|\mathbf p_{\mathrm{ref},N|t-1}-\mathbf g\|_2,\\
 \mathbf a_u&=[1,\ 0.5,\ 0.5]^{\mathsf T},\\
 B&=\operatorname{round}[300(1+\alpha e^{-\beta\tau})],\\
 B_g&=\operatorname{round}(B\tau),\quad B_e=B-B_g.
-\end{align}
+\end{aligned}
+\end{equation}
 Here $d_{\min}^{\mathrm{MPC}}$ is the smallest predicted surface clearance along the MPC reference available before DWA sampling: the initial MPC solution at startup and the shifted previous solution thereafter. The same aligned reference and its control sequence supply the goal-progress, mismatch and smoothness scores. $d_{\mathrm{low}}=1$ m and $d_{\mathrm{high}}=5$ m are the lower and upper clearance anchors for the safety-trust normalization. The reference runs from $\mathbf p_{\mathrm{ref},1|t-1}$ to $\mathbf p_{\mathrm{ref},N|t-1}$; $d_0=\|\mathbf p_{\mathrm{ref},1|t-1}-\mathbf g\|_2$ and $d_N=\|\mathbf p_{\mathrm{ref},N|t-1}-\mathbf g\|_2$. Thus $\tau_g$ measures the reference route's clipped fractional reduction in goal distance, not progress from the current measured position. The mismatch $\Delta_p=\|\mathbf p_t-\mathbf p_{\mathrm{ref},1|t-1}\|_2$ defines the reference-agreement score $\tau_{\rm ref}=\exp(-\alpha_T\Delta_p)$: a smaller mismatch gives a larger score. The index $k$ runs over the $N=30$ planned control steps, and $i$ indexes desired speed, pitch rate and yaw rate.
 
 In the MATLAB implementation, the same reference-tracking score is named $\tau_t$; its subscript denotes tracking, not elapsed time.
 \needspace{3\baselineskip}
 The vector $\mathbf a_u=[1,0.5,0.5]^{\mathsf T}$ gives the componentwise acceleration limits for desired speed, pitch rate and yaw rate, with units m s$^{-2}$, rad s$^{-2}$ and rad s$^{-2}$, respectively; $\Delta t=0.1$ s is the control period. The subscript in $\sigma_t$ labels the reference-tracking component, not elapsed time. The four dimensionless components $\tau_{\rm sa}$, $\tau_g$, $\tau_{\rm ref}$ and $\tau_{\rm sm}$ quantify predicted safety, goal progress, reference agreement and command smoothness; their weighted sum is the heuristic sampling score $\tau$.
 The score components are limited to the range from zero to one. The sampling rule divides the $B$ randomly generated candidates between $B_g$ MPC-guided actions and $B_e$ uniformly distributed exploratory actions. Guided controls are drawn within 0.35 per control component of the clipped MPC command and clipped to the dynamic window. The clipped MPC command is also added, yielding one extra candidate. Their union is the candidate-control set $\mathcal B_t$. The dimensionless budget-gain coefficient is $\alpha=1$, distinct from the reference-mismatch decay rate $\alpha_T$.
-The four nonnegative trust coefficients were selected from a prespecified finite grid of six vectors using 48 development scenes and three matched sampling seeds. This Stage-1 design comprised $6\times5\times48\times3=4{,}320$ episodes, one for each candidate vector, integrated arm, scene and seed. The selection score gives equal weight to five trust-using integrated arms: CV-coupled MPC--DWA, LSTM to MPC only, LSTM to DWA only, shared LSTM, and latest-position hold. For each arm, collision-free arrival is the fraction of its 144 runs that reached the goal without swept contact; collisions and all non-arrivals remain failures. Stage 1 selected $[\sigma_s,\sigma_g,\sigma_t,\sigma_m]=[0.15,0.15,0.15,0.55]$, with an equal-arm macro-average of 0.8042. At this selected vector, the development rates were 0.8958 for shared LSTM, 0.7431 for CV-coupled MPC--DWA, 0.8194 for LSTM-to-MPC-only, 0.8958 for LSTM-to-DWA-only, and 0.6667 for latest-position hold. These are descriptive scores on the same scenes used for selection, not held-out comparisons or evidence of generalization. The earlier 864-episode six-setting comparison used a different protocol and was not reused. A separate recovery audit revalidated all 4,320 existing records and recomputed the selection without generating simulations. The historical 7,500-run benchmark used the inherited vector $[0.35,0.30,0.15,0.20]$, not the selected Stage-1 vector. No Stage-2 trust-scale or held-out results are reported here. During Stage 1, $\alpha_T=3$ m$^{-1}$ and $\beta=3$ were held fixed; the combined trust score is a sampling heuristic, not a probability or calibrated forecast uncertainty.
+The four nonnegative trust coefficients were selected from a prespecified finite grid of six vectors using 48 development scenes and three matched sampling seeds. This Stage-1 design comprised $6\times5\times48\times3=4{,}320$ episodes, one for each candidate vector, integrated arm, scene and seed. The selection score gives equal weight to five trust-using integrated arms: CV-coupled MPC--DWA, LSTM to MPC only, LSTM to DWA only, shared LSTM, and latest-position hold. For each arm, collision-free arrival is the fraction of its 144 runs that reached the goal without swept contact; collisions and all non-arrivals remain failures. Stage 1 selected $[\sigma_s,\sigma_g,\sigma_t,\sigma_m]=[0.15,0.15,0.15,0.55]$, with an equal-arm macro-average of 0.8042. At this selected vector, the development rates were 0.8958 for shared LSTM, 0.7431 for CV-coupled MPC--DWA, 0.8194 for LSTM-to-MPC-only, 0.8958 for LSTM-to-DWA-only, and 0.6667 for latest-position hold. These rates and the macro-average are descriptive results from the same development scenes used for selection, not held-out comparisons or evidence of generalization. A recovery audit revalidated all 4,320 existing records and recomputed the selection without generating simulations. The current 100-scene evaluation uses the selected vector, while these development outcomes remain descriptive and do not validate its performance. The historical 7,500-run benchmark used its inherited vector $[0.35,0.30,0.15,0.20]$ and remains a separate 1-s DWA study (S4). The earlier 864-episode six-setting comparison used a different protocol and was not reused.
 
-\noindent During Stage 1 only, $\alpha_T=3\,\mathrm{m}^{-1}$ and $\beta=3$ were held at their implementation settings; Stage 2 selects both from the frozen finite grid. The score $\tau$ and its four component scores are dimensionless, $\alpha_T$ has units m$^{-1}$ because it multiplies the position mismatch $\Delta_p$ in metres, and $\beta$ is dimensionless.
+\noindent The reference-mismatch decay $\alpha_T=3\,\mathrm{m}^{-1}$ and budget sensitivity $\beta=3$ are fixed implementation settings; neither was selected by the 4,320 Stage-1 episodes. The planned 5,760-episode Stage-2 grid was not completed or independently verified, so it provides no basis for describing either setting as calibrated or Stage-2-selected. Stage-2 records and protocol are retained as historical audit material only and are excluded from the evidence used for the current paper's main conclusions. The score $\tau$ and its four component scores are dimensionless, $\alpha_T$ has units m$^{-1}$ because it multiplies the position mismatch $\Delta_p$ in metres, and $\beta$ is dimensionless.
 
 The signed clearance for each sampled path and its minimum over all obstacles and forecast steps are defined below. A path is retained only if it passes the clearance, corridor and stopping-distance gates.
 \begin{equation}
@@ -118,14 +123,16 @@ w_i^{\mathrm{DWA}}&=\frac{w'_i}{\sum_{r\in\{p,h,v,o\}}w'_r}.
 \end{equation}
 The logistic map converts $\tau$ to $q$, which smoothly changes four unnormalized score coefficients $w'_p$, $w'_h$, $w'_v$ and $w'_o$. Dividing each by their sum gives $w_i^{\mathrm{DWA}}$ for position, heading, velocity and obstacle clearance, respectively; the summation index $r$ runs over those four components.
 The candidate scores compare the 30-step DWA rollout endpoint with the endpoint of the current 30-step MPC reference, reward useful speed and obstacle clearance, and penalize vertical deviation. In the definitions below, $\mathbf p_{b,D}$ and $v_b$ are the DWA candidate endpoint and speed, whereas $\mathbf p_{\mathrm{MPC},N}$ and $v_{\mathrm{MPC}}$ are the final position and speed of the current MPC reference. The vectors $\mathbf h_b$ and $\mathbf h_{\mathrm{MPC}}$ are the corresponding unit heading vectors formed from terminal pitch and yaw. All component scores are dimensionless.
-\begin{align}
+\begin{equation}
+\begin{aligned}
 S_{p,b}&=\left(1+\frac{\|\mathbf p_{b,D}-\mathbf p_{\mathrm{MPC},N}\|_2}{1\,\mathrm m}\right)^{-1}, &
 S_{h,b}&=\tfrac12(1+\mathbf h_b^{\mathsf T}\mathbf h_{\mathrm{MPC}}),\\
 S_{v,b}&=\tfrac12\left[\left(1+\frac{|v_b-v_{\mathrm{MPC}}|}{1\,\mathrm{m\,s^{-1}}}\right)^{-1}+\frac{v_b}{2\,\mathrm{m\,s^{-1}}}\right],\\
 S_{o,b}&=\frac{\min(d_{\min}^{(b)},5\,\mathrm m)}{5\,\mathrm m}, &
 S_{z,b}&=\left(1+\frac{\max_{1\leq k\leq H_D}|z_{b,k}-z_{\mathrm{nom},k}|}{1\,\mathrm m}\right)^{-1},\\
 S_b&=w_p^{\mathrm{DWA}}S_{p,b}+w_h^{\mathrm{DWA}}S_{h,b}+w_v^{\mathrm{DWA}}S_{v,b}+w_o^{\mathrm{DWA}}S_{o,b}+w_zS_{z,b}.
-\end{align}
+\end{aligned}
+\end{equation}
 Here $S_{p,b}$, $S_{h,b}$, $S_{v,b}$, $S_{o,b}$ and $S_{z,b}$ are the position-agreement, heading-agreement, velocity, obstacle-clearance and vertical-corridor scores of candidate $b$. The value $z_{b,k}$ is its altitude at rollout step $k$, and $z_{\mathrm{nom},k}$ is the corresponding direct-route altitude. Their weighted total is $S_b$. The planner selects the retained candidate with the largest total score. The fixed coefficient is $w_z=0.25$; it is added after the four normalized weights and is not renormalized with them.
 
 \subsection*{S1.4. Executed cycle and fallback}
@@ -146,7 +153,7 @@ The implemented top-to-bottom cycle is:
 The emergency branch differs from the normal 0.25-m candidate gate: it permits smaller positive clearance when the predicted surfaces remain separated and the stopping-distance condition passes. The planner rechecks the exact selected command before execution. A trial also ends after at most 650 state updates, equivalent to 65 s. Goal arrival and an infeasible emergency-action stop terminate execution early; a detected collision is logged but does not itself stop the simulator. For the Stage-1 development episodes, goal arrival required final distance within the configured goal tolerance and no swept-path contact. The historical five-controller results retain the endpoint definition and audit used in their original run bundle.
 
 \section*{S2. LSTM training and prediction evaluation}
-At each 0.1-s planning cycle, the predictor maps the latest 10 observations for each obstacle to 30 three-dimensional future offsets. Every offset is anchored independently to the latest observed centre; it is not added to the preceding forecast. Samples are separated by 0.1 s, so the first and last observations are 0.9 s apart. An observation contains position, velocity and heading encoded by its sine and cosine. Table~\ref{tab:training} separates the network architecture from the data split and optimizer settings so the complete training configuration is easy to reproduce.
+At each 0.1-s planning cycle, the predictor maps the latest 10 observations for each obstacle to 30 three-dimensional future offsets. Every offset is anchored independently to the latest observed centre; it is not added to the preceding forecast. Samples are separated by 0.1 s, so the first and last observations are 0.9 s apart. An observation contains position, velocity and heading encoded by its sine and cosine. In clean-observation evaluation, velocity and heading are simulator-provided obstacle states; heading is obstacle yaw, distinct from UAV yaw. In the separate noisy-input diagnostic, velocity is recomputed from perturbed positions while heading is unchanged. Table~\ref{tab:training} separates the network architecture from the data split and optimizer settings so the complete training configuration is easy to reproduce.
 
 The training set contains synthetic trajectories from eight motion families. The split is made by trajectory, so no trajectory appears in both training and validation. Training inputs include current and one-step-delayed histories; a noisy view adds independent 0.03-m position noise while future targets remain clean and anchored to the noisy last observation. For noisy views, velocity is recomputed from perturbed positions, whereas simulator-generated heading remains unchanged. Normalization uses training trajectories only. Validation trajectories support model selection and early stopping; the independent open-loop probe is reported below.
 
@@ -187,7 +194,7 @@ Validation trajectories are separate from training trajectories and support mode
 Online ADE and FDE summarize diagnostic runs retained in the run-level CSV. Goal arrival is the primary closed-loop outcome; held-out switchback prediction results are available in the supplementary CSV records.
 
 \section*{S3. Development simulation settings}
-Tables~\ref{tab:scene-settings} and~\ref{tab:planner-settings} describe the 3-s development configuration, not the 1-s DWA horizon used for the main paper's historical five-controller results. In this development configuration, the network returns 30 positions over 3 s, DWA checks each reachable 3-s candidate rollout against positions 1--30, and MPC optimizes a 3-s route using the same time-aligned positions. A selected DWA command is applied for one 0.1-s update. The historical configuration and outcomes are reported separately in S4.
+Tables~\ref{tab:scene-settings} and~\ref{tab:planner-settings} give the 3-s configuration used for Stage-1 development and the current seven-method evaluation. In this configuration, the network returns 30 positions over 3 s, DWA checks each reachable 3-s candidate rollout against positions 1--30, and MPC optimizes a 3-s route using the same time-aligned positions. A selected DWA command is applied for one 0.1-s update. The historical five-controller benchmark used 1-s DWA screening and is reported separately in S4.
 
 \begin{table}[!htbp]
 \centering
@@ -400,20 +407,20 @@ Noise and delay & 0/3 & 0/3 & 3/3 & $1.023\pm0.422$ & $0.697\pm0.018\,/\,1.523\p
 All 12 shared-LSTM runs ended in a fail-closed stop before reaching the goal; none recorded a collision. Under this obstacle trajectory, the planner found no feasible emergency action. Clearance and ADE/FDE are descriptive means and standard deviations across three seeds. The four-method summary is in \url{sensing_summary_revised.csv}; run-level records are in \url{sensing_revised.csv}.
 
 \section*{S6. Earlier baseline comparisons retained separately}
-Earlier baseline experiments compare static-position, constant-velocity (CV) and Kalman forecasts; their original figures and analysis records are retained in this section. Because these studies used different scenes and a different DWA action-rollout setting, they are reported separately from the 500-scene estimate.
+Earlier baseline experiments compare static-position, constant-velocity (CV) and Kalman forecasts; their original figures and analysis records are retained in this section. Because these studies used different scenes and a different DWA action-rollout setting, they are reported separately from the historical 500-scene estimate and the current seven-method exploratory evaluation.
 
 \subsection*{S6.1. Early 16-scene baseline pilot}
-This historical pilot used four fixed scenes and 12 random scenes, each with three matched seeds; it is retained separately from the Stage-1 development calibration and the 500-scene benchmark. In the fixed suite, goal arrivals were 10/12 for static positions, 9/12 for CV, 9/12 for Kalman and 12/12 for shared LSTM. In the random suite, arrivals were 26/36, 33/36, 33/36 and 36/36, respectively. The scene-cluster estimate for the random-suite shared-LSTM minus CV difference was +8.3 percentage points (95\% CI, 0.0 to 25.0), spanning zero. The earlier four-panel results figure is retained in Fig.~\ref{fig:legacy36}; its panels include random-scene success and clearance, forecast error and a single-scene interface/horizon ablation.
+This historical pilot used four fixed scenes and 12 random scenes, each with three matched seeds; it is retained separately from the Stage-1 development calibration, the historical 500-scene benchmark and the current seven-method exploratory evaluation. In the fixed suite, goal arrivals were 10/12 for static positions, 9/12 for CV, 9/12 for Kalman and 12/12 for shared LSTM. In the random suite, arrivals were 26/36, 33/36, 33/36 and 36/36, respectively. The scene-cluster estimate for the random-suite shared-LSTM minus CV difference was +8.3 percentage points (95\% CI, 0.0 to 25.0), spanning zero. The earlier four-panel results figure is retained in Fig.~\ref{fig:legacy36}; its panels include random-scene success and clearance, forecast error and a single-scene interface/horizon ablation.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{figures/historical_36run_results.pdf}
-\caption{Retained historical results figure from the earlier random-scene comparison (36 runs per method). It shows Static, CV, Kalman and shared LSTM, with separate forecast-error and single-scene interface/horizon panels. This pilot is reported separately and not pooled with the 500-scene benchmark.}
+\caption{Retained historical results figure from the earlier random-scene comparison (36 runs per method). It shows Static, CV, Kalman and shared LSTM, with separate forecast-error and single-scene interface/horizon panels. This pilot is reported separately and not pooled with the historical 500-scene benchmark or the seven-method exploratory evaluation.}
 \label{fig:legacy36}
 \end{figure}
 
 \subsection*{S6.2. Earlier 48-scene, six-setting comparison}
-The subsequent benchmark tested Static, CV, Kalman, MPC-only LSTM, DWA-only LSTM and shared LSTM in 48 scenes with three matched seeds per setting (144 runs per method; 864 attempts). Table~\ref{tab:historical48} reports method-level goal and failure outcomes; Fig.~\ref{fig:historical48} shows scene-cluster intervals and paired contrasts. The shared-LSTM versus CV contrast was the prespecified primary comparison in that study: 125/144 goal arrivals (86.8\%) versus 103/144 (71.5\%), a paired difference of +15.28 percentage points (95\% scene-cluster bootstrap CI, +6.25 to +25.69). The shared-versus-DWA-only difference was +2.08 percentage points (95\% CI, -1.39 to +6.94). Its DWA rollout differed from the 1-s rollout in the 500-scene benchmark and the 3-s development configuration, so these estimates remain a separate historical result.
+The subsequent historical benchmark tested Static, CV, Kalman, MPC-only LSTM, DWA-only LSTM and shared LSTM in 48 scenes with three matched seeds per setting (144 runs per method; 864 attempts). Table~\ref{tab:historical48} reports method-level goal and failure outcomes; Fig.~\ref{fig:historical48} shows scene-cluster intervals and paired contrasts. The shared-LSTM versus CV contrast was the prespecified primary comparison in that study: 125/144 goal arrivals (86.8\%) versus 103/144 (71.5\%), a paired difference of +15.28 percentage points (95\% scene-cluster bootstrap CI, +6.25 to +25.69). The shared-versus-DWA-only difference was +2.08 percentage points (95\% CI, -1.39 to +6.94). Its DWA rollout differed from the 1-s rollout in the historical five-controller benchmark and the 3-s development configuration, so these estimates remain separate historical evidence.
 
 \begin{table}[htbp]
 \centering
@@ -441,7 +448,7 @@ Figure~\ref{fig:historical48} displays all six goal-arrival rates and the paired
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/historical_48scene_baselines.pdf}
-\caption{Earlier six-setting comparison across 48 scenes. (a) Goal-arrival rates, with 95\% scene-cluster intervals and counts. (b) Paired success-rate differences (shared LSTM minus each baseline); the vertical line marks zero. The CV contrast was prespecified in that study; other intervals are unadjusted. These estimates are separate from the new 500-scene test.}
+\caption{Earlier six-setting comparison across 48 scenes. (a) Goal-arrival rates, with 95\% scene-cluster intervals and counts. (b) Paired success-rate differences (shared LSTM minus each baseline); the vertical line marks zero. The CV contrast was prespecified in that study; other intervals are unadjusted. These estimates are separate from the historical 500-scene benchmark and the current seven-method exploratory evaluation.}
 \label{fig:historical48}
 \end{figure}
 
@@ -449,7 +456,7 @@ The former main-text scene-2 route comparison is also retained as a historical i
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{figures/historical_scene2_four_controller_routes.pdf}
-\caption{Earlier four-method three-dimensional route example from scene 2, seed 1. The panels show CV, Kalman, DWA-only LSTM and shared LSTM under identical obstacle tracks. This illustration belongs to the earlier forecast comparison and is not pooled with the new 500-scene controller benchmark.}
+\caption{Earlier four-method three-dimensional route example from scene 2, seed 1. Panels (a)--(d) show CV, Kalman, DWA-only LSTM and shared LSTM, respectively, under identical obstacle tracks. This illustration belongs to the earlier forecast comparison and is separate from both the historical 500-scene controller benchmark and the current seven-method exploratory evaluation.}
 \label{fig:historical-scene2}
 \end{figure}
 
@@ -463,20 +470,31 @@ Fig.~\ref{fig:primaryroutes} shows the historical scene 404, seed 2 example for 
 \label{fig:primaryroutes}
 \end{figure}
 
-\section*{S8. Reproducibility files}
-\needspace{5\baselineskip}
-The reproducibility materials distinguish the completed historical five-controller benchmark from the separate 4,320-episode Stage-1 development calibration. Scene identifiers, seeds and motion families are recorded in the historical scenario manifest; its SHA-256 is:
+\section*{S8. Seven-method exploratory evaluation}
+\subsection*{S8.1. Frozen design and outcome definitions}
+This limited-scope evaluation compares seven matched controller arms on 100 newly generated, unique-content-hashed scenes, with sampling seeds 1--3 shared across all methods (300 episodes per arm; 2,100 planned episodes total). The arms are standalone DWA with CV prediction, standalone MPC with CV prediction, coupled MPC--DWA with CV in both layers, coupled MPC--DWA with LSTM supplied to MPC only, coupled MPC--DWA with LSTM supplied to DWA only, coupled MPC--DWA with the same LSTM forecast supplied to both layers, and a project-local latest-position-hold MPC--DWA reconstruction. The last arm is an architectural reconstruction, not an exact reproduction of the cited method. All arms use 0.1-s updates, a 30-step (3-s) MPC horizon and, unlike the historical five-controller benchmark, a 30-step DWA screening horizon. The trust vector was selected in the separate 4,320-episode Stage-1 development sweep; $\alpha_T=3\,\mathrm m^{-1}$ and $\beta=3$ were fixed implementation settings. The interrupted Stage-2 calibration did not select these settings and contributes no outcomes to this comparison.
+
+The evaluation is exploratory and was defined by an internal scope amendment, not an external preregistration. Its primary outcome is collision-free goal arrival: the terminal position must lie within the recorded goal tolerance and the complete trajectory must have no swept-path contact. Continuous contact is recomputed from piecewise-linear relative motion between adjacent saved states; clearance at or below zero counts as contact. All attempted episodes and their terminal categories are retained. For each method, the three seeds are averaged within each scene; absolute rates use 20,000 scene-cluster bootstrap resamples, and the six shared-LSTM-minus-comparator primary contrasts use centered max-$|t|$ simultaneous 95\% intervals. There is no post-hoc weighted composite. Any inferential superiority claim requires the shared-LSTM arm to have the highest observed primary rate and all six simultaneous interval lower bounds above zero.
+
+Secondary outcomes follow the frozen multidimensional comparison contract: swept-contact incidence and minimum swept clearance use all episodes; path length and time to goal use collision-free arrivals only and report their denominator; planning latency is summarized descriptively under the shared simulator conditions and is not presented as onboard flight latency. Failure categories are mutually exclusive: swept contact, collision-free arrival, no-contact infeasible stop, no-contact timeout, or other non-arrival. The seven-method route illustration uses the preselected scene 1, seed 1 and shows only saved states through each method's recorded terminal point; it is an example, not population evidence.
+
+\subsection*{S8.2. Seven-method outcomes}
+The run-level outcomes, denominators, clustered intervals, paired contrasts, secondary distributions and failure-category counts are archived with the v13 evidence package. These results are presented only after all 2,100 episode keys pass integrity and coverage checks; they are not pooled with the earlier 500-scene benchmark or the 4,320-episode development set.
+
+\needspace{7\baselineskip}
+\section*{S9. Reproducibility files}
+The reproducibility materials distinguish the 100-scene seven-method exploratory evaluation from the completed historical five-controller benchmark and the separate 4,320-episode Stage-1 development calibration. Scene identifiers, seeds and motion families are recorded in each scenario manifest; their SHA-256 values are listed in the audit records:
 \begin{center}
 \small\texttt{10D86F1D0BA1146B9777C82A63AFCFB526DA9E309C961D4B5B1A849C4D9BCCF1}
 \end{center}
-The v13 evidence archive contains the manuscript sources, figures, bilingual reader, historical run-level records, Stage-1 recovered episode table and its integrity manifests. The original Stage-1 MAT checkpoints remain unchanged in the project results directory and are not duplicated in the archive; their 4,320 individual hashes are included. Stage-2 and seven-method held-out outcomes are not part of this release. The historical runs used MATLAB R2025a, Deep Learning Toolbox and CasADi 3.8.0 on Windows 64-bit. These archived simulations use prescribed obstacle tracks; no real-flight result or public data DOI is claimed here.
+The v13 evidence archive contains the manuscript sources, figures, bilingual reader, historical run-level records, Stage-1 recovered episode table, seven-method exploratory aggregates and their integrity manifests. Original episode MAT checkpoints remain unchanged in the project results directory and are not duplicated in the archive; their SHA-256 hashes are included. The incomplete Stage-2 calibration remains excluded from outcome claims. These experiments use prescribed obstacle tracks; no real-flight result or public data DOI is claimed here.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption{Artifacts documenting the reported historical benchmark and separate Stage-1 development calibration. The two evidence sets are not pooled.}
 \label{tab:repro-index}
 \footnotesize
-\renewcommand{\arraystretch}{1.10}
+\renewcommand{\arraystretch}{0.95}
 \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.37\linewidth}X>{\raggedright\arraybackslash}p{0.19\linewidth}@{}}
 \toprule
 Artifact & Purpose & Expected content \\
@@ -493,10 +511,62 @@ Artifact & Purpose & Expected content \\
 \texttt{pooled\_development\_raw.csv} & Stage-1 recovered run-level outcomes & 4,320 rows \\
 \texttt{pooled\_episode\_sha256.csv} & Hashes linking the outcomes to preserved MAT checkpoints & 4,320 hashes \\
 \texttt{pooled\_calibration\_artifact\_sha256.csv} & Stage-1 calibration artifact integrity register & 8 files \\
-\texttt{reproducibility\_package\_v13.zip} & Curated source, data and audit archive & SHA-256 sidecar \\
+\texttt{reproducibility\_package.zip} & Current unified v13 source, data and audit archive & SHA-256 sidecar \\
 \texttt{scripts/} & Versioned simulation, recovery and analysis code & Historical and development workflows \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+\section*{S10. Verified outcomes from the 100-scene exploratory evaluation}
+All 2,100 planned episodes passed integrity checks. Table~\ref{tab:v13-seven-method-outcomes} reports collision-free arrivals and swept contacts for seven arms (300 episodes per arm); Table~\ref{tab:v13-seven-method-contrasts} gives the six paired shared-LSTM contrasts.
+
+\begin{table}[H]
+\centering
+\caption{Observed collision-free goal arrivals and swept contacts in the verified 100-scene exploratory evaluation. Each arm has 300 episodes (100 scenes with three matched seeds).}
+\label{tab:v13-seven-method-outcomes}
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}Xrr@{}}
+\toprule
+Method & Collision-free arrivals, $n/300$ (\%) & Swept contacts, $n/300$ \\
+\midrule
+Standalone DWA (CV) & 234/300 (78.0\%) & 0/300 \\
+Standalone MPC (CV) & 276/300 (92.0\%) & 15/300 \\
+Coupled MPC--DWA (CV in both layers) & 204/300 (68.0\%) & 0/300 \\
+MPC--DWA (LSTM to MPC only) & 219/300 (73.0\%) & 0/300 \\
+MPC--DWA (LSTM to DWA only) & 224/300 (74.7\%) & 0/300 \\
+MPC--DWA (shared LSTM) & 221/300 (73.7\%) & 0/300 \\
+Reconstructed MPC--DWA (latest-position hold) & 172/300 (57.3\%) & 50/300 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+For paired inference, the three seeds were averaged within each scene; 20,000 scene-cluster bootstrap replicates and a centered max-$|t|$ critical value of 2.59005 gave simultaneous 95\% intervals. Differences are in percentage points (pp), with positive values favoring shared LSTM for collision-free arrival.
+
+\begin{table}[H]
+\centering
+\caption{Shared-LSTM minus comparator differences in collision-free goal-arrival rate. Intervals are simultaneous 95\% scene-cluster bootstrap intervals across the six comparisons.}
+\label{tab:v13-seven-method-contrasts}
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}Xr>{\raggedright\arraybackslash}p{0.34\linewidth}@{}}
+\toprule
+Comparator & Difference (pp) & Simultaneous 95\% CI (pp) \\
+\midrule
+Standalone DWA (CV) & $-4.3$ & $[-16.8,\ 8.1]$ \\
+Standalone MPC (CV) & $-18.3$ & $[-29.6,\ -7.0]$ \\
+Coupled MPC--DWA (CV) & $+5.7$ & $[-3.4,\ 14.7]$ \\
+MPC--DWA (LSTM to MPC only) & $+0.7$ & $[-9.0,\ 10.3]$ \\
+MPC--DWA (LSTM to DWA only) & $-1.0$ & $[-4.8,\ 2.8]$ \\
+Reconstructed MPC--DWA (latest-position hold) & $+16.3$ & $[5.1,\ 27.6]$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Only the latest-position-hold contrast excludes zero in shared LSTM's favor; the other comparisons do not establish overall superiority, optimality or real-flight performance.
+
+Integrity: all 2,100 planned keys appear once. One invalid-sidecar scene-58/seed-2 attempt was preserved but excluded; raw results, logs and hashes remain archived. No planned key fails. Historical 500-scene, 4,320-development, CV/Kalman and scene-404 records remain separate and were not pooled.
 
 \end{document}

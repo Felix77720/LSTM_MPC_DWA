@@ -1,8 +1,8 @@
 # Supplementary tables / 补充材料表格导读
 
-This bilingual guide follows Tables S1–S10 in the supplementary PDF. It explains what each table supports and the limits readers should keep in mind.
+This bilingual guide follows Tables S1–S12 in the supplementary PDF. It explains what each table supports and the limits readers should keep in mind.
 
-本导读按补充材料中的表 S1–S10 排列，说明每张表提供什么信息，以及阅读时需要注意的结论边界。
+本导读按补充材料中的表 S1–S12 排列，说明每张表提供什么信息，以及阅读时需要注意的结论边界。
 
 ## Table S1 — LSTM training and prediction settings
 
@@ -54,12 +54,24 @@ This bilingual guide follows Tables S1–S10 in the supplementary PDF. It explai
 
 ## Table S9 — Retained 48-scene historical comparison
 
-**English.** Table S9 preserves the earlier six-setting, 48-scene benchmark. Its shared-LSTM versus CV contrast was supported, whereas shared versus DWA-only remained inconclusive; the results are not pooled with the new 500-scene experiment.
+**English.** Table S9 preserves the earlier six-setting, 48-scene benchmark. Its shared-LSTM versus CV contrast was supported, whereas shared versus DWA-only remained inconclusive; these results are not pooled with either the historical 500-scene study or the current seven-method evaluation.
 
-**中文。** 表 S9 保留此前六种设置、48 个场景的基准。共享 LSTM 相对 CV 的差异得到支持，而相对仅 DWA 使用预测的差异仍不确定；该结果不与新的 500 场景实验合并。
+**中文。** 表 S9 保留此前六种设置、48 个场景的基准。共享 LSTM 相对 CV 的差异得到支持，而相对仅 DWA 使用预测的差异仍不确定；该结果不与历史 500 场景研究或当前七方法评估合并。
 
 ## Table S10 — Reproducibility-package index
 
 **English.** Table S10 lists key files, their roles and expected row or run counts. It supports machine checking of the 7,500-run audit, terminal accounting, bootstrap outputs and frozen protocols; it is not a public repository citation.
 
 **中文。** 表 S10 列出关键复现文件、用途和预期行数或运行数，用于机器核验 7,500 次运行审计、终止账目、bootstrap 输出和冻结协议；它不是公共数据仓库引用。
+
+## Table S11 — Current seven-method outcomes
+
+**English.** Table S11 gives observed collision-free goal arrivals and swept contacts for seven arms in 100 simulated scenes (300 episodes per arm). Standalone MPC-CV has the highest observed arrival rate (92.0%) but also 15 contacts; shared-LSTM MPC–DWA reaches safely in 73.7% with no contacts. Counts are descriptive and do not establish overall superiority.
+
+**中文。** 表 S11 列出当前七种方法在 100 个仿真场景中的无碰撞到达次数和扫掠接触次数（每种方法 300 次）。独立 MPC-CV 的观测到达率最高（92.0%），但有 15 次接触；共享 LSTM 的 MPC–DWA 安全到达率为 73.7%，未发生接触。该表为描述性结果，不能证明总体优越性。
+
+## Table S12 — Simultaneous paired contrasts
+
+**English.** Table S12 reports all six shared-LSTM-minus-comparator differences with simultaneous 95% scene-cluster max-|t| intervals from 20,000 paired resamples. Only the latest-position-hold reconstruction contrast is positive with an interval excluding zero; standalone MPC-CV favors that baseline. The evaluation is exploratory and simulation-only.
+
+**中文。** 表 S12 报告共享 LSTM 减各比较方法的六组差异及同时 95% 场景聚类 max-|t| 区间，使用 20,000 次配对重抽样。只有相对最新位置保持重构的区间为正且不含零；独立 MPC-CV 的结果更高。该评估属于探索性仿真，不代表真实飞行验证。

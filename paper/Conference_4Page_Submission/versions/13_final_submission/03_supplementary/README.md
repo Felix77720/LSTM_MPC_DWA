@@ -1,6 +1,6 @@
 # Supplementary methods and retained baseline experiments
 
-This supplement preserves controller details, historical baselines, and diagnostic results. It reports two distinct evidence sets: a completed historical five-controller comparison (7,500 runs; 1-s DWA screening) and a separate Stage-1 trust-weight development study (4,320 episodes; 3-s configuration). The Stage-1 selection was not applied to the historical benchmark. Stage-2 and held-out seven-controller outcomes are not included, and the two evidence sets must not be pooled.
+This supplement preserves controller details, historical baselines and diagnostic results. It reports three distinct evidence sets: the historical five-controller comparison (7,500 runs; 1-s DWA screening), Stage-1 trust-weight development (4,320 episodes; 3-s configuration), and the current limited exploratory evaluation (2,100 episodes; 100 scenes × three matched seeds × seven methods). These evidence sets are not pooled. Stage-2 calibration remains incomplete and is not used for outcome claims.
 
 ## Stage-1 trust-weight development (4,320 episodes)
 
@@ -25,7 +25,14 @@ The standalone controllers provide secondary, unadjusted context. The versioned 
 - `figures/route_comparison.{pdf,svg,png,tiff}` — one route-only 3-D overlay of the five historical scene-404, seed-2 controller trajectories; it has no aggregate-rate panel. Dashed tracks show the in-workspace portions of obstacle motion, and every route ends at its logged terminal state.
 - `figures/primary_500scene_route_pair.pdf` — retained earlier route-pair visualization; it is not the final main-paper aggregate figure.
 - `stage1_development/` — the 4,320-row recovered Stage-1 outcome CSV, per-episode checkpoint-hash index, calibration artifact hash register, selection and recovery manifests, and a data-scope README. The original 4,320 MAT checkpoints remain unchanged under `results/v12a_pooled_weight_development_inclusive_dev48_20261012/episodes/` and are not duplicated in the ZIP; their hashes are included.
-- `reproducibility_package_v13.zip` — the current allowlisted archive of the main/supplement sources and PDFs, bilingual reader, vector figures, historical run-level evidence, Stage-1 recovered outcomes and integrity manifests, audit records, and relevant scripts. Its external checksum is `reproducibility_package_v13.zip.sha256`; an internal `SHA256SUMS.txt` covers the archived files. No Stage-2 or seven-method held-out result payloads are included. The older `reproducibility_package.zip.sha256` is preserved as historical metadata and does not validate this v13 archive.
+- `reproducibility_package.zip` — the current allowlisted archive of the main/supplement sources and PDFs, bilingual reader and table guide, vector figures, historical run-level evidence, Stage-1 recovered outcomes, the complete 2,100-episode scenario bank, run-level outcomes and trajectory archive, audit records, and analysis/figure scripts. Its external checksum is `reproducibility_package.zip.sha256`; an internal `SHA256SUMS.txt` covers the archived files. The earlier compact v13 archive is nested under `legacy/` inside this ZIP.
+- `final_delivery_SHA256.txt` — independent delivery-artifact hashes; the report and reader/source map are included.
+
+## Current seven-method exploratory evaluation (2,100 episodes)
+
+The current evaluation uses 100 new scenes, three matched sampling seeds per scene, and seven controller arms (300 episodes per arm). Shared-LSTM MPC–DWA reached safely in 221/300 episodes (73.7%); this exceeded the project-local latest-position-hold reconstruction by 16.3 percentage points (simultaneous 95% scene-cluster CI 5.1–27.6), but was lower than standalone MPC-CV (92.0%) and standalone DWA-CV (78.0%). The other paired intervals include zero for the CV-coupled and one-layer LSTM ablations; the intervals against both standalone methods favor those baselines. The predefined superiority gate was not met, so no overall-best claim is made. This is an exploratory simulation under an internal scope amendment, not a real-flight validation.
+
+Tables S11 and S12 report the seven arm counts/rates and all six simultaneous paired intervals. One unplanned orphaned attempt (scene 58, seed 2) had an invalid checkpoint sidecar; it is preserved and hash-listed, but excluded from the 2,100 planned episodes. The raw run table, invocation/failure logs, analysis outputs, and integrity manifests remain in `results/v13_seven_method_100scene_exploratory_20261015/`; individual episode MAT files are not duplicated in the release ZIP.
 
 ## Earlier baseline experiments kept separate
 
@@ -40,14 +47,14 @@ The subsequent six-setting comparison covered 48 scenes and three matched seeds 
 
 ## Tables, diagnostics and reproduction details
 
-- The supplementary PDF contains ten editable, captioned tables (S1–S10) with explanatory text before or after each table. They cover predictor training, scene and vehicle settings, planner parameters, runtime, two-arm outcomes, five-controller summaries, exhaustive terminal accounting, the sensing diagnostic, the retained 48-scene benchmark and the reproducibility-file index.
+- The supplementary PDF contains twelve editable, captioned tables (S1–S12) with explanatory text before or after each table. Tables S11–S12 report the new seven-method outcomes and paired contrasts; the earlier tables preserve predictor training, scene and vehicle settings, planner parameters, runtime, historical outcomes, terminal accounting, diagnostics and the reproducibility index.
 - Table S5 compares the two forecast inputs side by side, highlights collision-free goal arrival and spells out the reasons for other run outcomes. Its brief interpretation and paired interval follow directly below the table.
-- The bilingual table guide is in ../03_bilingual/supplementary_table_guide.md and explains the purpose and evidence limits of all ten tables in English and Chinese.
+- The bilingual table guide is in ../03_bilingual/supplementary_table_guide.md and explains the purpose and evidence limits of all twelve tables in English and Chinese.
 
 - `supplementary_methods.tex` / `supplementary_methods.pdf` — MPC objective, LSTM setup, DWA sampling and safety gates, experiment designs, historical outcomes and diagnostic results.
 - The Round 17 audit reconciled the MPC weight order in S1.1 with the implementation and parameter table; the correction changes no simulation data.
-- `../04_review/v13_final_submission_audit_20261014.md` — final full-manuscript, evidence-scope, reference and layout audit.
+- `../04_review/v13_final_submission_audit_20261015.md` — final full-manuscript, evidence-scope, reference and layout audit.
 - `configuration.csv` and `sensing_summary_revised.csv` — settings and single-scene sensing-pressure diagnostics.
 - `heldout_switchback_*` — 12-trajectory open-loop prediction probe; it evaluates prediction error only.
 
-The historical five-controller evaluation used MATLAB R2025a, Deep Learning Toolbox, CasADi 3.8.0 and Windows 64-bit; reproducing all optimizations requires compatible dependencies. Its archive remains separate from the 4,320-episode development calibration. No Stage-2 or held-out seven-controller result is included, and no public data deposit or DOI is claimed. All reported findings are simulations with prescribed obstacle tracks; real-flight behavior and performance on motion families absent from training remain untested.
+The historical five-controller evaluation used MATLAB R2025a, Deep Learning Toolbox, CasADi 3.8.0 and Windows 64-bit; reproducing optimizations requires compatible dependencies. Individual episode checkpoints and large historical MAT experiment bundles remain unchanged in their original project results paths and are not duplicated in the release ZIP; `OMITTED_ARTIFACTS_SHA256.csv` records the omitted source paths, sizes and hashes. The current archive includes the complete 2,100-episode scenario bank, run-level outcomes and saved trajectories, but omits the redundant combined `experiment_bundle.mat`. CasADi binaries are also not duplicated; `CASADI_3.8.0_SHA256.csv` inventories the local dependency tree, and the preserved CasADi README identifies the expected version and platform. No Stage-2 result or real-flight result is claimed, and no public data DOI is claimed. All reported findings are simulations with prescribed obstacle tracks; real-flight behavior and performance on motion families absent from training remain untested.
