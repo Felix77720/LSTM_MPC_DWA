@@ -456,7 +456,7 @@ The former main-text scene-2 route comparison is also retained as a historical i
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{figures/historical_scene2_four_controller_routes.pdf}
-\caption{Earlier four-method three-dimensional route example from scene 2, seed 1. Panels (a)--(d) show CV, Kalman, DWA-only LSTM and shared LSTM, respectively, under identical obstacle tracks. This illustration belongs to the earlier forecast comparison and is separate from both the historical 500-scene controller benchmark and the current seven-method exploratory evaluation.}
+\caption{Historical four-method 3-D route example from scene 2 and DWA sampling seed 1. Panels (a)--(d) show CV, Kalman, DWA-only LSTM and shared LSTM under the same prescribed obstacle tracks. The green triangle marks the start, the red star the goal, and the open circle CV's recorded early-stop endpoint. In this example, CV stopped before the goal; the other three methods reached the goal, and all four routes were collision-free under the swept-path test. Each route contains only its saved states through the recorded terminal point; none is extended or interpolated. Obstacle tracks show scene context and are not time-aligned with route durations. This single historical example illustrates route geometry, not aggregate performance, and is reported separately from the historical five-controller benchmark and current seven-method evaluation.}
 \label{fig:historical-scene2}
 \end{figure}
 

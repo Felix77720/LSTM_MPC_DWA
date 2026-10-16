@@ -1,0 +1,73 @@
+{
+  "audit_date": "2026-10-16",
+  "figure": "03_supplementary/figures/historical_scene2_four_controller_routes.pdf",
+  "data_directory": "qa/confirmatory_route_figure_data",
+  "data_origin": "The nine CSV files were copied byte-for-byte from the Version 09 route export; no simulation or trajectory modification was performed.",
+  "source_exporter": "scripts/export_confirmatory_route_data.m",
+  "source_run_directory": "results/confirmatory_revision/confirmatory_48scenes_20261005_050804",
+  "source_run_audit": "confirmatory_run_audit.csv",
+  "scene_index": 2,
+  "scenario_seed": 20261007,
+  "dwa_sampling_seed": 1,
+  "start_xyz_m": [1.0, 1.0, 1.0],
+  "goal_xyz_m": [18.0, 18.0, 8.0],
+  "trajectory_handling": "Route CSVs contain the saved res.traj(:,1:3) states. Each plotted route ends at its recorded terminal state; no smoothing, interpolation, resampling, or extension was applied.",
+  "obstacle_track_handling": "The plotted obstacle tracks are the prescribed scenario paths and are shown as spatial context, not synchronized to the different route durations.",
+  "checks": {
+    "route_start_matches_start_goal_csv": true,
+    "route_terminal_state_matches_route_status_event_xyz": true,
+    "saved_state_count_equals_logged_steps_plus_one": true,
+    "all_four_routes_have_no_swept_collision": true
+  },
+  "illustrated_methods": [
+    {
+      "panel": "a",
+      "method": "CV",
+      "route_file": "route_cv.csv",
+      "logged_steps": 17,
+      "saved_states": 18,
+      "terminal_xyz_m": [2.55059570003226, 2.50866193681481, 1.62933829634262],
+      "goal_reached": false,
+      "swept_collision": false,
+      "failure_type": "goal_not_reached|dwa_no_safe_candidate|no_feasible_emergency_action",
+      "swept_min_clearance_m": 3.51570432609277
+    },
+    {
+      "panel": "b",
+      "method": "Kalman",
+      "route_file": "route_kalman.csv",
+      "logged_steps": 465,
+      "saved_states": 466,
+      "terminal_xyz_m": [17.7454887293673, 17.5930891952726, 7.86255465869558],
+      "goal_reached": true,
+      "swept_collision": false,
+      "failure_type": "success",
+      "swept_min_clearance_m": 0.184963894397938
+    },
+    {
+      "panel": "c",
+      "method": "DWA-only LSTM",
+      "route_file": "route_lstm_dwa_only.csv",
+      "logged_steps": 456,
+      "saved_states": 457,
+      "terminal_xyz_m": [17.7177957963315, 17.6149341706788, 7.86225625593138],
+      "goal_reached": true,
+      "swept_collision": false,
+      "failure_type": "success",
+      "swept_min_clearance_m": 0.487424289662643
+    },
+    {
+      "panel": "d",
+      "method": "Shared LSTM",
+      "route_file": "route_lstm.csv",
+      "logged_steps": 454,
+      "saved_states": 455,
+      "terminal_xyz_m": [17.7473265616113, 17.5921650114603, 7.86395608581717],
+      "goal_reached": true,
+      "swept_collision": false,
+      "failure_type": "success",
+      "swept_min_clearance_m": 0.941036553605612
+    }
+  ],
+  "interpretation": "One historical route illustration only. The four-method example is not an aggregate performance comparison and is kept separate from the historical five-controller benchmark and current seven-method evaluation."
+}

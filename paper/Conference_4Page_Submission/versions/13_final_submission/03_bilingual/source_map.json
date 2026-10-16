@@ -87,8 +87,8 @@
       "type": "abstract",
       "order": 2,
       "source_location": "main.tex: abstract",
-      "original_text": "First, three-dimensional UAV planning is difficult because moving obstacles can turn, accelerate or pause, making recent positions unreliable. Second, we couple model predictive control (MPC) and the dynamic window approach (DWA) with one causal long short-term memory (LSTM) forecast: MPC optimizes the route, while DWA screens reachable actions and constrains MPC's first command. Then, in 100 simulated scenes with three matched seeds per scene, shared LSTM reached the goal without collision in 221/300 episodes (73.7%). This was 16.3 percentage points above a latest-position-hold MPC--DWA reconstruction (simultaneous 95% CI, 5.1--27.6), but below standalone MPC-CV (92.0%) and standalone DWA-CV (78.0%). Finally, these results support shared prediction over the position-hold reconstruction, but do not establish overall superiority among the tested controllers.",
-      "translation": "首先，三维无人机路径规划面临动态障碍物转向、加速或暂停的困难，使近期位置难以可靠地指示其后续运动。其次，我们将模型预测控制（MPC）与动态窗口法（DWA）耦合，并让两者共享同一条因果长短期记忆网络（LSTM）预测：MPC 用它优化路线，DWA 筛选可达动作并约束 MPC 的首个指令。然后，在 100 个仿真场景、每个场景 3 个匹配种子的测试中，共享 LSTM 在 300 次运行中有 221 次无碰撞到达目标（73.7%）。这一比例比最新位置保持的 MPC–DWA 重构高 16.3 个百分点（同时 95% CI：5.1–27.6），但低于独立 MPC-CV（92.0%）和独立 DWA-CV（78.0%）。最后，这些结果支持共享预测优于位置保持重构，但不能证明其在所测方法中总体最优。"
+      "original_text": "First, UAVs must avoid moving obstacles in three dimensions, but turns, acceleration and pauses make recent positions unreliable for predicting their motion. Second, we couple model predictive control (MPC) and the dynamic window approach (DWA) with one causal long short-term memory (LSTM) forecast: MPC optimizes the route, while DWA screens reachable actions and constrains MPC's first command. Then, in 100 simulated scenes with three matched seeds per scene, shared LSTM reached the goal without collision in 221/300 episodes (73.7%). This was 16.3 percentage points above a latest-position-hold MPC--DWA reconstruction (simultaneous 95% CI, 5.1--27.6), but below standalone MPC-CV (92.0%) and standalone DWA-CV (78.0%). Finally, these results support shared prediction over the position-hold reconstruction, but do not establish overall superiority among the tested controllers.",
+      "translation": "首先，无人机必须在三维空间躲避运动障碍物，但障碍物转向、加速或暂停，使近期位置难以可靠预测其运动。其次，我们将模型预测控制（MPC）与动态窗口法（DWA）耦合，并让两者共享同一条因果长短期记忆网络（LSTM）预测：MPC 用它优化路线，DWA 筛选可达动作并约束 MPC 的首个指令。然后，在 100 个仿真场景、每个场景 3 个匹配种子的测试中，共享 LSTM 在 300 次运行中有 221 次无碰撞到达目标（73.7%）。这一比例比最新位置保持的 MPC–DWA 重构高 16.3 个百分点（同时 95% CI：5.1–27.6），但低于独立 MPC-CV（92.0%）和独立 DWA-CV（78.0%）。最后，这些结果支持共享预测优于位置保持重构，但不能证明其在所测方法中总体最优。"
     },
     {
       "id": "S003",
@@ -464,8 +464,8 @@
       "type": "figure",
       "order": 36,
       "source_location": "../03_supplementary/supplementary_methods.tex: figure label fig:historical-scene2",
-      "original_text": "Supplementary Figure S3, retained historical four-panel 3-D route illustration from scene 2, seed 1: (a) CV; (b) Kalman; (c) DWA-only LSTM; (d) shared LSTM.",
-      "translation": "保留的场景 2、种子 1 历史四面板三维路径示例：(a) CV；(b) Kalman；(c) 仅 DWA 使用 LSTM；(d) 共享 LSTM。",
+      "original_text": "Supplementary Figure S3, historical four-panel 3-D route illustration from scene 2 and DWA sampling seed 1: (a) CV; (b) Kalman; (c) DWA-only LSTM; (d) shared LSTM. CV stops at its recorded endpoint; the other three reach the goal, with no swept collision.",
+      "translation": "补充图 S3，取自场景 2、DWA 采样种子 1 的历史四面板三维路径示例：(a) CV；(b) Kalman；(c) 仅 DWA 使用 LSTM；(d) 共享 LSTM。CV 截止于记录终点，其余三种方法到达目标；四条路线均无扫掠碰撞。",
       "image_path": "assets/Fig4_routes.svg",
       "caption_id": "C003",
       "placed_after": "S025"
@@ -475,8 +475,8 @@
       "type": "caption",
       "order": 37,
       "source_location": "../03_supplementary/supplementary_methods.tex: caption for fig:historical-scene2",
-      "original_text": "Retained historical four-method 3-D route illustration from scene 2, seed 1. Panels (a)--(d) show CV, Kalman, DWA-only LSTM and shared LSTM, respectively, under the same prescribed obstacle tracks. This example belongs to the earlier forecast-comparison study and is separate from both the historical five-controller benchmark and the current seven-method evaluation.",
-      "translation": "保留的场景 2、种子 1 历史四方法三维路径示例。(a)–(d) 分别表示 CV、Kalman、仅 DWA 使用 LSTM 和共享 LSTM；四种方法面对相同的预设障碍物轨迹。该示例属于早期预测对比研究，与历史五控制器基准和当前七方法评估相互独立。"
+      "original_text": "Historical four-method 3-D route example from scene 2 and DWA sampling seed 1. Panels (a)--(d) show CV, Kalman, DWA-only LSTM and shared LSTM under the same prescribed obstacle tracks. The green triangle marks the start, the red star the goal, and the open circle CV's recorded early-stop endpoint. In this example, CV stopped before the goal; the other three methods reached the goal, and all four routes were collision-free under the swept-path test. Each route contains only its saved states through the recorded terminal point; none is extended or interpolated. Obstacle tracks show scene context and are not time-aligned with route durations. This single historical example illustrates route geometry, not aggregate performance, and is reported separately from the historical five-controller benchmark and current seven-method evaluation.",
+      "translation": "历史四方法三维路径示例，取自场景 2、DWA 采样种子 1。(a)–(d) 分别为 CV、Kalman、仅 DWA 使用 LSTM 和共享 LSTM，使用相同的预设障碍物轨迹。绿色三角表示起点，红色星形表示目标点，空心圆表示 CV 记录的提前停止位置。在该例中，CV 未到达目标；其余三种方法到达目标，且四条轨迹均未发生扫掠碰撞。每条路线仅包含已记录状态，并截止于实际终止点，不外延或插值。障碍物轨迹仅作为场景背景，未与各方法的飞行时长进行时间对齐。该单个历史示例展示路径形状，不代表总体性能；其结果与历史五控制器基准及当前七方法评估分开报告。"
     },
     {
       "id": "F004",
