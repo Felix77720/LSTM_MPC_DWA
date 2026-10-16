@@ -258,9 +258,15 @@ $$
 <a id="S017"></a>
 **Source:** 02_source/main.tex, How the shared forecast is used
 
-**Original:** At each 0.1-s update, the shared arm sends the same causal 3-s LSTM forecast to MPC and DWA. MPC optimizes a 30-step route; DWA screens reachable 30-step actions against that forecast, and its passing actions bound MPC's first command on re-solve. The updated MPC route guides the next DWA ranking, while the screened DWA action is executed. In the one-layer ablations, only the named layer receives LSTM predictions and the other uses CV; independent DWA and MPC use CV, and the no-forecast comparator holds the latest obstacle positions. The complete cycle and fallback are in Supplementary Methods S1.4.
+**Original:** At each 0.1-s update, the shared arm sends the same causal 3-s LSTM forecast to MPC and DWA. MPC optimizes a 30-step route; DWA screens reachable 30-step actions against that forecast, and its passing actions bound MPC's first command on re-solve. The updated MPC route guides the next DWA ranking, while the screened DWA action is executed. In the one-layer ablations, only the named layer receives LSTM predictions and the other uses CV; independent DWA and MPC use CV, and the no-forecast comparator holds the latest obstacle positions. The executed cycle and fallback are detailed in Supplementary Methods S1.4 and summarized in Algorithm S1.
 
-**中文:** 每个 0.1 s 更新周期，共享组将同一条因果 3 s LSTM 预测送入 MPC 和 DWA。MPC 优化 30 步路线；DWA 针对同一预测筛查可达的 30 步动作，通过筛查的动作范围会在重求解时约束 MPC 的首个控制量。更新后的 MPC 路线用于下一轮 DWA 排序，实际执行的是通过筛查的 DWA 动作。在单层消融中，只有指定层接收 LSTM 预测，另一层使用 CV；独立 DWA 和 MPC 均使用 CV；无预测对照则在预测时域内保持最新观测到的障碍物位置。完整循环及回退流程见补充方法 S1.4。
+**中文:** 每个 0.1 s 更新周期，共享组将同一条因果 3 s LSTM 预测送入 MPC 和 DWA。MPC 优化 30 步路线；DWA 针对同一预测筛查可达的 30 步动作，通过筛查的动作范围会在重求解时约束 MPC 的首个控制量。更新后的 MPC 路线用于下一轮 DWA 排序，实际执行的是通过筛查的 DWA 动作。在单层消融中，只有指定层接收 LSTM 预测，另一层使用 CV；独立 DWA 和 MPC 均使用 CV；无预测对照则在预测时域内保持最新观测到的障碍物位置。完整执行循环及回退流程见补充方法 S1.4，并由算法 S1 概括。
+
+#### Algorithm S1 / 算法 S1：共享预测的 MPC–DWA 循环
+
+![Algorithm S1, shared-forecast MPC–DWA cycle](../02_source/figures/shared_forecast_pseudocode_algorithm_s1.png)
+
+**中文步骤说明：** 输入为无人机当前状态、障碍物最近 10 次观测和上一轮 MPC 解。每个 0.1 s 周期中，LSTM 根据观测预测未来 30 步障碍物位置，并将同一条带时间索引的预测交给 MPC 与 DWA；MPC 在启动时初始化参考路线，之后滚动上一轮解。随后根据安全、目标进展、路线跟踪和控制平滑度更新信任度，并据此调整 DWA 引导采样与探索采样的分配。DWA 对可达控制动作展开轨迹，在相同的 30 步预测上依次检查间隙、飞行走廊和制动条件，再对保留动作评分。若常规安全候选存在，则选出 DWA 动作及其控制范围；否则筛查紧急动作。若紧急候选为空则停止；有候选时，在重求解前再次筛查选定的紧急动作。随后 MPC 使用同一预测重求解：常规情况下受 DWA 安全动作范围约束，回退情况下仅受物理控制限值约束。最后执行通过检查的 DWA/紧急动作 0.1 s，更新状态和历史并进入下一轮。输出为通过检查的下一动作及更新后的 MPC 参考，或安全停止。
 
 ## IV. Simulation and Results / 仿真与结果
 
@@ -394,12 +400,12 @@ Here $i$ indexes desired speed, pitch rate and yaw rate; $N=30$, $\Delta t=0.1$ 
 <a id="F005"></a>
 ### Supplementary Figure S5 / 补图 S5：七方法较长记录轨迹对比
 
-![Seven-method simulated 3-D routes from scene 72, seed 2; all six comparator paths span at least five seconds.](../02_source/figures/route_comparison_seven_method_scene72_seed2.png)
+![Seven-method recorded trajectories from scene 72, seed 2: 3-D view and XY, XZ and YZ projections; all six comparator paths span at least five seconds.](../02_source/figures/route_comparison_seven_method_scene72_seed2.png)
 
 <a id="C005"></a>
-**Original caption:** Seven-method simulated 3-D routes from scene 72, seed 2. The example was selected for route legibility; all six comparator paths span at least 5 s. Shared LSTM and standalone DWA arrived safely, standalone MPC reached goal tolerance after swept contact, position-hold MPC--DWA collided before arrival, and the three other integrated methods stopped without contact. Only saved positions through each logged terminal state are plotted; colors, line styles and route-point markers distinguish methods. The single matched case illustrates route geometry; aggregate comparisons use the complete evaluation.
+**Original caption:** Seven-method simulated trajectories from scene 72, seed 2. (a) 3-D perspective; (b) XY plan; (c) XZ elevation; (d) YZ elevation. All six comparator paths span at least 5 s. Shared LSTM and standalone DWA achieved collision-free goal arrival; standalone MPC reached goal tolerance after swept contact; position-hold MPC--DWA collided before arrival; the other three coupled variants stopped without contact. Each route contains only saved positions through its logged terminal state. Color, line style and sparse markers at recorded states identify the method; terminal circles, squares and crosses mark safe arrival, no-contact non-arrival and a run with swept contact, respectively (the cross is not the collision location). This matched case illustrates route geometry; aggregate comparisons use the complete evaluation.
 
-**中文图注：** 场景 72、种子 2 的七方法仿真三维路径。本例根据路线可读性选取；六条比较方法轨迹均至少记录 5 s。共享 LSTM 与独立 DWA 安全到达；独立 MPC 虽进入目标容差，但发生扫掠接触；最新位置保持 MPC–DWA 在到达前发生接触，其余三种集成方法无接触停止。图中仅使用截至各自日志终止状态的已保存位置，颜色、线型及沿路线的标记共同区分方法。本匹配场景只说明路径形态，总体比较采用完整评估结果。
+**中文图注：** 场景 72、种子 2 的七方法仿真轨迹。(a) 三维透视图；(b) XY 平面投影；(c) XZ 高度投影；(d) YZ 高度投影。六条比较方法轨迹均至少记录 5 s。共享 LSTM 与独立 DWA 无碰撞到达；独立 MPC 虽进入目标容差，但发生扫掠接触；最新位置保持 MPC–DWA 在到达前发生接触；其余三种耦合集成方法无接触停止。每条路线只绘制到日志记录的终止状态，未延长轨迹；颜色、线型和沿路径稀疏标出的真实记录点用于区分方法。终点圆形、方形和叉号分别表示无碰撞到达、未碰撞但未到达、以及运行中发生过扫掠接触（叉号不代表碰撞位置）。该匹配示例用于展示路径形态；总体比较依据完整评估数据。
 
 ## References / 参考文献
 

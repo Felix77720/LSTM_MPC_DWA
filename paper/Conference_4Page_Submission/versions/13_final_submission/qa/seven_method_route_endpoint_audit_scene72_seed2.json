@@ -1,7 +1,7 @@
 {
   "source": "paper/Conference_4Page_Submission/versions/13_final_submission/qa/route_example_scene72_seed2",
   "selection": "Post hoc illustrative case requested by the author; selected from existing simulation records, not a prospective figure selection.",
-  "selection_rule": "Screen all 300 matched sets for a shared-LSTM safe arrival and exactly one additional safe arrival. Scene 72, seed 2 is the unique match; all six comparator paths span at least 5 s. The separately screened unique shared-only safe-arrival case (scene 79, seed 2) is retained as a supplementary illustration.",
+  "selection_rule": "Screen all 300 matched sets for a shared-LSTM safe arrival and exactly one additional safe arrival. Scene 72, seed 2 is the unique match; all six comparator paths span at least 5 s. The separately screened unique shared-only safe-arrival case (scene 79, seed 2) remains in the QA archive, but is not plotted because several comparator paths are short and nearly straight.",
   "matched_sets_screened": 300,
   "eligible_set_count": 1,
   "selected_scene_index": 72,
@@ -14,15 +14,21 @@
     "comparator_paths_excess_at_least_0p25m": 2,
     "path_excess_definition": "recorded polyline length minus start-to-terminal chord length, in metres"
   },
-  "alignment_exclusion_reason": "The figure contains one primary 3D axes; no inset or comparable secondary panel.",
+  "alignment_exclusion_reason": "The four labelled views have separate coordinate projections; panel alignment is checked from the common 2x2 GridSpec, with the distinct 3-D axis projection kept as the hero panel.",
   "scenario_seed": 20261088.0,
-  "coordinate_frame": "one shared 3D axis",
+  "coordinate_frame": "one shared 3-D coordinate frame, shown in one perspective and three orthogonal projections; route coordinates are unchanged",
   "view_elevation_degrees": 27,
   "view_azimuth_degrees": -57,
-  "axes_count": 1,
-  "target_canvas_width_in": 3.48,
-  "target_canvas_height_in": 3.2,
-  "minimum_plot_text_size_pt": 7.0,
+  "axes_count": 4,
+  "panel_map": {
+    "a": "shared 3-D perspective",
+    "b": "XY plan projection",
+    "c": "XZ elevation projection",
+    "d": "YZ elevation projection"
+  },
+  "target_canvas_width_in": 7.05,
+  "target_canvas_height_in": 5.85,
+  "minimum_plot_text_size_pt": 6.5,
   "method_keys": [
     "standalone_dwa_cv",
     "standalone_mpc_cv",
@@ -36,7 +42,7 @@
   "trajectory_interpolation_or_resampling": false,
   "trajectory_extension_after_terminal": false,
   "plotted_route_data": "all and only recorded XYZ states from trajectory CSVs",
-  "route_distinguishability": "method-specific color, line style and marker shape, with sparse markers at actual recorded states; start marker is neutral to avoid confusion with the green coupled-CV route",
+  "route_distinguishability": "same method-specific color, line style and marker shape in all four views, with sparse markers at actual recorded states; shared LSTM is slightly emphasized without changing route geometry",
   "sparse_state_marker_rule": "approximately 12 evenly spaced indices per recorded route; all markers are saved states",
   "z_axis_limits_m": [
     -0.8,
@@ -80,50 +86,108 @@
   ],
   "panel_alignment": {
     "schema_version": 1,
-    "applicable": false,
-    "auditable": false,
-    "verdict": "NOT APPLICABLE",
+    "applicable": true,
+    "auditable": true,
+    "verdict": "PASS",
     "backend": "python-matplotlib",
     "summary": {
       "fail": 0,
       "warn": 0,
-      "comparisons": 0,
+      "comparisons": 2,
       "exemptions": 0
     },
     "tolerances": {
       "alignment_pt": 1.5,
       "gutter_pt": 1.5
     },
-    "errors": [],
-    "findings": [],
     "layout": {
       "schema_version": 1,
       "backend": "python-matplotlib",
       "figure": {
-        "width_pt": 250.56,
-        "height_pt": 230.4
+        "width_pt": 507.59999999999997,
+        "height_pt": 421.2
       },
       "panels": [
         {
-          "id": "a",
+          "id": "b",
           "bbox_pt": [
-            43.185600000000036,
-            66.81600000000002,
-            199.8576,
-            223.488
+            297.3912631578947,
+            261.79200000000003,
+            499.9859999999999,
+            383.29200000000003
           ],
           "grid_id": "matplotlib-grid-1",
           "row_start": 0,
           "row_stop": 1,
+          "col_start": 1,
+          "col_stop": 2,
+          "panel_label": "b",
+          "panel_label_anchor_pt": [
+            277.13178947368425,
+            390.58200000000005
+          ]
+        },
+        {
+          "id": "c",
+          "bbox_pt": [
+            38.06999999999999,
+            98.98199999999999,
+            240.66473684210524,
+            220.48199999999997
+          ],
+          "grid_id": "matplotlib-grid-1",
+          "row_start": 1,
+          "row_stop": 2,
           "col_start": 0,
-          "col_stop": 1
+          "col_stop": 1,
+          "panel_label": "c",
+          "panel_label_anchor_pt": [
+            17.810526315789478,
+            227.77199999999996
+          ]
+        },
+        {
+          "id": "d",
+          "bbox_pt": [
+            297.3912631578947,
+            98.98199999999999,
+            499.9859999999999,
+            220.48199999999997
+          ],
+          "grid_id": "matplotlib-grid-1",
+          "row_start": 1,
+          "row_stop": 2,
+          "col_start": 1,
+          "col_stop": 2,
+          "panel_label": "d",
+          "panel_label_anchor_pt": [
+            277.13178947368425,
+            227.77199999999996
+          ]
         }
       ],
-      "row_groups": [],
-      "column_groups": [],
+      "row_groups": [
+        {
+          "id": "row-1",
+          "panels": [
+            "c",
+            "d"
+          ]
+        }
+      ],
+      "column_groups": [
+        {
+          "id": "column-1",
+          "panels": [
+            "b",
+            "d"
+          ]
+        }
+      ],
       "boundary_groups": [],
       "exemptions": []
-    }
+    },
+    "findings": []
   },
   "methods": [
     {

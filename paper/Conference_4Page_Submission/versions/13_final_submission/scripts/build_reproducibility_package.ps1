@@ -310,10 +310,18 @@ $confirmedFigureAllowlist = @(
     '02_source\figures\route_comparison_five_method_scene404_seed2.svg',
     '02_source\figures\route_comparison_five_method_scene404_seed2.png',
     '02_source\figures\route_comparison_five_method_scene404_seed2.tiff',
+    '02_source\figures\shared_forecast_pseudocode_algorithm_s1.pdf',
+    '02_source\figures\shared_forecast_pseudocode_algorithm_s1.svg',
+    '02_source\figures\shared_forecast_pseudocode_algorithm_s1.png',
+    '02_source\figures\shared_forecast_pseudocode_algorithm_s1.tiff',
     '03_supplementary\figures\route_comparison_seven_method_scene72_seed2.pdf',
     '03_supplementary\figures\route_comparison_seven_method_scene72_seed2.svg',
     '03_supplementary\figures\route_comparison_seven_method_scene72_seed2.png',
     '03_supplementary\figures\route_comparison_seven_method_scene72_seed2.tiff',
+    '03_supplementary\figures\shared_forecast_pseudocode_algorithm_s1.pdf',
+    '03_supplementary\figures\shared_forecast_pseudocode_algorithm_s1.svg',
+    '03_supplementary\figures\shared_forecast_pseudocode_algorithm_s1.png',
+    '03_supplementary\figures\shared_forecast_pseudocode_algorithm_s1.tiff',
     '03_supplementary\figures\historical_36run_results.pdf',
     '03_supplementary\figures\historical_48scene_baselines.pdf',
     '03_supplementary\figures\historical_scene2_four_controller_routes.pdf',
@@ -366,6 +374,10 @@ $revisionRequiredFiles = @(
     '02_source\figures\route_comparison_seven_method_scene72_seed2.svg',
     '02_source\figures\route_comparison_seven_method_scene72_seed2.png',
     '02_source\figures\route_comparison_seven_method_scene72_seed2.tiff',
+    '03_supplementary\figures\shared_forecast_pseudocode_algorithm_s1.pdf',
+    '03_supplementary\figures\shared_forecast_pseudocode_algorithm_s1.svg',
+    '03_supplementary\figures\shared_forecast_pseudocode_algorithm_s1.png',
+    '03_supplementary\figures\shared_forecast_pseudocode_algorithm_s1.tiff',
     '02_source\figures\route_comparison_seven_method_scene79_seed2.pdf',
     '02_source\figures\route_comparison_seven_method_scene79_seed2.svg',
     '02_source\figures\route_comparison_seven_method_scene79_seed2.png',
@@ -477,6 +489,7 @@ $scriptAllowlist = @(
     'generate_algorithm_flow.py',
     'generate_four_method_figures.py', 'generate_scenario_schematic.py', 'generate_seven_method_route_figure.py',
     'generate_seven_method_route_figure_compat.py',
+    'generate_shared_forecast_pseudocode.py',
     'export_confirmatory_route_data.m',
     'recompute_confirmatory_outcomes.m',
     'generate_v12a_heldout_scenarios.m', 'run_v12_redesigned.m',
@@ -534,6 +547,8 @@ $deliveryRelativePaths = @(
     'README.md', 'REVISION_STATUS.md',
     '02_source/main.pdf', '02_source/main.tex', '02_source/references.bib',
     '02_source/IEEEtran.cls', '02_source/IEEEtran.bst',
+    'scripts/generate_seven_method_route_figure.py',
+    'scripts/generate_shared_forecast_pseudocode.py',
     '02_source/figures/route_comparison_seven_method.pdf',
     '02_source/figures/route_comparison_seven_method.svg',
     '02_source/figures/route_comparison_seven_method.png',
@@ -662,11 +677,7 @@ $deliveryRelativePaths = @(
     'qa/confirmatory_route_figure_data/route_lstm.csv',
     'qa/confirmatory_route_figure_data/route_static.csv',
     'qa/confirmatory_route_figure_data/route_status.csv',
-    'qa/confirmatory_route_figure_data/start_goal.csv',
-    '03_supplementary/reproducibility_package_v13.zip',
-    '03_supplementary/reproducibility_package_v13.zip.sha256',
-    '03_supplementary/reproducibility_package.zip',
-    '03_supplementary/reproducibility_package.zip.sha256'
+    'qa/confirmatory_route_figure_data/start_goal.csv'
 )
 
 # Confirm every explicitly named artifact before creating a staging directory.
@@ -779,13 +790,6 @@ try {
         -DestinationRoot $packageRoot -RelativePath $frozenParentProtocolRelativePath
     Copy-RequiredFile -Source $fixedSceneEvidence -DestinationRoot $packageRoot `
         -RelativePath 'results\emergency_revision\fixed_scenes_20261005_030440\fixed_scenes_revised.csv'
-    Copy-RequiredFile -Source (Join-Path $supplementRoot 'reproducibility_package_v13.zip') `
-        -DestinationRoot $packageRevisionRoot `
-        -RelativePath '03_supplementary\legacy\reproducibility_package_v13.zip'
-    Copy-RequiredFile -Source (Join-Path $supplementRoot 'reproducibility_package_v13.zip.sha256') `
-        -DestinationRoot $packageRevisionRoot `
-        -RelativePath '03_supplementary\legacy\reproducibility_package_v13.zip.sha256'
-
     $omittedArtifactInputs = [System.Collections.Generic.List[object]]::new()
     foreach ($relativePath in ($omittedLargeReferenceBundles + $presentOptionalReferenceBundles)) {
         $omittedArtifactInputs.Add([pscustomobject]@{
@@ -853,12 +857,12 @@ try {
         'The 500-scene shared-LSTM versus DWA-only-LSTM contrast (3,000 paired episodes) is included with its frozen protocol, raw records, run audit, scene-cluster summaries, and bootstrap output. These episodes are a subset of the historical 7,500-run five-controller benchmark, not an additional cohort; the full five-controller run audit and summaries are included for reconciliation.',
         'Stage 1 contains the 4,320-run development summaries, selection/recovery manifests, and per-run SHA-256 index; individual Stage-1 episode MAT files are intentionally not copied.',
         'Stage 2 trust-scale calibration was not completed or verified. Its protocol/audit documents and separately allowlisted source scripts are retained, but no Stage-2 result tables or MAT files are included.',
-        'The finite v13 evaluation comprises 100 scenes x 3 seeds x 7 methods (2,100 episodes). It includes run-level outcomes, analysis records, manifests, the scenario bank, full trajectory archive, and the originally fixed scene-1/seed-1 route CSVs. The main-paper route illustration is the post hoc scene-72/seed-2 visibility-balanced example; its exact saved paths, selection audit and endpoint audit are included. Supplementary Figure S5 retains the unique shared-LSTM-only safe-arrival example from scene 79/seed 2. Both are descriptive, and the record-only exporter is included. Individual held-out episode MAT checkpoints and the redundant combined experiment_bundle.mat are not duplicated.',
+        'The finite v13 evaluation comprises 100 scenes x 3 seeds x 7 methods (2,100 episodes). It includes run-level outcomes, analysis records, manifests, the scenario bank, full trajectory archive, and the originally fixed scene-1/seed-1 route CSVs. Main-text Figure 2 is the post hoc five-controller scene-404/seed-2 matched example; Supplementary Figure S5 is the seven-method scene-72/seed-2 route set, shown in 3-D and XY/XZ/YZ projections to make paths legible. In that single S5 case, shared LSTM and standalone DWA arrive safely; the scene-79 exclusive-arrival set remains archived because several comparator paths are too short and nearly straight to inspect clearly. Both figures are descriptive, and exact saved paths plus selection/endpoint audits and record-only exporters are included. Algorithm S1 follows Supplementary Methods S1.4. Individual held-out episode MAT checkpoints and the redundant combined experiment_bundle.mat are not duplicated.',
         'The historical four-controller scene-2 route example includes the exact saved route CSVs, endpoint audit, and the six small source MAT records plus scenario/run audit needed by scripts/export_confirmatory_route_data.m. These files are exported from existing records; rebuilding them does not run simulations.',
-        'Large historical experiment bundles and the combined v13 MAT bundle remain unchanged at their original results paths; OMITTED_ARTIFACTS_SHA256.csv records their source paths, sizes and hashes. Compact historical evidence is retained in the supplement and nested legacy reproducibility archive.',
+        'Large historical experiment bundles and the combined v13 MAT bundle remain unchanged at their original results paths; OMITTED_ARTIFACTS_SHA256.csv records their source paths, sizes and hashes. Compact historical evidence is retained in the supplement. The compact v13 archive is delivered separately beside this full archive rather than redundantly embedded within it.',
         'CasADi 3.8.0 Windows/MATLAB binaries are not duplicated. The expected local path and license note are preserved, and CASADI_3.8.0_SHA256.csv inventories the original dependency files and hashes. A compatible CasADi distribution must be provided separately to rerun optimizations.',
         'Historical result banks, including earlier 7,500-run, 48-scene, CV/Kalman and scene-404 records, remain separately identified and are not pooled with this evaluation. The v13 evidence is simulation-only; it is not real-flight validation.',
-        'The earlier compact v13 reproducibility archive and its original sidecar are retained at paper/Conference_4Page_Submission/versions/13_final_submission/03_supplementary/legacy/.',
+        'The compact v13 reproducibility archive and its SHA-256 sidecar are delivered separately beside this full archive; they are not nested to avoid duplicating the same assets.',
         'Run SHA-256 checks from this directory with `sha256sum -c SHA256SUMS.txt` or an equivalent platform tool.',
         'SHA256SUMS.txt covers every packaged file except itself; the adjacent ZIP sidecar covers the archive.',
         'PACKAGE_CONTENTS.txt is the exact inventory of the archive.'
@@ -948,6 +952,10 @@ try {
             "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/route_comparison_five_method_scene404_seed2.png",
             "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/route_comparison_five_method_scene404_seed2.tiff",
             "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/route_comparison_seven_method_scene72_seed2.pdf",
+            "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/shared_forecast_pseudocode_algorithm_s1.pdf",
+            "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/shared_forecast_pseudocode_algorithm_s1.svg",
+            "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/shared_forecast_pseudocode_algorithm_s1.png",
+            "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/shared_forecast_pseudocode_algorithm_s1.tiff",
             "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/route_comparison_seven_method_scene79_seed2.pdf",
             "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/route_comparison_seven_method_scene79_seed2.svg",
             "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/route_comparison_seven_method_scene79_seed2.png",
@@ -971,13 +979,16 @@ try {
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/five_method_terminal_outcomes.csv",
             "LSTM_MPC_DWA/$revisionZipPath/04_review/v13_final_submission_audit_20261016_forecast_update.md",
             "LSTM_MPC_DWA/$revisionZipPath/04_review/v13_final_submission_audit_20261016_final.md",
-            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/legacy/reproducibility_package_v13.zip",
-            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/legacy/reproducibility_package_v13.zip.sha256",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/route_comparison_seven_method.pdf",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/route_comparison_seven_method_scene72_seed2.pdf",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/route_comparison_seven_method_scene72_seed2.svg",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/route_comparison_seven_method_scene72_seed2.png",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/route_comparison_seven_method_scene72_seed2.tiff",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/shared_forecast_pseudocode_algorithm_s1.pdf",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/shared_forecast_pseudocode_algorithm_s1.svg",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/shared_forecast_pseudocode_algorithm_s1.png",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/shared_forecast_pseudocode_algorithm_s1.tiff",
+            "LSTM_MPC_DWA/$revisionZipPath/scripts/generate_shared_forecast_pseudocode.py",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/shared_lstm_random12_revised.csv",
             "LSTM_MPC_DWA/$revisionZipPath/04_review/seven_method_100scene_exploratory_amendment_20261015.md",
             "LSTM_MPC_DWA/$stage1ArchivePath/pooled_development_recovery_manifest.mat",

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="507.6pt" height="252pt" viewBox="0 0 507.6 252" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-16T23:05:57.762118</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 252
+L 507.6 252
+L 507.6 0
+L 0 0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 6.264 247.536
+L 501.336 247.536
+Q 504.576 247.536 504.576 244.296
+L 504.576 7.704
+Q 504.576 4.464 501.336 4.464
+L 6.264 4.464
+Q 3.024 4.464 3.024 7.704
+L 3.024 244.296
+Q 3.024 247.536 6.264 247.536
+z
+" clip-path="url(#p5ed901a170)" style="fill: #fbfcfd; stroke: #aab6c2; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #26374a" x="17.28" y="25.627793" transform="rotate(-0 17.28 25.627793)">Algorithm S1 | Shared-forecast MPC-DWA cycle</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 7.5px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #3d4a57" x="17.28" y="40.820918" transform="rotate(-0 17.28 40.820918)">Input: current UAV state, latest 10 obstacle observations, previous MPC solution</text>
+   </g>
+   <g id="text_3">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-weight: 700; font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #26374a" x="19.44" y="61.040496" transform="rotate(-0 19.44 61.040496)">for each 0.1-s update:</text>
+    </g>
+   </g>
+   <g id="text_4">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #25877c" x="35.28" y="76.540949" transform="rotate(-0 35.28 76.540949)">1  Predict 30 future obstacle positions from the latest 10 observations with LSTM.</text>
+    </g>
+   </g>
+   <g id="text_5">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #25877c" x="35.28" y="92.000496" transform="rotate(-0 35.28 92.000496)">2  Share this time-indexed forecast with MPC and DWA.</text>
+    </g>
+   </g>
+   <g id="text_6">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #4b729d" x="35.28" y="107.500949" transform="rotate(-0 35.28 107.500949)">3  Initialize/shift MPC guide; update trust from safety, progress, tracking and smoothness.</text>
+    </g>
+   </g>
+   <g id="text_7">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #c47a27" x="35.28" y="122.980949" transform="rotate(-0 35.28 122.980949)">4  Split guided/exploratory DWA samples using trust/MPC guidance; rank by score.</text>
+    </g>
+   </g>
+   <g id="text_8">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #c47a27" x="35.28" y="138.460949" transform="rotate(-0 35.28 138.460949)">5  Roll out candidates over the same 30-step forecast.</text>
+    </g>
+   </g>
+   <g id="text_9">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #c47a27" x="35.28" y="153.940949" transform="rotate(-0 35.28 153.940949)">6  Retain clearance &gt;0.25 m, corridor and braking passes; score survivors.</text>
+    </g>
+   </g>
+   <g id="text_10">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #c47a27" x="35.28" y="169.420949" transform="rotate(-0 35.28 169.420949)">7  Choose the top safe DWA action/envelope; otherwise screen emergency actions.</text>
+    </g>
+   </g>
+   <g id="text_11">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #b95043" x="35.28" y="184.900949" transform="rotate(-0 35.28 184.900949)">8  If none passes, stop; otherwise re-screen the selected emergency action.</text>
+    </g>
+   </g>
+   <g id="text_12">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #4b729d" x="35.28" y="200.380949" transform="rotate(-0 35.28 200.380949)">9  Re-solve MPC on the same forecast: DWA envelope normally; physical bounds in recovery.</text>
+    </g>
+   </g>
+   <g id="text_13">
+    <g clip-path="url(#p5ed901a170)">
+     <text style="font-size: 7.7px; font-family: 'DejaVu Sans Mono'; text-anchor: start; fill: #26374a" x="35.28" y="215.860949" transform="rotate(-0 35.28 215.860949)">10 Apply screened DWA/emergency action for 0.1 s; update state/history and repeat.</text>
+    </g>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 7.5px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #3d4a57" x="17.28" y="236.662969" transform="rotate(-0 17.28 236.662969)">Output: checked next action and updated MPC guide, or a fail-closed stop</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p5ed901a170">
+   <rect x="0" y="0" width="507.6" height="252"/>
+  </clipPath>
+ </defs>
+</svg>

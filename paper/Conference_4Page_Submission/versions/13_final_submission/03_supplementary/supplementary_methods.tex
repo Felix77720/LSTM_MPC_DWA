@@ -152,6 +152,10 @@ The implemented top-to-bottom cycle is:
 \end{enumerate}
 The emergency branch differs from the normal 0.25-m candidate gate: it permits smaller positive clearance when the predicted surfaces remain separated and the stopping-distance condition passes. The planner rechecks the exact selected command before execution. A trial also ends after at most 650 state updates, equivalent to 65 s. Goal arrival and an infeasible emergency-action stop terminate execution early; a detected collision is logged but does not itself stop the simulator. For the Stage-1 development episodes, goal arrival required final distance within the configured goal tolerance and no swept-path contact. The historical five-controller results retain the endpoint definition and audit used in their original run bundle.
 
+\begin{center}
+\includegraphics[width=0.98\linewidth]{figures/shared_forecast_pseudocode_algorithm_s1.pdf}
+\end{center}
+
 \section*{S2. LSTM training and prediction evaluation}
 At each 0.1-s planning cycle, the predictor maps the latest 10 observations for each obstacle to 30 three-dimensional future offsets. Every offset is anchored independently to the latest observed centre; it is not added to the preceding forecast. Samples are separated by 0.1 s, so the first and last observations are 0.9 s apart. An observation contains position, velocity and heading encoded by its sine and cosine. In clean-observation evaluation, velocity and heading are simulator-provided obstacle states; heading is obstacle yaw, distinct from UAV yaw. In the separate noisy-input diagnostic, velocity is recomputed from perturbed positions while heading is unchanged. Table~\ref{tab:training} separates the network architecture from the data split and optimizer settings so the complete training configuration is easy to reproduce.
 
@@ -482,8 +486,8 @@ Secondary outcomes follow the frozen multidimensional comparison contract: swept
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.82\linewidth]{figures/route_comparison_seven_method_scene72_seed2.pdf}
-\caption{Seven-method simulated 3-D routes from scene 72, seed 2. The example was selected for route legibility; all six comparator paths span at least 5 s. Shared LSTM and standalone DWA arrived safely, standalone MPC reached goal tolerance after swept contact, position-hold MPC--DWA collided before arrival, and the three other integrated methods stopped without contact. Only saved positions through each logged terminal state are plotted; colors, line styles and route-point markers distinguish methods. The single matched case illustrates route geometry; aggregate comparisons use the complete evaluation.}
+\includegraphics[width=0.98\linewidth]{figures/route_comparison_seven_method_scene72_seed2.pdf}
+\caption{Seven-method simulated trajectories from scene 72, seed 2. (a) 3-D perspective; (b) XY plan; (c) XZ elevation; (d) YZ elevation. All six comparator paths span at least 5 s. Shared LSTM and standalone DWA achieved collision-free goal arrival; standalone MPC reached goal tolerance after swept contact; position-hold MPC--DWA collided before arrival; the other three coupled variants stopped without contact. Each route contains only saved positions through its logged terminal state. Color, line style and sparse markers at recorded states identify the method; terminal circles, squares and crosses mark safe arrival, no-contact non-arrival and a run with swept contact, respectively (the cross is not the collision location). This matched case illustrates route geometry; aggregate comparisons use the complete evaluation.}
 \label{fig:seven-method-routes}
 \end{figure}
 

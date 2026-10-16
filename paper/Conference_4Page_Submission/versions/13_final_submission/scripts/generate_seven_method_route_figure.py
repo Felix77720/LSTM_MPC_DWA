@@ -154,31 +154,65 @@ def main() -> None:
             or not np.allclose(obstacle_rows[:, 0], np.rint(obstacle_rows[:, 0]))):
         raise ValueError("Obstacle IDs must be positive integers.")
 
-    # Draw at the final single-column size so all labels remain readable in
-    # the four-page manuscript.
-    fig = plt.figure(figsize=(3.48, 3.2), constrained_layout=False)
-    ax = fig.add_subplot(111, projection="3d")
-    ax.view_init(elev=27, azim=-57)
-    ax.set_proj_type("ortho")
-    ax.set_xlim(0, 20)
-    ax.set_ylim(0, 20)
+    # Keep one shared 3-D scene and add orthogonal projections to reveal route
+    # separation that a single perspective can hide.
+    fig = plt.figure(figsize=(7.05, 5.85), constrained_layout=False)
+    grid = fig.add_gridspec(
+        2, 2, left=0.075, right=0.985, top=0.91, bottom=0.235,
+        wspace=0.28, hspace=0.34)
+    ax3d = fig.add_subplot(grid[0, 0], projection="3d")
+    ax_xy = fig.add_subplot(grid[0, 1])
+    ax_xz = fig.add_subplot(grid[1, 0])
+    ax_yz = fig.add_subplot(grid[1, 1])
+    axes = (ax3d, ax_xy, ax_xz, ax_yz)
+    fig.suptitle("Recorded seven-method trajectories · scene 72, seed 2",
+                 y=0.975, fontsize=9.0, fontweight="bold")
+
+    ax3d.view_init(elev=27, azim=-57)
+    ax3d.set_proj_type("ortho")
+    ax3d.set_xlim(0, 20)
+    ax3d.set_ylim(0, 20)
     # Include the collision-run terminal below z=0 rather than clipping it.
-    ax.set_zlim(-0.8, 10)
-    ax.set_box_aspect((2, 2, 1.08))
-    ax.set_xlabel("x (m)", labelpad=12)
-    ax.set_ylabel("y (m)", labelpad=12)
-    ax.set_zlabel("z (m)", labelpad=1)
-    ax.set_xticks([0, 10, 20])
-    ax.set_yticks([0, 10, 20])
-    ax.set_zticks([0, 5, 10])
-    ax.zaxis.set_tick_params(pad=5)
-    # Keep the grid and remove pane fills: a filled pane reduced contrast near
-    # the short terminal traces and caused the top z tick to touch its edge.
-    for axis in (ax.xaxis, ax.yaxis, ax.zaxis):
+    ax3d.set_zlim(-0.8, 10)
+    ax3d.set_box_aspect((2, 2, 1.08))
+    ax3d.set_xlabel("x (m)", labelpad=4)
+    ax3d.set_ylabel("y (m)", labelpad=4)
+    ax3d.set_zlabel("z (m)", labelpad=1)
+    ax3d.set_xticks([0, 10, 20])
+    ax3d.set_yticks([0, 10, 20])
+    ax3d.set_zticks([0, 5, 10])
+    ax3d.zaxis.set_tick_params(pad=2)
+    for axis in (ax3d.xaxis, ax3d.yaxis, ax3d.zaxis):
         axis.pane.fill = False
-    for axis in (ax.xaxis, ax.yaxis, ax.zaxis):
         axis._axinfo["grid"]["color"] = (0.80, 0.83, 0.85, 0.60)
         axis._axinfo["grid"]["linewidth"] = 0.45
+
+    projection_specs = (
+        (ax_xy, (0, 1), ("x (m)", "y (m)"), "XY plan"),
+        (ax_xz, (0, 2), ("x (m)", "z (m)"), "XZ elevation"),
+        (ax_yz, (1, 2), ("y (m)", "z (m)"), "YZ elevation"),
+    )
+    for panel_letter, (axis, coords, labels, title) in zip("bcd", projection_specs):
+        axis.set_xlim(0, 20)
+        if coords[1] == 2:
+            axis.set_ylim(-0.8, 10)
+            axis.set_yticks([0, 5, 10])
+        else:
+            axis.set_ylim(0, 20)
+            axis.set_yticks([0, 10, 20])
+        axis.set_xlabel(labels[0], labelpad=2)
+        axis.set_ylabel(labels[1], labelpad=2)
+        axis.set_xticks([0, 10, 20])
+        axis.grid(True, color="#D6DCE1", linewidth=0.45, alpha=0.75)
+        axis.tick_params(labelsize=6.5, length=2.5, pad=1.5)
+        axis.set_title(title, loc="left", fontsize=7.6, pad=2)
+        axis.text(-0.10, 1.06, panel_letter, transform=axis.transAxes,
+                  fontsize=8.0, fontweight="bold", va="bottom", ha="left")
+        for spine in ("top", "right"):
+            axis.spines[spine].set_visible(False)
+    ax3d.text2D(-0.10, 1.06, "a", transform=ax3d.transAxes,
+                fontsize=8.0, fontweight="bold", va="bottom", ha="left")
+    ax3d.set_title("3-D perspective", loc="center", fontsize=7.6, pad=2)
 
     handles = []
     endpoint_audit: list[dict[str, object]] = []
@@ -282,20 +316,46 @@ def main() -> None:
         # routes in grayscale and where colored traces lie close together.
         state_stride = max(1, int(np.ceil((len(xyz) - 1) / 12)))
         route_marker = METHOD_MARKERS[key]
-        ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], color=color,
-                linestyle=linestyle, linewidth=2.0, alpha=1.0,
-                marker=route_marker, markersize=3.0,
-                markerfacecolor="white", markeredgecolor=color,
-                markeredgewidth=0.75, markevery=state_stride, zorder=4)
-        ax.scatter(*xyz[-1], marker=endpoint_marker,
-                   s=34 if safe else 35, linewidths=1.1,
-                   facecolors="none", edgecolors=color,
-                   depthshade=False, zorder=8)
-        handles.append(plt.Line2D([0], [0], color=color, lw=2.1,
+        shared = key == "lstm"
+        line_width = 2.25 if shared else 1.65
+        marker_size = 2.6 if shared else 2.3
+        ax3d.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], color=color,
+                  linestyle=linestyle, linewidth=line_width, alpha=1.0,
+                  marker=route_marker, markersize=marker_size,
+                  markerfacecolor="white", markeredgecolor=color,
+                  markeredgewidth=0.65, markevery=state_stride, zorder=4)
+        for axis, coords in ((ax_xy, (0, 1)), (ax_xz, (0, 2)), (ax_yz, (1, 2))):
+            axis.plot(xyz[:, coords[0]], xyz[:, coords[1]], color=color,
+                      linestyle=linestyle, linewidth=1.9 if shared else 1.45,
+                      marker=route_marker, markersize=marker_size,
+                      markerfacecolor="white", markeredgecolor=color,
+                      markeredgewidth=0.60, markevery=state_stride, zorder=3)
+        for axis, coords in ((ax3d, (0, 1, 2)), (ax_xy, (0, 1)),
+                             (ax_xz, (0, 2)), (ax_yz, (1, 2))):
+            endpoint = [xyz[-1, i] for i in coords]
+            if axis is ax3d:
+                axis.scatter(*endpoint, marker=endpoint_marker,
+                             s=30 if safe else 31, linewidths=1.0,
+                             facecolors="none", edgecolors=color,
+                             depthshade=False, zorder=8)
+            else:
+                axis.scatter(endpoint[0], endpoint[1], marker=endpoint_marker,
+                             s=25 if safe else 27, linewidths=0.9,
+                             facecolors="none", edgecolors=color, zorder=6)
+        display_labels = {
+            "standalone_dwa_cv": "DWA-CV",
+            "standalone_mpc_cv": "MPC-CV",
+            "cv": "Coupled MPC-DWA-CV",
+            "lstm_mpc_cv_dwa": "LSTM to MPC only",
+            "cv_mpc_lstm_dwa": "LSTM to DWA only",
+            "lstm": "Shared LSTM",
+            "static": "Latest-position hold",
+        }
+        handles.append(plt.Line2D([0], [0], color=color, lw=1.8 if shared else 1.5,
                                   linestyle=linestyle, marker=route_marker,
-                                  markersize=3.0, markerfacecolor="white",
-                                  markeredgecolor=color, markeredgewidth=0.75,
-                                  label=label))
+                                  markersize=2.8, markerfacecolor="white",
+                                  markeredgecolor=color, markeredgewidth=0.65,
+                                  label=display_labels[key]))
         endpoint_audit.append({
             "method_key": key,
             "figure_label": label.replace("\n", " "),
@@ -322,18 +382,20 @@ def main() -> None:
             "extended_after_terminal": False,
         })
 
-    ax.scatter(*start, marker="^", s=46, color="#222222", edgecolor="white",
-               linewidth=0.8, depthshade=False, zorder=10)
-    # Keep the goal visible without covering the several terminal markers
-    # that fall within its tolerance region.
-    ax.scatter(*goal, marker="*", s=96, facecolors="none",
-               edgecolors="#CC3311", linewidth=1.0,
-               depthshade=False, zorder=2)
+    ax3d.scatter(*start, marker="^", s=40, color="#222222", edgecolor="white",
+                 linewidth=0.7, depthshade=False, zorder=10)
+    ax3d.scatter(*goal, marker="*", s=74, facecolors="none",
+                 edgecolors="#CC3311", linewidth=0.9,
+                 depthshade=False, zorder=2)
+    for axis, coords in ((ax_xy, (0, 1)), (ax_xz, (0, 2)), (ax_yz, (1, 2))):
+        axis.scatter([start[coords[0]]], [start[coords[1]]], marker="^",
+                     s=30, color="#222222", edgecolor="white", linewidth=0.55, zorder=8)
+        axis.scatter([goal[coords[0]]], [goal[coords[1]]], marker="*", s=58,
+                     facecolors="none", edgecolors="#CC3311", linewidth=0.75, zorder=7)
     fig.legend(
-        handles=handles, loc="lower center", bbox_to_anchor=(0.5, 0.01),
-        ncol=2, frameon=False, fontsize=7.0, handlelength=0.8,
-        columnspacing=0.7, labelspacing=0.30, handletextpad=0.45)
-    fig.subplots_adjust(left=0.06, right=0.91, top=0.97, bottom=0.29)
+        handles=handles, loc="lower center", bbox_to_anchor=(0.5, 0.025),
+        ncol=4, frameon=False, fontsize=6.6, handlelength=1.0,
+        columnspacing=0.95, labelspacing=0.48, handletextpad=0.35)
 
     stem = f"route_comparison_seven_method_scene{selected_scene}_seed{selected_seed}"
     alignment_report = require_matplotlib_panel_alignment(
@@ -342,7 +404,12 @@ def main() -> None:
         overlay_svg=QA / f"{stem}.alignment.svg",
         tolerance_pt=1.5,
         gutter_tolerance_pt=1.5,
+        require_panel_labels=True,
         strict=True,
+        axes=[ax_xy, ax_xz, ax_yz],
+        panel_ids={ax_xy: "b", ax_xz: "c", ax_yz: "d"},
+        row_groups=[["c", "d"]],
+        column_groups=[["b", "d"]],
     )
     fig.savefig(FIGURES / f"{stem}.pdf", facecolor="white")
     svg_path = FIGURES / f"{stem}.svg"
@@ -367,25 +434,36 @@ def main() -> None:
         "selection_mode": selection_audit.get("selection_mode", "unspecified"),
         "route_legibility_summary": selection_audit.get("route_legibility_summary", {}),
         "alignment_exclusion_reason": (
-            "The figure contains one primary 3D axes; no inset or comparable secondary panel."
+            "The four labelled views have separate coordinate projections; panel alignment "
+            "is checked from the common 2x2 GridSpec, with the distinct 3-D axis projection "
+            "kept as the hero panel."
         ),
         "scenario_seed": selection_audit["scenario_seed"],
-        "coordinate_frame": "one shared 3D axis",
+        "coordinate_frame": (
+            "one shared 3-D coordinate frame, shown in one perspective and three "
+            "orthogonal projections; route coordinates are unchanged"
+        ),
         "view_elevation_degrees": 27,
         "view_azimuth_degrees": -57,
-        "axes_count": 1,
-        "target_canvas_width_in": 3.48,
-        "target_canvas_height_in": 3.2,
-        "minimum_plot_text_size_pt": 7.0,
+        "axes_count": 4,
+        "panel_map": {
+            "a": "shared 3-D perspective",
+            "b": "XY plan projection",
+            "c": "XZ elevation projection",
+            "d": "YZ elevation projection",
+        },
+        "target_canvas_width_in": 7.05,
+        "target_canvas_height_in": 5.85,
+        "minimum_plot_text_size_pt": 6.5,
         "method_keys": method_keys,
         "trajectory_smoothing": False,
         "trajectory_interpolation_or_resampling": False,
         "trajectory_extension_after_terminal": False,
         "plotted_route_data": "all and only recorded XYZ states from trajectory CSVs",
         "route_distinguishability": (
-            "method-specific color, line style and marker shape, with sparse markers "
-            "at actual recorded states; start marker is neutral to avoid confusion "
-            "with the green coupled-CV route"
+            "same method-specific color, line style and marker shape in all four "
+            "views, with sparse markers at actual recorded states; shared LSTM is "
+            "slightly emphasized without changing route geometry"
         ),
         "sparse_state_marker_rule": (
             "approximately 12 evenly spaced indices per recorded route; all markers are saved states"

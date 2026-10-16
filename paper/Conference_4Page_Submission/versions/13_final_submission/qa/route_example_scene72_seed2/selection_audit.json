@@ -7,7 +7,7 @@
   ],
   "selection": "Post hoc illustrative case requested by the author; selected from existing simulation records, not a prospective figure selection.",
   "selection_mode": "route_visible",
-  "selection_rule": "Screen all 300 matched sets for a shared-LSTM safe arrival and exactly one additional safe arrival. Scene 72, seed 2 is the unique match; all six comparator paths span at least 5 s. The separately screened unique shared-only safe-arrival case (scene 79, seed 2) is retained as a supplementary illustration.",
+  "selection_rule": "Screen all 300 matched sets for a shared-LSTM safe arrival and exactly one additional safe arrival. Scene 72, seed 2 is the unique match; all six comparator paths span at least 5 s. The separately screened unique shared-only safe-arrival case (scene 79, seed 2) remains in the QA archive, but is not plotted because several comparator paths are short and nearly straight.",
   "matched_sets_screened": 300,
   "eligible_set_count": 1,
   "selected_scene_index": 72,
