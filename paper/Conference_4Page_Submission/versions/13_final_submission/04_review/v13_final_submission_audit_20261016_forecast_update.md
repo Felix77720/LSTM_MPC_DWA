@@ -22,7 +22,7 @@ The main paper keeps the separate 100-scene, seven-method exploratory evaluation
 ## Manuscript and package changes
 
 - Revised the abstract in the requested problem → method → results → conclusion sequence. It now reports the 500-scene matched effect and the separate 100-scene boundary.
-- Added the forecast-allocation contrast to the Results and aligned the Discussion and Conclusion with the protocol-specific evidence. The paper does not claim overall superiority: standalone MPC-CV remains highest in the 100-scene seven-method study.
+- Added the forecast-allocation contrast to the Results and aligned the Discussion and Conclusion with the protocol-specific evidence. The 1-s forecast-sharing contrast and the separate 3-s controller ranking are reported side by side.
 - Added one SI sentence identifying the 3,000 shared/DWA-only episodes as part of the 7,500-run benchmark.
 - Updated the complete Chinese-English reader and synchronized `source_map.json`; all 45 anchors validate and the source-map dry run reports zero remaining changes.
 - Updated README and revision status; no raw experiment record, historical result, image, or original manuscript was deleted or altered.
@@ -35,13 +35,19 @@ Fresh Poppler renders of all four main pages were inspected. The updated SI page
 
 The LaTeX log's MiKTeX setup/update notice is environmental and did not block compilation. The source-map dry run validates all 45 anchors with zero changes, and all four synchronization tests pass. The refreshed allowlist archive contains 187 entries, including the 3,000 paired contrast records and full 7,500-run reconciliation data; the ZIP sidecar, all 186 embedded SHA-256 entries and all 79 external delivery hashes were independently checked with zero mismatches. The canonical main PDF is `02_source/main.pdf`; the older `01_manuscript/main_revised.pdf` remains an interim artifact and was neither overwritten nor packaged.
 
+## Final verification after copyedit
+
+The final copyedit updates abstract, Results and Conclusion phrasing in `main.tex`, the corresponding bilingual blocks and the last interpretation sentence in Supplementary Methods. It makes the evidence statement direct while preserving every outcome and interval. No experiment, parameter, figure data or historical record changed. The final build was run with the existing project script and installed MiKTeX; no dependency was downloaded. The generated logs and `pdfinfo` report a four-page Letter main paper and an 18-page Letter supplement, with no overfull boxes, unresolved references or LaTeX errors. All 4 main pages and all 18 supplement pages were freshly rendered. Pages 1, 3 and 4 of the main paper and page 18 of the supplement, which contain the copyedited text, were visually rechecked; the other pages are unchanged from the preceding complete visual inspection. The earlier addendum's 19-page supplement count records a prior build and is superseded by this 18-page source/PDF/log result.
+
+The bilingual updater validated all 45 anchors and synchronized the English/Chinese abstract, Results and Conclusion entries in `source_map.json`; the four synchronization regression tests passed. The revised final sentences report the 6.7-point gain only for the frozen 1-s DWA protocol and identify standalone MPC-CV as highest in the separate 3-s exploratory evaluation. The six exploratory contrasts are described exactly: shared LSTM exceeded the position-hold reconstruction, standalone MPC-CV exceeded shared LSTM, and the remaining four intervals included zero.
+
 ## Remaining limitations
 
 - Stage 2 remains incomplete at 2,263/5,760 saved checkpoints and is unscored. The planned 10,500-run seven-method holdout was not run, in accordance with the author's instruction to stop adding scientific experiments.
 - The 100-scene evaluation remains exploratory and does not reproduce the 500-scene result under its 3-s protocol. The 500-scene protocol was not publicly preregistered.
 - LSTM receives simulator-recorded obstacle velocity and heading, whereas CV estimates velocity from positions. Results compare configured input pipelines, not predictor architectures alone.
 - All outcomes are simulations with prescribed obstacle motion and point forecasts. No real-flight validation or unseen-family generalization is established.
-- Standalone MPC-CV has a higher overall collision-free arrival rate than the shared controller in the 100-scene evaluation. The paper therefore makes no overall-best claim.
+- The 100-scene exploratory evaluation ranked standalone MPC-CV highest for collision-free arrival (92.0%, versus 73.7% for shared LSTM); the frozen 1-s protocol favored shared LSTM over DWA-only input by 6.7 percentage points.
 - The supplied Chang et al. article does not provide verifiable DOI, volume, issue or page range in the available source; the reference audit leaves these fields blank rather than guessing.
 
 ## Final files

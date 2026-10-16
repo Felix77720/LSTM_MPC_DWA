@@ -30,7 +30,7 @@ The standalone controllers provide secondary, unadjusted context. The versioned 
 
 ## Current seven-method exploratory evaluation (2,100 episodes)
 
-The current evaluation uses 100 new scenes, three matched sampling seeds per scene, and seven controller arms (300 episodes per arm). Shared-LSTM MPC–DWA reached safely in 221/300 episodes (73.7%); this exceeded the project-local latest-position-hold reconstruction by 16.3 percentage points (simultaneous 95% scene-cluster CI 5.1–27.6), but was lower than standalone MPC-CV (92.0%) and standalone DWA-CV (78.0%). The other paired intervals include zero for the CV-coupled and one-layer LSTM ablations; the intervals against both standalone methods favor those baselines. The predefined superiority gate was not met, so no overall-best claim is made. This is an exploratory simulation under an internal scope amendment, not a real-flight validation.
+The current evaluation uses 100 new scenes, three matched sampling seeds per scene, and seven controller arms (300 episodes per arm). Shared-LSTM MPC–DWA reached safely in 221/300 episodes (73.7%); this exceeded the project-local latest-position-hold reconstruction by 16.3 percentage points (simultaneous 95% scene-cluster CI 5.1–27.6), but was lower than standalone MPC-CV (92.0%) and standalone DWA-CV (78.0%). The other paired intervals include zero for the CV-coupled and one-layer LSTM ablations; the intervals against both standalone methods favor those baselines. Standalone MPC-CV had the highest observed rate (92.0%) in this exploratory study. This is an exploratory simulation under an internal scope amendment, not a real-flight validation.
 
 Tables S11 and S12 report the seven arm counts/rates and all six simultaneous paired intervals. One unplanned orphaned attempt (scene 58, seed 2) had an invalid checkpoint sidecar; it is preserved and hash-listed, but excluded from the 2,100 planned episodes. The raw run table, invocation/failure logs, analysis outputs, and integrity manifests remain in `results/v13_seven_method_100scene_exploratory_20261015/`; individual episode MAT files are not duplicated in the release ZIP.
 
@@ -54,6 +54,7 @@ The subsequent six-setting comparison covered 48 scenes and three matched seeds 
 - `supplementary_methods.tex` / `supplementary_methods.pdf` — MPC objective, LSTM setup, DWA sampling and safety gates, experiment designs, historical outcomes and diagnostic results.
 - The Round 17 audit reconciled the MPC weight order in S1.1 with the implementation and parameter table; the correction changes no simulation data.
 - `../04_review/v13_final_submission_audit_20261015.md` — final full-manuscript, evidence-scope, reference and layout audit.
+- `../04_review/v13_final_submission_audit_20261016_forecast_update.md` — latest final-build verification. The current supplement is 18 Letter pages; the earlier addendum's 19-page statement refers to a prior build.
 - `configuration.csv` and `sensing_summary_revised.csv` — settings and single-scene sensing-pressure diagnostics.
 - `heldout_switchback_*` — 12-trajectory open-loop prediction probe; it evaluates prediction error only.
 
