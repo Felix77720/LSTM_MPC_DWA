@@ -432,8 +432,8 @@
       "type": "paragraph",
       "order": 32,
       "source_location": "main.tex: Discussion, paragraph 1",
-      "original_text": "Sharing the forecast improved arrival over the position-hold reconstruction, but paired comparisons did not establish an advantage over the coupled CV arm or either one-layer LSTM arm. Standalone MPC-CV had higher safe-arrival frequency, with its paired interval favoring that baseline; standalone DWA-CV was numerically higher, but its simultaneous interval included zero. These results support a limited conclusion about one forecast-allocation contrast, not an overall ranking. The benchmark uses prescribed simulated tracks and a point forecast, and includes no real-flight validation.",
-      "translation": "共享预测提高了相对位置保持重构的到达率，但配对比较未能证明其优于 CV 耦合组或任一单层 LSTM 组。独立 MPC-CV 的安全到达率更高，且配对区间支持该基线；独立 DWA-CV 的观察率也较高，但其同时区间包含零。因此，结果只支持关于一种预测分配对比的有限结论，不能据此给出总体排名。仿真使用预设障碍物轨迹和点预测，没有真实飞行验证。"
+      "original_text": "Sharing the forecast improved arrival over the position-hold reconstruction, but paired comparisons did not establish an advantage over the coupled CV arm or either one-layer LSTM arm. Standalone MPC-CV had higher safe-arrival frequency, with its paired interval favoring that baseline; standalone DWA-CV was numerically higher, but its simultaneous interval included zero. These results support a limited conclusion about one forecast-allocation contrast, not an overall ranking. Because LSTM receives simulator-recorded obstacle velocity and heading whereas CV estimates velocity from positions, this compares configured input pipelines, not predictor architectures alone. Prescribed tracks, point forecasts and no flight tests limit generalization.",
+      "translation": "共享预测提高了相对位置保持重构的到达率，但配对比较未能证明其优于 CV 耦合组或任一单层 LSTM 组。独立 MPC-CV 的安全到达率更高，且配对区间支持该基线；独立 DWA-CV 的观察率也较高，但其同时区间包含零。因此，结果只支持关于一种预测分配对比的有限结论，不能据此给出总体排名。由于 LSTM 接收模拟器记录的障碍物速度和航向，而 CV 根据位置估计速度，这里比较的是所配置的输入流程，而非单独比较预测器架构。仿真采用预设轨迹与点预测，且未进行实机飞行，因而其泛化能力尚不明确。"
     },
     {
       "id": "S023",

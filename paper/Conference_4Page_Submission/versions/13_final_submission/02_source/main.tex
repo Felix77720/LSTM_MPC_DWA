@@ -177,7 +177,7 @@ MPC--DWA (latest-position hold) & 57.3 & 50 \\
 
 \balance
 \section{Discussion}
-Sharing the forecast improved arrival over the position-hold reconstruction, but its estimate did not exceed the coupled CV arm or either one-layer LSTM arm. Standalone MPC-CV had higher safe-arrival frequency, with its paired interval favoring that baseline; standalone DWA-CV was numerically higher, but its simultaneous interval included zero. These results favor a limited conclusion about one forecast-allocation contrast, not an overall ranking. The benchmark uses prescribed simulated tracks and a point forecast, and includes no real-flight validation.
+Sharing the forecast improved arrival over the position-hold reconstruction, but its estimate did not exceed the coupled CV arm or either one-layer LSTM arm. Standalone MPC-CV had higher safe-arrival frequency, with its paired interval favoring that baseline; standalone DWA-CV was numerically higher, but its simultaneous interval included zero. These results favor a limited conclusion about one forecast-allocation contrast, not an overall ranking. Because LSTM receives simulator-recorded obstacle velocity and heading whereas CV estimates velocity from positions, this compares configured input pipelines, not predictor architectures alone. Prescribed tracks, point forecasts and no flight tests limit generalization.
 \Needspace{7\baselineskip}
 \begin{samepage}
 \section{Conclusion}

@@ -1,6 +1,6 @@
 # LSTM-Prediction-Enhanced MPC-DWA UAV Dynamic Obstacle Avoidance
 
-This repository contains MATLAB + CasADi code for LSTM-enhanced dynamic-obstacle avoidance. The current formal paper package is Version 13 at [`paper/Conference_4Page_Submission/versions/13_final_submission/`](paper/Conference_4Page_Submission/versions/13_final_submission/). Its four-page paper, 19-page supplementary methods, bilingual reader, reproducibility ZIP and final audit are listed in that package's README.
+This repository contains MATLAB + CasADi code for LSTM-enhanced dynamic-obstacle avoidance. The current formal paper package is Version 13 at [`paper/Conference_4Page_Submission/versions/13_final_submission/`](paper/Conference_4Page_Submission/versions/13_final_submission/). Its four-page paper, 19-page supplementary methods, bilingual reader, reproducibility ZIP and final audit/addendum are listed in that package's README.
 
 ## Current Version 13 evidence
 
@@ -18,6 +18,6 @@ Earlier four-method and 7,500-run experiments remain historical records, separat
 
 ## Reproducibility and dependencies
 
-Version 13 deliverables include `02_source/main.pdf` and editable LaTeX, `03_supplementary/supplementary_methods.pdf`, `03_bilingual/paper.md`, `03_supplementary/reproducibility_package.zip`, and `04_review/v13_final_submission_audit_20261015.md`. Original checkpoint trees and large historical MAT bundles remain at their existing paths; the reproducibility package records hashes for omitted artifacts. Reproduction of optimizer-based simulations requires MATLAB R2025a (or compatible), Deep Learning Toolbox, and CasADi 3.8.0 installed under `MPC_DWA_Fusion/third_party/`.
+Version 13 deliverables include `02_source/main.pdf` and editable LaTeX, `03_supplementary/supplementary_methods.pdf`, `03_bilingual/paper.md`, `03_supplementary/reproducibility_package.zip`, and the full audit plus `04_review/v13_final_submission_audit_20261016_addendum.md`. The final discussion identifies that the LSTM and CV arms use different input information streams; results are not presented as an overall method ranking. Original checkpoint trees and large historical MAT bundles remain at their existing paths; the reproducibility package records hashes for omitted artifacts. Reproduction of optimizer-based simulations requires MATLAB R2025a (or compatible), Deep Learning Toolbox, and CasADi 3.8.0 installed under `MPC_DWA_Fusion/third_party/`.
 
 The older `run_experiments`, `run_multiseed`, `run_sensing_robustness`, `run_random_multiseed`, and ablation workflows describe previous study protocols. They should not be read as the Version 13 seven-method protocol. Consult the versioned package README and audit for the authoritative current scope and artifacts.
