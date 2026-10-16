@@ -26,9 +26,9 @@
     "c": "XZ elevation projection",
     "d": "YZ elevation projection"
   },
-  "target_canvas_width_in": 7.05,
-  "target_canvas_height_in": 5.85,
-  "minimum_plot_text_size_pt": 6.5,
+  "target_canvas_width_in": 3.42,
+  "target_canvas_height_in": 3.25,
+  "minimum_plot_text_size_pt": 5.7,
   "method_keys": [
     "standalone_dwa_cv",
     "standalone_mpc_cv",
@@ -104,17 +104,17 @@
       "schema_version": 1,
       "backend": "python-matplotlib",
       "figure": {
-        "width_pt": 507.59999999999997,
-        "height_pt": 421.2
+        "width_pt": 246.24,
+        "height_pt": 234.0
       },
       "panels": [
         {
           "id": "b",
           "bbox_pt": [
-            297.3912631578947,
-            261.79200000000003,
-            499.9859999999999,
-            383.29200000000003
+            147.55295172413793,
+            161.2305882352941,
+            242.5464,
+            219.95999999999998
           ],
           "grid_id": "matplotlib-grid-1",
           "row_start": 0,
@@ -123,17 +123,17 @@
           "col_stop": 2,
           "panel_label": "b",
           "panel_label_anchor_pt": [
-            277.13178947368425,
-            390.58200000000005
+            149.45282068965517,
+            218.78541176470588
           ]
         },
         {
           "id": "c",
           "bbox_pt": [
-            38.06999999999999,
-            98.98199999999999,
-            240.66473684210524,
-            220.48199999999997
+            22.1616,
+            70.19999999999999,
+            117.15504827586207,
+            128.92941176470586
           ],
           "grid_id": "matplotlib-grid-1",
           "row_start": 1,
@@ -142,17 +142,17 @@
           "col_stop": 1,
           "panel_label": "c",
           "panel_label_anchor_pt": [
-            17.810526315789478,
-            227.77199999999996
+            24.06146896551724,
+            127.75482352941174
           ]
         },
         {
           "id": "d",
           "bbox_pt": [
-            297.3912631578947,
-            98.98199999999999,
-            499.9859999999999,
-            220.48199999999997
+            147.55295172413793,
+            70.19999999999999,
+            242.5464,
+            128.92941176470586
           ],
           "grid_id": "matplotlib-grid-1",
           "row_start": 1,
@@ -161,8 +161,8 @@
           "col_stop": 2,
           "panel_label": "d",
           "panel_label_anchor_pt": [
-            277.13178947368425,
-            227.77199999999996
+            149.45282068965517,
+            127.75482352941174
           ]
         }
       ],

@@ -47,7 +47,7 @@ We model the UAV as a collision sphere in a bounded three-dimensional workspace 
 
 \begin{figure}[!hb]
 \centering
-\includegraphics[width=0.97\columnwidth]{scenario_schematic.pdf}
+\includegraphics[width=0.90\columnwidth]{scenario_schematic.pdf}
 \caption{Problem geometry: the quadrotor is centered at the start and moves toward the goal among spherical obstacles following prescribed paths (arrows). The dashed line marks the direct start-to-goal direction, not a simulated route; planner trajectories appear separately in Figure~\ref{fig:routes}.}
 \label{fig:scenario}
 \end{figure}
@@ -139,7 +139,7 @@ Every 0.1 s, the shared arm sends the same time-indexed 3-s forecast to both lay
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\columnwidth]{algorithm_main_pseudocode.pdf}
+\includegraphics[width=0.92\columnwidth]{algorithm_main_pseudocode.pdf}
 \caption{Pseudocode overview of one shared-forecast update. At each 0.1-s step, one causal 3-s LSTM forecast enters MPC and DWA; passing DWA controls bound only MPC's first input, while the screened DWA action is executed. The emergency branch is re-screened and stops if no feasible action remains.}
 \label{fig:algorithm}
 \end{figure}
@@ -155,14 +155,20 @@ A matched route from the separate seven-method evaluation (scene 72, sampling se
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.98\textwidth]{seven_method_outcomes_main.pdf}
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=0.98\linewidth]{seven_method_outcomes_main.pdf}
 \caption{Collision-free goal-arrival rates in two separate protocols. (a) Frozen five-controller benchmark: 500 scenes, three matched seeds, $n=1{,}500$ runs per controller and a 1-s DWA screen. (b) Exploratory seven-controller evaluation: 100 distinct scenes, three matched seeds, $n=300$ runs per controller and a 3-s screen. Bars show observed point estimates; paired scene-cluster intervals are reported in the text and Supplementary Methods, not as arm-wise error bars. Swept-contact counts in row order are 624, 2, 0, 0, 36 in (a), and 0, 15, 0, 0, 0, 0, 50 in (b). Standalone MPC+LSTM and MPC-CV had the highest rates in their respective protocols; the panels are not pooled into one ranking.}
 \label{fig:rates}
-\vspace{0.2em}
+\end{minipage}\hfill%
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
 \centering
-\includegraphics[width=0.70\textwidth,height=0.44\textheight,keepaspectratio]{route_comparison_seven_method_scene72_seed2.pdf}
+\includegraphics[width=0.98\linewidth]{route_comparison_seven_method_scene72_seed2.pdf}
 \caption{Recorded paths from scene 72, seed 2 of the separate seven-method evaluation. The four views show (a) 3-D perspective, (b) $XY$, (c) $XZ$ and (d) $YZ$ projections; the legend names all seven controllers. Shared LSTM and DWA-CV safely arrived; MPC-CV had swept contact after reaching goal tolerance, and the remaining methods stopped or contacted earlier. Paths end at logged terminal states without smoothing, interpolation or extension. Triangle/star: start/goal; circle: safe arrival; square: no-contact stop; X: a run with swept contact (not its contact location). This is one matched example; aggregate rates are in Fig.~\ref{fig:rates}b.}
 \label{fig:routes}
+\end{minipage}
 \end{figure*}
 
 \balance

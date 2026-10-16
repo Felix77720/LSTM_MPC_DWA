@@ -65,12 +65,12 @@ START_TOLERANCE_M = 1e-8
 mpl.rcParams.update({
     "font.family": "sans-serif",
     "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
-    "font.size": 8.0,
-    "axes.titlesize": 9.0,
-    "axes.labelsize": 8.0,
-    "xtick.labelsize": 7.5,
-    "ytick.labelsize": 7.5,
-    "legend.fontsize": 8.0,
+    "font.size": 7.0,
+    "axes.titlesize": 7.4,
+    "axes.labelsize": 6.8,
+    "xtick.labelsize": 6.0,
+    "ytick.labelsize": 6.0,
+    "legend.fontsize": 6.0,
     "pdf.fonttype": 42,
     "ps.fonttype": 42,
     "svg.fonttype": "none",
@@ -156,18 +156,15 @@ def main() -> None:
 
     # Keep one shared 3-D scene and add orthogonal projections to reveal route
     # separation that a single perspective can hide.
-    fig = plt.figure(figsize=(7.05, 5.85), constrained_layout=False)
+    fig = plt.figure(figsize=(3.42, 3.25), constrained_layout=False)
     grid = fig.add_gridspec(
-        2, 2, left=0.075, right=0.985, top=0.91, bottom=0.235,
-        wspace=0.28, hspace=0.34)
+        2, 2, left=0.09, right=0.985, top=0.94, bottom=0.30,
+        wspace=0.32, hspace=0.55)
     ax3d = fig.add_subplot(grid[0, 0], projection="3d")
     ax_xy = fig.add_subplot(grid[0, 1])
     ax_xz = fig.add_subplot(grid[1, 0])
     ax_yz = fig.add_subplot(grid[1, 1])
     axes = (ax3d, ax_xy, ax_xz, ax_yz)
-    fig.suptitle("Recorded seven-method trajectories · scene 72, seed 2",
-                 y=0.975, fontsize=9.0, fontweight="bold")
-
     ax3d.view_init(elev=27, azim=-57)
     ax3d.set_proj_type("ortho")
     ax3d.set_xlim(0, 20)
@@ -175,13 +172,15 @@ def main() -> None:
     # Include the collision-run terminal below z=0 rather than clipping it.
     ax3d.set_zlim(-0.8, 10)
     ax3d.set_box_aspect((2, 2, 1.08))
-    ax3d.set_xlabel("x (m)", labelpad=4)
-    ax3d.set_ylabel("y (m)", labelpad=4)
-    ax3d.set_zlabel("z (m)", labelpad=1)
+    ax3d.set_xlabel("x", labelpad=1, fontsize=6.2)
+    ax3d.set_ylabel("y", labelpad=1, fontsize=6.2)
+    # The adjacent XZ/YZ projections explicitly label z (m); omit this
+    # redundant 3-D label so it cannot collide with the neighboring XY y-axis.
     ax3d.set_xticks([0, 10, 20])
     ax3d.set_yticks([0, 10, 20])
     ax3d.set_zticks([0, 5, 10])
-    ax3d.zaxis.set_tick_params(pad=2)
+    ax3d.tick_params(axis="both", labelsize=5.7, pad=0.5)
+    ax3d.zaxis.set_tick_params(labelsize=5.7, pad=0.5)
     for axis in (ax3d.xaxis, ax3d.yaxis, ax3d.zaxis):
         axis.pane.fill = False
         axis._axinfo["grid"]["color"] = (0.80, 0.83, 0.85, 0.60)
@@ -200,19 +199,19 @@ def main() -> None:
         else:
             axis.set_ylim(0, 20)
             axis.set_yticks([0, 10, 20])
-        axis.set_xlabel(labels[0], labelpad=2)
-        axis.set_ylabel(labels[1], labelpad=2)
+        axis.set_xlabel(labels[0], labelpad=1.0, fontsize=6.4)
+        axis.set_ylabel(labels[1], labelpad=1.0, fontsize=6.4)
         axis.set_xticks([0, 10, 20])
         axis.grid(True, color="#D6DCE1", linewidth=0.45, alpha=0.75)
-        axis.tick_params(labelsize=6.5, length=2.5, pad=1.5)
-        axis.set_title(title, loc="left", fontsize=7.6, pad=2)
-        axis.text(-0.10, 1.06, panel_letter, transform=axis.transAxes,
-                  fontsize=8.0, fontweight="bold", va="bottom", ha="left")
+        axis.tick_params(labelsize=6.0, length=2.0, pad=1.0)
+        axis.set_title(title, loc="center", fontsize=6.6, pad=1.2)
+        axis.text(0.02, 0.98, panel_letter, transform=axis.transAxes,
+                  fontsize=7.0, fontweight="bold", va="top", ha="left")
         for spine in ("top", "right"):
             axis.spines[spine].set_visible(False)
-    ax3d.text2D(-0.10, 1.06, "a", transform=ax3d.transAxes,
-                fontsize=8.0, fontweight="bold", va="bottom", ha="left")
-    ax3d.set_title("3-D perspective", loc="center", fontsize=7.6, pad=2)
+    ax3d.text2D(0.02, 0.98, "a", transform=ax3d.transAxes,
+                fontsize=7.0, fontweight="bold", va="top", ha="left")
+    ax3d.set_title("3-D perspective", loc="center", fontsize=6.6, pad=1.2)
 
     handles = []
     endpoint_audit: list[dict[str, object]] = []
@@ -394,8 +393,8 @@ def main() -> None:
                      facecolors="none", edgecolors="#CC3311", linewidth=0.75, zorder=7)
     fig.legend(
         handles=handles, loc="lower center", bbox_to_anchor=(0.5, 0.025),
-        ncol=4, frameon=False, fontsize=6.6, handlelength=1.0,
-        columnspacing=0.95, labelspacing=0.48, handletextpad=0.35)
+        ncol=2, frameon=False, fontsize=6.0, handlelength=1.05,
+        columnspacing=0.7, labelspacing=0.38, handletextpad=0.35)
 
     stem = f"route_comparison_seven_method_scene{selected_scene}_seed{selected_seed}"
     alignment_report = require_matplotlib_panel_alignment(
@@ -452,9 +451,9 @@ def main() -> None:
             "c": "XZ elevation projection",
             "d": "YZ elevation projection",
         },
-        "target_canvas_width_in": 7.05,
-        "target_canvas_height_in": 5.85,
-        "minimum_plot_text_size_pt": 6.5,
+        "target_canvas_width_in": 3.42,
+        "target_canvas_height_in": 3.25,
+        "minimum_plot_text_size_pt": 5.7,
         "method_keys": method_keys,
         "trajectory_smoothing": False,
         "trajectory_interpolation_or_resampling": False,
