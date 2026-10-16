@@ -142,8 +142,17 @@ def _extract_equation(segment: str, block_id: str) -> tuple[str, str]:
     return source.group(1), latex
 
 
-def _extract_figure_path(segment: str, block_id: str) -> str:
-    number = int(block_id[1:])
+def _extract_figure_path(
+    segment: str, block_id: str, figure_record: dict[str, Any]
+) -> str:
+    # The bilingual anchor is a stable record ID, not necessarily the printed
+    # figure number: main-text Figure 3 and Supplementary Figure S3 coexist.
+    # New records declare the display kind/number; legacy maps fall back to
+    # the numeric suffix used by their original one-to-one scheme.
+    number = figure_record.get("display_number", int(block_id[1:]))
+    display_kind = figure_record.get("display_kind")
+    if not isinstance(number, int) or display_kind not in (None, "main", "supplementary"):
+        raise ValueError(f"{block_id} has an invalid display_number/display_kind.")
     main_heading = re.search(
         r"(?m)^###\s+Figure\s+(\d+)\s*/\s*图\s*(\d+)[：:].+$", segment
     )
@@ -155,11 +164,13 @@ def _extract_figure_path(segment: str, block_id: str) -> str:
     main_match = bool(
         main_heading
         and (int(main_heading.group(1)), int(main_heading.group(2))) == (number, number)
+        and display_kind in (None, "main")
     )
     supplementary_match = bool(
         supplementary_heading
         and (int(supplementary_heading.group(1)), int(supplementary_heading.group(2)))
         == (number, number)
+        and display_kind in (None, "supplementary")
     )
     if not (main_match or supplementary_match):
         raise ValueError(f"{block_id} is missing its matching bilingual figure heading.")
@@ -307,7 +318,7 @@ def synchronize(paper_text: str, source_map: dict[str, Any]) -> tuple[dict[str, 
             _require_fields(figure_record, {"image_path", "caption_id"}, f"figures[{block_id}]")
             if record["caption_id"] != figure_record["caption_id"]:
                 raise ValueError(f"{block_id} caption_id differs between blocks and figures.")
-            path = _extract_figure_path(segment, block_id)
+            path = _extract_figure_path(segment, block_id, figure_record)
             _set_field(record, "image_path", path, f"blocks.{block_id}.image_path", changes)
             _set_field(figure_record, "image_path", path, f"figures.{block_id}.image_path", changes)
         elif block_id.startswith("T"):
