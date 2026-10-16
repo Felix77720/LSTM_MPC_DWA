@@ -10,7 +10,7 @@ pages: 4
 
 # 论文中英对照全文
 
-**底本说明：** 本稿逐段对应当前 02_source/main.tex。主文报告 100 个场景、每场景 3 个匹配种子的七方法探索性仿真（每种方法 300 次，共 2,100 次）。既有 500 场景五控制器结果和 CV/Kalman 对比保留为历史补充证据，不与当前评估合并。4,320 次 Stage-1 记录是独立的开发集权重选择证据；不把它们计入留出结果，也不报告未完成的 Stage-2 结果。本文仅报告仿真，没有真实飞行验证。
+**底本说明：** 本稿逐段对应当前 02_source/main.tex。主文报告两套分开分析的仿真证据：一是冻结方案下 500 场景五控制器基准中的共享预测对比（两组各 1,500 次），这 3,000 条记录已包含在 7,500 次基准运行中，不另计样本；二是另一个 100 场景七方法探索性评估（每种方法 300 次，共 2,100 次）。完整五控制器结果和 CV/Kalman 对比均保留在补充材料。4,320 次 Stage-1 记录是独立的开发集权重选择证据，不计入评估结果；Stage-2 尚未完成，也没有真实飞行验证。
 
 ## 阅读索引
 
@@ -53,9 +53,9 @@ Zhenhui Fu*, Beijing University of Chemical Technology, Beijing 100029, China. *
 <a id="S002"></a>
 **Source:** 02_source/main.tex, abstract
 
-**Original:** First, UAVs must avoid moving obstacles in three dimensions, but turns, acceleration and pauses make recent positions unreliable for predicting their motion. Second, we couple model predictive control (MPC) and the dynamic window approach (DWA) with one causal long short-term memory (LSTM) forecast: MPC optimizes the route, while DWA screens reachable actions and constrains MPC's first command. Then, in 100 simulated scenes with three matched seeds per scene, shared LSTM reached the goal without collision in 221/300 episodes (73.7%). This was 16.3 percentage points above a latest-position-hold MPC--DWA reconstruction (simultaneous 95% CI, 5.1--27.6), but below standalone MPC-CV (92.0%) and standalone DWA-CV (78.0%). Finally, these results support shared prediction over the position-hold reconstruction, but do not establish overall superiority among the tested controllers.
+**Original:** First, a UAV must avoid moving obstacles in three dimensions even when turns, acceleration and pauses make their motion difficult to predict. Second, the method couples model predictive control (MPC) and the dynamic window approach (DWA) through one causal long short-term memory (LSTM) forecast. MPC uses it to optimize a route; DWA screens reachable actions and bounds MPC's first command. Then, in a frozen 500-scene comparison with a 1-s DWA screen, shared LSTM achieved collision-free goal arrival in 936/1,500 runs (62.4%), versus 836/1,500 (55.7%) when only DWA received LSTM. The paired difference was 6.7 percentage points (95% scene-cluster confidence interval, 4.2--9.2). In a separate 100-scene exploratory evaluation with a 3-s DWA screen, sharing reached 73.7%; its contrast with DWA-only LSTM was inconclusive. Standalone MPC-CV reached 92.0%, the highest rate in that evaluation. Finally, the simulations support a protocol-specific benefit from adding LSTM forecasts to MPC, but do not establish overall superiority.
 
-**中文:** 首先，无人机必须在三维空间躲避运动障碍物，但障碍物转向、加速或暂停，使近期位置难以可靠预测其运动。其次，我们将模型预测控制（MPC）与动态窗口法（DWA）耦合，并让两者共享同一条因果长短期记忆网络（LSTM）预测：MPC 用它优化路线，DWA 筛选可达动作并约束 MPC 的首个指令。然后，在 100 个仿真场景、每个场景 3 个匹配种子的测试中，共享 LSTM 在 300 次运行中有 221 次无碰撞到达目标（73.7%）。这一比例比最新位置保持的 MPC–DWA 重构高 16.3 个百分点（同时 95% CI：5.1–27.6），但低于独立 MPC-CV（92.0%）和独立 DWA-CV（78.0%）。最后，这些结果支持共享预测优于位置保持重构，但不能证明其在所测方法中总体最优。
+**中文:** 首先，无人机必须在三维空间躲避运动障碍物，即使障碍物转向、加速或暂停也要安全规划。其次，本方法将模型预测控制（MPC）与动态窗口法（DWA）通过同一条因果长短期记忆网络（LSTM）预测相连：MPC 用预测优化路径，DWA 筛选可达动作并约束 MPC 的首个指令。然后，在冻结方案的 500 场景、DWA 滚动时域为 1 s 的对比中，共享 LSTM 有 936/1,500 次无碰撞到达（62.4%），仅向 DWA 输入 LSTM 的方法为 836/1,500 次（55.7%）；配对差为 6.7 个百分点（按场景聚类的 95% 置信区间：4.2–9.2）。在另一个 DWA 时域为 3 s 的 100 场景探索性评估中，共享方法到达率为 73.7%，与仅向 DWA 输入 LSTM 的差异区间包含零；独立 MPC-CV 的到达率最高，为 92.0%。最后，仿真结果支持共享预测在特定方案下优于仅 DWA 预测输入，但不能证明其总体最优。
 
 <a id="S003"></a>
 **Source:** 02_source/main.tex, IEEE keywords
@@ -268,9 +268,9 @@ $$
 <a id="S018"></a>
 **Source:** 02_source/main.tex, Simulation and Results, opening paragraph
 
-**Original:** We compared seven controller arms in an exploratory simulation of 100 scenes, each evaluated with three matched seeds (300 episodes per arm). Controllers updated every 0.1 s, used 30-step (3-s) MPC and DWA horizons, and had a 650-step limit. The arms were standalone DWA-CV, standalone MPC-CV, coupled MPC--DWA-CV, LSTM to MPC only, LSTM to DWA only, shared LSTM, and a project-local latest-position-hold MPC--DWA reconstruction. In each one-layer arm, the other layer used CV; the shared arm sent the same causal LSTM forecast to both layers. Safe goal arrival required reaching the goal tolerance without contact on the continuous swept path. We averaged seeds within each scene and used 20,000 scene-cluster bootstrap resamples; simultaneous max-|t| intervals covered the six shared-versus-comparator contrasts. This exploratory evaluation is separate from the historical five-controller study. Figure 2 shows the seven recorded paths in one preselected scene; Table 1 reports aggregate outcomes.
+**Original:** Under the frozen 1-s DWA/3-s MPC protocol and inherited weights, 500 scenes (three matched seeds each) compared shared LSTM with DWA-only LSTM. DWA received LSTM forecasts in both arms; only shared LSTM also supplied them to MPC. Safe arrival was 936/1,500 (62.4%) versus 836/1,500 (55.7%; +6.7 percentage points, 95% scene-cluster CI, 4.2--9.2). These 3,000 records belong to the 7,500-run five-controller benchmark, not an additional sample; full outcomes and protocol are in Supplementary Methods S4. Separately, an exploratory seven-arm comparison tested 100 scenes (three matched seeds; 300 runs per arm) using 0.1-s updates, 30-step (3-s) MPC/DWA horizons and a 650-step limit. Arms were standalone DWA-CV and MPC-CV, coupled MPC--DWA-CV, LSTM-to-MPC-only, LSTM-to-DWA-only, shared LSTM and latest-position-hold MPC--DWA. Safe arrival required goal tolerance without swept-path contact. Seeds were averaged within scene; 20,000 scene-cluster bootstrap resamples produced simultaneous max-|t| intervals for six shared-versus-comparator contrasts. The scene bank was distinct from the 500-scene benchmark.
 
-**中文:** 我们在 100 个场景上对七种控制器进行探索性仿真，每个场景采用三个匹配种子（每种方法 300 次运行）。控制器每 0.1 s 更新一次，MPC 和 DWA 时域均为 30 步（3 s），单次运行最多 650 步。七种方法分别为独立 DWA-CV、独立 MPC-CV、耦合 MPC–DWA-CV、仅 MPC 使用 LSTM、仅 DWA 使用 LSTM、共享 LSTM，以及项目内构建的最新位置保持 MPC–DWA 重构。在单层 LSTM 组中，另一层使用 CV；共享组则将同一条因果 LSTM 预测送入两层。无碰撞到达要求飞行器进入目标容差范围，且连续扫掠路径上没有接触。我们先在每个场景内对三个种子取平均，再进行 20,000 次按场景聚类的 bootstrap 重抽样；六个“共享组减比较组”对比采用同时 max-|t| 区间。本次探索性评估与历史五控制器研究分开报告。图 2 展示预先选定场景中的七条实测路径；表 1 汇总总体结果。
+**中文:** 在冻结的 1 s DWA/3 s MPC 方案及继承的信任权重下，我们在 500 个场景（每个场景三个匹配种子）中比较共享 LSTM 与仅 DWA 使用 LSTM。两组的 DWA 均接收 LSTM 预测；只有共享组还将预测输入 MPC。共享组有 936/1,500 次无碰撞到达（62.4%），仅 DWA 使用 LSTM 组为 836/1,500 次（55.7%；配对差 6.7 个百分点，按场景聚类的 95% CI：4.2–9.2）。这 3,000 条记录属于既有 7,500 次五控制器基准，不是额外运行；完整结果和方案见补充方法 S4。另一个探索性七方法评估在 100 个场景中进行（每场景三个匹配种子，每方法 300 次），控制器每 0.1 s 更新，MPC/DWA 时域均为 30 步（3 s），最多运行 650 步。方法包括独立 DWA-CV、独立 MPC-CV、耦合 MPC–DWA-CV、仅 MPC 使用 LSTM、仅 DWA 使用 LSTM、共享 LSTM，以及最新位置保持 MPC–DWA。安全到达要求进入目标容差且连续扫掠路径无接触。我们在场景内平均三个种子，并进行 20,000 次按场景聚类的 bootstrap；六个共享组对比采用同时 max-|t| 区间。该评估使用不同的场景库。
 
 <a id="F002"></a>
 ### Figure 2 / 图 2：七方法三维路径对比
@@ -285,9 +285,9 @@ $$
 <a id="S019"></a>
 **Source:** 02_source/main.tex, first results paragraph
 
-**Original:** Shared LSTM reached the goal without collision in 221/300 episodes (73.7%). Its paired advantage over the position-hold reconstruction was 16.3 percentage points (simultaneous 95% CI, 5.1--27.6). It was lower than standalone MPC-CV by 18.3 points (-29.6 to -7.0); intervals for standalone DWA-CV, coupled MPC--DWA-CV and both one-layer LSTM arms included zero. Thus, the data do not establish that sharing is best among the tested controllers.
+**Original:** In the 3-s evaluation, shared LSTM reached safely in 221/300 runs (73.7%), 16.3 points above position-hold (simultaneous 95% CI, 5.1--27.6) but 18.3 below MPC-CV (-29.6 to -7.0). Intervals versus DWA-CV, coupled CV and both one-layer LSTM arms, including DWA-only, included zero. Thus, this evaluation found no measurable advantage over DWA-only LSTM and did not establish an overall best controller.
 
-**中文:** 共享 LSTM 在 300 次运行中有 221 次无碰撞到达目标（73.7%）。相对最新位置保持重构，其配对优势为 16.3 个百分点（同时 95% CI：5.1–27.6）。相对独立 MPC-CV，共享组低 18.3 个百分点（−29.6 至 −7.0）；相对独立 DWA-CV、耦合 MPC–DWA-CV 和两个单层 LSTM 组的区间均包含零。因此，现有数据不能证明共享方法在所测控制器中最优。
+**中文:** 在 3 s 时域评估中，共享 LSTM 有 221/300 次无碰撞到达目标（73.7%），比最新位置保持组高 16.3 个百分点（同时 95% CI：5.1–27.6），比独立 MPC-CV 低 18.3 个百分点（−29.6 至 −7.0）。相对独立 DWA-CV、耦合 CV 和两个单层 LSTM 组（包括仅 DWA 使用 LSTM）的区间均包含零。因此，这项评估未发现共享预测相对仅 DWA 使用 LSTM 的明确优势，也未确立总体最优方法。
 
 <a id="T001"></a>
 ### Table 1 / 表 1：七方法探索性仿真结果
@@ -335,18 +335,18 @@ $$
 
 **Source:** 02_source/main.tex, Discussion, paragraph 1
 
-**Original:** Sharing the forecast improved arrival over the position-hold reconstruction, but paired comparisons did not establish an advantage over the coupled CV arm or either one-layer LSTM arm. Standalone MPC-CV had higher safe-arrival frequency, with its paired interval favoring that baseline; standalone DWA-CV was numerically higher, but its simultaneous interval included zero. These results support a limited conclusion about one forecast-allocation contrast, not an overall ranking. Because LSTM receives simulator-recorded obstacle velocity and heading whereas CV estimates velocity from positions, this compares configured input pipelines, not predictor architectures alone. Prescribed tracks, point forecasts and no flight tests limit generalization.
+**Original:** The two protocols indicate a protocol-specific benefit: forecast sharing raised safe arrival in the frozen 1-s screen comparison, but not in the 3-s exploratory comparison; standalone MPC-CV had the highest rate there. Because scene banks, trust weights and horizons also differed, these studies do not isolate the source of that difference. LSTM uses simulator-recorded obstacle velocity and heading, whereas CV estimates velocity from positions, so the contrast concerns configured input pipelines as well as predictors. Prescribed tracks, point forecasts and no flight tests limit generalization.
 
-**中文:** 共享预测提高了相对位置保持重构的到达率，但配对比较未能证明其优于 CV 耦合组或任一单层 LSTM 组。独立 MPC-CV 的安全到达率更高，且配对区间支持该基线；独立 DWA-CV 的观察率也较高，但其同时区间包含零。因此，结果只支持关于一种预测分配对比的有限结论，不能据此给出总体排名。由于 LSTM 接收模拟器记录的障碍物速度和航向，而 CV 根据位置估计速度，这里比较的是所配置的输入流程，而非单独比较预测器架构。仿真采用预设轨迹与点预测，且未进行实机飞行，因而其泛化能力尚不明确。
+**中文:** 两套方案显示出协议特定的结果：在冻结的 1 s DWA 筛查对比中，共享预测提高了安全到达率；在 3 s 探索性对比中未显示这一优势，而独立 MPC-CV 的到达率最高。由于两套方案的场景库、信任权重和时域也不同，当前证据无法定位造成差异的具体因素。LSTM 使用模拟器记录的障碍物速度和航向，CV 则根据位置估计速度，因此比较涉及具体输入流程，而非只比较预测器。预设轨迹、点预测和未进行实机飞行限制了泛化结论。
 
 ## VI. Conclusion / 结论
 
 <a id="S023"></a>
 **Source:** 02_source/main.tex, Conclusion
 
-**Original:** In this exploratory simulation, the shared causal LSTM forecast improved safe arrival over a latest-position-hold MPC--DWA reconstruction, while standalone MPC-CV performed better and the remaining paired comparisons were inconclusive. The results motivate further evaluation of shared prediction in dynamic-obstacle planning but do not establish overall superiority or real-flight performance.
+**Original:** Shared LSTM improved safe arrival over DWA-only input in the frozen 500-scene, 1-s DWA comparison. The separate 3-s evaluation showed no measurable advantage over DWA-only LSTM; standalone MPC-CV had the highest rate. This is a protocol-specific result, not overall superiority or real-flight evidence.
 
-**中文:** 在这项探索性仿真中，共享因果 LSTM 预测的安全到达率高于最新位置保持 MPC–DWA 重构；独立 MPC-CV 表现更好，其余配对比较尚无明确结论。结果支持进一步评估共享预测在动态障碍物规划中的作用，但不能证明其总体最优或代表真实飞行表现。
+**中文:** 在冻结的 500 场景、1 s DWA 对比中，共享 LSTM 的无碰撞到达率高于仅向 DWA 输入预测。另一个 3 s 评估未发现其优于仅 DWA 使用 LSTM 的明确优势；独立 MPC-CV 的到达率最高。这些结果支持特定方案下的预测共享收益，但不能证明总体最优或真实飞行表现。
 
 ## Supplementary Methods clarification / 补充方法说明
 

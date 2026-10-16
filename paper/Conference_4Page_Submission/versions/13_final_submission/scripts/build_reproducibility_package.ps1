@@ -4,6 +4,8 @@ $ErrorActionPreference = 'Stop'
 # it never sweeps the project root for .m files and never copies _local_archive.
 # Stage 2 was not completed/verified; only its protocol and audit documents are
 # included. The current finite evaluation is 100 scenes x 3 seeds x 7 methods.
+# The 500-scene shared-vs-DWA-only contrast is an existing paired subset of
+# the historical 7,500-run benchmark, not an additional experiment.
 
 function Assert-RequiredFile {
     param([Parameter(Mandatory)][string]$Path)
@@ -354,6 +356,21 @@ $revisionRequiredFiles = @(
     '02_source\figures\route_comparison_seven_method.tiff',
     '03_supplementary\README.md', '03_supplementary\supplementary_methods.tex',
     '03_supplementary\supplementary_methods.pdf',
+    '03_supplementary\confirmatory_raw.csv',
+    '03_supplementary\confirmatory_method_summary.csv',
+    '03_supplementary\confirmatory_cluster_bootstrap.csv',
+    '03_supplementary\confirmatory_scene_cluster_means.csv',
+    '03_supplementary\confirmatory_run_audit.csv',
+    '03_supplementary\scenario_manifest.csv',
+    '03_supplementary\scene_generation_specification.md',
+    '03_supplementary\paired_scene_outcome_counts.csv',
+    '03_supplementary\confirmatory_experiment_protocol.md',
+    '03_supplementary\confirmatory_protocol_clarification.md',
+    '03_supplementary\five_method_run_audit.csv',
+    '03_supplementary\five_method_summary.csv',
+    '03_supplementary\five_method_paired_bootstrap.csv',
+    '03_supplementary\five_method_absolute_bootstrap.csv',
+    '03_supplementary\five_method_terminal_outcomes.csv',
     '03_supplementary\figures\route_comparison_seven_method.pdf',
     '03_supplementary\shared_lstm_random12_revised.csv',
     '04_review\final_submission_audit.md', '04_review\reference_verification.md',
@@ -373,6 +390,8 @@ $revisionRequiredFiles = @(
     '04_review\seven_method_100scene_exploratory_amendment_20261015.md',
     '04_review\v13_final_submission_audit_20261015.md',
     '04_review\v13_final_submission_audit_20261016_addendum.md',
+    '04_review\v13_final_submission_audit_20261016_forecast_update.md',
+    '04_review\shared_vs_dwaonly_confirmatory_protocol.md',
     '04_review\reference_verification_v13.md',
     'qa\seven_method_route_endpoint_audit.json',
     'qa\historical_scene2_route_endpoint_audit.json',
@@ -394,6 +413,7 @@ $scriptAllowlist = @(
     'generate_scenario_schematic.py', 'generate_seven_method_route_figure.py',
     'generate_seven_method_route_figure_compat.py',
     'export_confirmatory_route_data.m',
+    'recompute_confirmatory_outcomes.m',
     'generate_v12a_heldout_scenarios.m', 'run_v12_redesigned.m',
     'run_v12a_pooled_weight_development.m',
     'run_v13_trust_scale_parameter_calibration.m',
@@ -454,6 +474,21 @@ $deliveryRelativePaths = @(
     '02_source/figures/route_comparison_seven_method.tiff',
     '03_supplementary/README.md', '03_supplementary/supplementary_methods.pdf',
     '03_supplementary/supplementary_methods.tex',
+    '03_supplementary/confirmatory_raw.csv',
+    '03_supplementary/confirmatory_method_summary.csv',
+    '03_supplementary/confirmatory_cluster_bootstrap.csv',
+    '03_supplementary/confirmatory_scene_cluster_means.csv',
+    '03_supplementary/confirmatory_run_audit.csv',
+    '03_supplementary/scenario_manifest.csv',
+    '03_supplementary/scene_generation_specification.md',
+    '03_supplementary/paired_scene_outcome_counts.csv',
+    '03_supplementary/confirmatory_experiment_protocol.md',
+    '03_supplementary/confirmatory_protocol_clarification.md',
+    '03_supplementary/five_method_run_audit.csv',
+    '03_supplementary/five_method_summary.csv',
+    '03_supplementary/five_method_paired_bootstrap.csv',
+    '03_supplementary/five_method_absolute_bootstrap.csv',
+    '03_supplementary/five_method_terminal_outcomes.csv',
     '03_supplementary/figures/route_comparison_seven_method.pdf',
     '03_supplementary/shared_lstm_random12_revised.csv',
     '03_bilingual/source_map.json',
@@ -461,6 +496,8 @@ $deliveryRelativePaths = @(
     '03_bilingual/translation_notes.md',
     '04_review/v13_final_submission_audit_20261015.md',
     '04_review/v13_final_submission_audit_20261016_addendum.md',
+    '04_review/v13_final_submission_audit_20261016_forecast_update.md',
+    '04_review/shared_vs_dwaonly_confirmatory_protocol.md',
     '04_review/reference_verification_v13.md',
     '04_review/final_submission_audit.md', '04_review/reference_verification.md',
     '04_review/formula_symbol_audit.md', '04_review/command_template_compliance.md',
@@ -494,6 +531,16 @@ $deliveryRelativePaths = @(
 foreach ($relativePath in $revisionRequiredFiles) {
     Assert-RequiredFile -Path (Join-Path $revisionRoot $relativePath)
 }
+Assert-CsvRecordCount -Path (Join-Path $supplementRoot 'confirmatory_raw.csv') `
+    -ExpectedCount 3000 -Description '500-scene paired contrast raw records'
+Assert-CsvRecordCount -Path (Join-Path $supplementRoot 'confirmatory_method_summary.csv') `
+    -ExpectedCount 2 -Description '500-scene paired contrast method summary'
+Assert-CsvRecordCount -Path (Join-Path $supplementRoot 'confirmatory_run_audit.csv') `
+    -ExpectedCount 3000 -Description '500-scene paired contrast run audit'
+Assert-CsvRecordCount -Path (Join-Path $supplementRoot 'scenario_manifest.csv') `
+    -ExpectedCount 500 -Description 'Historical 500-scene manifest'
+Assert-CsvRecordCount -Path (Join-Path $supplementRoot 'five_method_run_audit.csv') `
+    -ExpectedCount 7500 -Description 'Historical five-controller run audit'
 foreach ($relativePath in $confirmedFigureAllowlist) {
     Assert-RequiredFile -Path (Join-Path $revisionRoot $relativePath)
 }
@@ -661,6 +708,8 @@ try {
     $readme = @(
         '# Reproducibility package', '',
         'This package contains the v13 manuscript, its explicitly allowlisted figures/assets, full bilingual reader, supplementary files, source code, model, and dependency/artifact hash manifests.',
+        'The 500-scene shared-LSTM versus DWA-only-LSTM contrast (3,000 paired episodes) is included with its frozen protocol, raw records, run audit, scene-cluster summaries, and bootstrap output. These episodes are a subset of the historical 7,500-run five-controller benchmark, not an additional cohort; the full five-controller run audit and summaries are included for reconciliation.',
+        'The 500-scene shared-LSTM versus DWA-only-LSTM contrast (3,000 paired episodes) is included with its frozen protocol, raw records, run audit, scene-cluster summaries, and bootstrap output. These episodes are a subset of the historical 7,500-run five-controller benchmark, not an additional cohort; the full five-controller run audit and summaries are included for reconciliation.',
         'Stage 1 contains the 4,320-run development summaries, selection/recovery manifests, and per-run SHA-256 index; individual Stage-1 episode MAT files are intentionally not copied.',
         'Stage 2 trust-scale calibration was not completed or verified. Its protocol/audit documents and separately allowlisted source scripts are retained, but no Stage-2 result tables or MAT files are included.',
         'The finite v13 evaluation comprises 100 scenes x 3 seeds x 7 methods (2,100 episodes). It includes run-level outcomes, analysis records, manifests, the scenario bank, full trajectory archive, and fixed scene-1/seed-1 route CSVs. Individual held-out episode MAT checkpoints and the redundant combined experiment_bundle.mat are not duplicated.',
@@ -745,6 +794,21 @@ try {
             "LSTM_MPC_DWA/$revisionZipPath/03_bilingual/paper.md",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/supplementary_methods.pdf",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/supplementary_methods.tex",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/confirmatory_raw.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/confirmatory_method_summary.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/confirmatory_cluster_bootstrap.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/confirmatory_scene_cluster_means.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/confirmatory_run_audit.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/scenario_manifest.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/scene_generation_specification.md",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/paired_scene_outcome_counts.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/confirmatory_experiment_protocol.md",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/five_method_run_audit.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/five_method_summary.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/five_method_paired_bootstrap.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/five_method_absolute_bootstrap.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/five_method_terminal_outcomes.csv",
+            "LSTM_MPC_DWA/$revisionZipPath/04_review/v13_final_submission_audit_20261016_forecast_update.md",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/legacy/reproducibility_package_v13.zip",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/legacy/reproducibility_package_v13.zip.sha256",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/route_comparison_seven_method.pdf",

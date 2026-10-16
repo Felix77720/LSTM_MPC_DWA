@@ -1,6 +1,6 @@
 # Supplementary methods and retained baseline experiments
 
-This supplement preserves controller details, historical baselines and diagnostic results. It reports three distinct evidence sets: the historical five-controller comparison (7,500 runs; 1-s DWA screening), Stage-1 trust-weight development (4,320 episodes; 3-s configuration), and the current limited exploratory evaluation (2,100 episodes; 100 scenes × three matched seeds × seven methods). These evidence sets are not pooled. Stage-2 calibration remains incomplete: 2,263 of 5,760 planned checkpoint files were preserved, were not analyzed, and are not used for outcome claims. The author chose on 2026-10-16 to add no further scientific runs.
+This supplement preserves controller details, historical baselines and diagnostic results. It reports three distinct evidence sets: the historical five-controller comparison (7,500 runs; 1-s DWA screening), Stage-1 trust-weight development (4,320 episodes; 3-s configuration), and the current limited exploratory evaluation (2,100 episodes; 100 scenes × three matched seeds × seven methods). The 3,000 shared-versus-DWA-only records are the corresponding two arms within the 7,500-run historical benchmark, not an additional cohort. These evidence sets are not pooled. Stage-2 calibration remains incomplete: 2,263 of 5,760 planned checkpoint files were preserved, were not analyzed, and are not used for outcome claims. The author chose on 2026-10-16 to add no further scientific runs.
 
 ## Stage-1 trust-weight development (4,320 episodes)
 

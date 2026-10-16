@@ -32,7 +32,7 @@ Beijing 100029, China\\
 \maketitle
 
 \begin{abstract}
-First, UAVs must avoid moving obstacles in three dimensions, but turns, acceleration and pauses make recent positions unreliable for predicting their motion. Second, we couple model predictive control (MPC) and the dynamic window approach (DWA) with one causal long short-term memory (LSTM) forecast: MPC optimizes the route, while DWA screens reachable actions and constrains MPC's first command. Then, across 100 simulated scenes with three matched seeds per scene, shared LSTM reached the goal without collision in 73.7\% of episodes. This was 16.3 percentage points above a latest-position-hold MPC--DWA reconstruction (simultaneous 95\% CI, 5.1--27.6), but below standalone MPC with constant-velocity (CV) prediction (92.0\%) and standalone DWA-CV (78.0\%). Finally, the results support the shared forecast over the position-hold reconstruction, but not overall superiority across tested controllers.
+First, a UAV must avoid moving obstacles in three dimensions even when turns, acceleration and pauses make their motion difficult to predict. Second, the method couples model predictive control (MPC) and the dynamic window approach (DWA) through one causal long short-term memory (LSTM) forecast. MPC uses it to optimize a route; DWA screens reachable actions and bounds MPC's first command. Then, in a frozen 500-scene comparison with a 1-s DWA screen, shared LSTM achieved collision-free goal arrival in 936/1,500 runs (62.4\%), versus 836/1,500 (55.7\%) when only DWA received LSTM. The paired difference was 6.7 percentage points (95\% scene-cluster confidence interval, 4.2--9.2). In a separate 100-scene exploratory evaluation with a 3-s DWA screen, sharing reached 73.7\%; its contrast with DWA-only LSTM was inconclusive. Standalone MPC-CV reached 92.0\%, the highest rate in that evaluation. Finally, the simulations support a protocol-specific benefit from adding LSTM forecasts to MPC, but do not establish overall superiority.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -142,7 +142,9 @@ In \eqref{eq:dwa}, candidate $b$ passes when its discrete predicted clearance $d
 At each 0.1-s update, the shared arm sends the same causal 3-s LSTM forecast to MPC and DWA. MPC optimizes a 30-step route; DWA screens reachable 30-step actions against that forecast, and its passing actions bound MPC's first command on re-solve. The updated MPC route guides the next DWA ranking, while the screened DWA action is executed. In the one-layer ablations, only the named layer receives LSTM predictions and the other uses CV; independent DWA and MPC use CV, and the no-forecast comparator holds the latest obstacle positions. The complete cycle and fallback are in Supplementary Methods S1.4.
 
 \section{Simulation and Results}
-With the controller roles defined, we compared seven arms in a limited-scope exploratory simulation. A new bank of 100 scenes was evaluated with three matched sampling seeds per scene, giving 300 episodes per arm. All controllers updated every 0.1 s and used 30-step (3-s) MPC and DWA horizons, with a 650-step limit. The arms were standalone DWA-CV, standalone MPC-CV, coupled MPC--DWA-CV, LSTM to MPC only, LSTM to DWA only, shared LSTM, and a project-local latest-position-hold MPC--DWA reconstruction. In each one-layer arm, the other layer used CV; the shared arm sent the same causal LSTM forecast to both layers. The primary outcome was arrival within goal tolerance without contact on the continuous swept path. We averaged seeds within each scene and used 20,000 scene-cluster bootstrap resamples; simultaneous max-|t| intervals covered the six shared-versus-comparator contrasts. This new exploratory comparison is reported separately from the historical five-controller study in the Supplement.
+Under the frozen 1-s DWA/3-s MPC protocol and inherited weights, 500 scenes (three matched seeds each) compared shared LSTM with DWA-only LSTM. DWA received LSTM forecasts in both arms; only shared LSTM also supplied them to MPC. Safe arrival was 936/1,500 (62.4\%) versus 836/1,500 (55.7\%; +6.7 percentage points, 95\% scene-cluster CI, 4.2--9.2). These 3,000 records belong to the 7,500-run five-controller benchmark, not an additional sample; full outcomes and protocol are in Supplementary Methods S4.
+
+Separately, an exploratory seven-arm comparison tested 100 scenes (three matched seeds; 300 runs per arm) using 0.1-s updates, 30-step (3-s) MPC/DWA horizons and a 650-step limit. Arms were standalone DWA-CV and MPC-CV, coupled MPC--DWA-CV, LSTM-to-MPC-only, LSTM-to-DWA-only, shared LSTM and latest-position-hold MPC--DWA. Safe arrival required goal tolerance without swept-path contact. Seeds were averaged within scene; 20,000 scene-cluster bootstrap resamples produced simultaneous max-|t| intervals for six shared-versus-comparator contrasts. The scene bank was distinct from the 500-scene benchmark.
 
 \begin{figure}[!b]
 \centering
@@ -151,7 +153,7 @@ With the controller roles defined, we compared seven arms in a limited-scope exp
 \label{fig:routes}
 \end{figure}
 
-Shared LSTM reached the goal without collision in 221/300 episodes (73.7\%). Its paired advantage over the position-hold reconstruction was 16.3 percentage points (simultaneous 95\% CI, 5.1--27.6). It was lower than standalone MPC-CV by 18.3 points ($-29.6$ to $-7.0$); intervals for standalone DWA-CV, coupled MPC--DWA-CV and both one-layer LSTM arms included zero. Thus, the data do not establish that sharing is best among the tested controllers.
+In the 3-s evaluation, shared LSTM reached safely in 221/300 runs (73.7\%), 16.3 points above position-hold (simultaneous 95\% CI, 5.1--27.6) but 18.3 below MPC-CV ($-29.6$ to $-7.0$). Intervals versus DWA-CV, coupled CV and both one-layer LSTM arms, including DWA-only, included zero. Thus, this evaluation found no measurable advantage over DWA-only LSTM and did not establish an overall best controller.
 
 \begin{table}[H]
 \centering
@@ -177,11 +179,11 @@ MPC--DWA (latest-position hold) & 57.3 & 50 \\
 
 \balance
 \section{Discussion}
-Sharing the forecast improved arrival over the position-hold reconstruction, but its estimate did not exceed the coupled CV arm or either one-layer LSTM arm. Standalone MPC-CV had higher safe-arrival frequency, with its paired interval favoring that baseline; standalone DWA-CV was numerically higher, but its simultaneous interval included zero. These results favor a limited conclusion about one forecast-allocation contrast, not an overall ranking. Because LSTM receives simulator-recorded obstacle velocity and heading whereas CV estimates velocity from positions, this compares configured input pipelines, not predictor architectures alone. Prescribed tracks, point forecasts and no flight tests limit generalization.
+The two protocols indicate a protocol-specific benefit: forecast sharing raised safe arrival in the frozen 1-s screen comparison, but not in the 3-s exploratory comparison; standalone MPC-CV had the highest rate there. Because scene banks, trust weights and horizons also differed, these studies do not isolate the source of that difference. LSTM uses simulator-recorded obstacle velocity and heading, whereas CV estimates velocity from positions, so the contrast concerns configured input pipelines as well as predictors. Prescribed tracks, point forecasts and no flight tests limit generalization.
 \Needspace{7\baselineskip}
 \begin{samepage}
 \section{Conclusion}
-In this exploratory simulation, the shared causal LSTM forecast improved safe arrival over a latest-position-hold MPC--DWA reconstruction, while standalone MPC-CV performed better and the remaining paired comparisons were inconclusive. The results motivate further evaluation of shared prediction in dynamic-obstacle planning but do not establish overall superiority or real-flight performance.
+Shared LSTM improved safe arrival over DWA-only input in the frozen 500-scene, 1-s DWA comparison. The separate 3-s evaluation showed no measurable advantage over DWA-only LSTM; standalone MPC-CV had the highest rate. This is a protocol-specific result, not overall superiority or real-flight evidence.
 \end{samepage}
 
 \bibliographystyle{IEEEtran}
