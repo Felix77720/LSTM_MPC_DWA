@@ -24,7 +24,7 @@ FIGURE_SKILL_SCRIPTS = PROJECT.parent / ".agents" / "skills" / "nature-figure" /
 sys.path.insert(0, str(FIGURE_SKILL_SCRIPTS))
 from audit_panel_alignment import require_matplotlib_panel_alignment
 
-RUN_DIR = REVISION / "qa" / "route_example_scene79_seed2"
+RUN_DIR = REVISION / "qa" / "route_example_scene72_seed2"
 FIGURES = REVISION / "02_source" / "figures"
 QA = REVISION / "qa"
 
@@ -102,9 +102,18 @@ def main() -> None:
     selection_audit = json.loads(selection_path.read_text(encoding="utf-8"))
     if selection_audit.get("eligible_set_count") != 1:
         raise ValueError("The selected route must be the unique eligible matched set.")
-    if selection_audit.get("selected_scene_index") != 79 or \
-            selection_audit.get("sampling_seed") != 2:
-        raise ValueError("The route-selection audit does not match scene 79, seed 2.")
+    try:
+        selected_scene = int(selection_audit["selected_scene_index"])
+        selected_seed = int(selection_audit["sampling_seed"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("The selection audit lacks an integer scene/seed key.") from exc
+    if not 1 <= selected_scene <= 100 or selected_seed not in {1, 2, 3}:
+        raise ValueError("The selected scene/seed is outside the frozen 100-scene design.")
+    expected_dir = f"route_example_scene{selected_scene}_seed{selected_seed}"
+    if run_dir.name != expected_dir:
+        raise ValueError(
+            f"Selection audit expects {expected_dir}, not route directory {run_dir.name}."
+        )
 
     FIGURES.mkdir(parents=True, exist_ok=True)
     QA.mkdir(parents=True, exist_ok=True)
@@ -265,7 +274,8 @@ def main() -> None:
                 linestyle=linestyle, linewidth=2.0, alpha=1.0,
                 marker=".", markersize=2.6, markevery=state_stride, zorder=4)
         ax.scatter(*xyz[-1], marker=endpoint_marker,
-                   s=23 if safe else 25, linewidths=0.9, color=color,
+                   s=34 if safe else 35, linewidths=1.1,
+                   facecolors="none", edgecolors=color,
                    depthshade=False, zorder=8)
         handles.append(plt.Line2D([0], [0], color=color, lw=2.1,
                                   linestyle=linestyle,
@@ -298,15 +308,18 @@ def main() -> None:
 
     ax.scatter(*start, marker="^", s=46, color="#222222", edgecolor="white",
                linewidth=0.8, depthshade=False, zorder=10)
-    ax.scatter(*goal, marker="*", s=82, color="#CC3311", edgecolor="white",
-               linewidth=0.7, depthshade=False, zorder=10)
+    # Keep the goal visible without covering the several terminal markers
+    # that fall within its tolerance region.
+    ax.scatter(*goal, marker="*", s=96, facecolors="none",
+               edgecolors="#CC3311", linewidth=1.0,
+               depthshade=False, zorder=2)
     fig.legend(
         handles=handles, loc="lower center", bbox_to_anchor=(0.5, 0.01),
         ncol=2, frameon=False, fontsize=7.0, handlelength=0.8,
         columnspacing=0.7, labelspacing=0.30, handletextpad=0.45)
     fig.subplots_adjust(left=0.06, right=0.91, top=0.97, bottom=0.29)
 
-    stem = "route_comparison_seven_method"
+    stem = f"route_comparison_seven_method_scene{selected_scene}_seed{selected_seed}"
     alignment_report = require_matplotlib_panel_alignment(
         fig,
         json_out=QA / f"{stem}.alignment.json",
@@ -335,6 +348,11 @@ def main() -> None:
         "eligible_set_count": selection_audit["eligible_set_count"],
         "selected_scene_index": selection_audit["selected_scene_index"],
         "sampling_seed": selection_audit["sampling_seed"],
+        "selection_mode": selection_audit.get("selection_mode", "unspecified"),
+        "route_legibility_summary": selection_audit.get("route_legibility_summary", {}),
+        "alignment_exclusion_reason": (
+            "The figure contains one primary 3D axes; no inset or comparable secondary panel."
+        ),
         "scenario_seed": selection_audit["scenario_seed"],
         "coordinate_frame": "one shared 3D axis",
         "view_elevation_degrees": 27,
@@ -379,7 +397,10 @@ def main() -> None:
         "panel_alignment": alignment_report,
         "methods": endpoint_audit,
     }
-    (QA / "seven_method_route_endpoint_audit.json").write_text(
+    endpoint_audit_path = QA / (
+        f"seven_method_route_endpoint_audit_scene{selected_scene}_seed{selected_seed}.json"
+    )
+    endpoint_audit_path.write_text(
         json.dumps(audit, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"Saved seven-method 3D route figure and endpoint audit from {run_dir}.")
 

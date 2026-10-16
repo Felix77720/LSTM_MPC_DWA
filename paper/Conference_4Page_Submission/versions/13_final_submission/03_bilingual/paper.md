@@ -274,12 +274,12 @@ $$
 <a id="F002"></a>
 ### Figure 2 / 图 2：七方法三维路径对比
 
-![Recorded simulated paths for seven methods in scene 79, sampling seed 2; this post hoc illustrative case was the only matched set in which shared LSTM reached the goal without contact.](../02_source/figures/route_comparison_seven_method.svg)
+![Recorded simulated paths for seven methods in scene 72, sampling seed 2; all six comparator paths span at least five seconds.](../02_source/figures/route_comparison_seven_method_scene72_seed2.svg)
 
 <a id="C002"></a>
-**Original caption:** Recorded simulated 3D paths for all seven methods in scene 79, seed 2. This post hoc case was the only one of 300 matched sets in which shared LSTM arrived without contact and the other methods did not reach the goal. One baseline had swept contact; five stopped without contact. Paths show saved positions only through each true terminal state, with no smoothing, resampling or extension. Triangle/star: start/goal; circles: safe arrivals; squares: no-contact non-arrivals; X: terminal point of a run with swept contact, not the contact location. Colors and line styles identify methods. Obstacle geometry is omitted here; Figure 1 shows the scenario schematic. Axes are in metres; Table 1 reports all outcomes.
+**Original caption:** Recorded simulated 3D paths for seven methods in scene 72, seed 2. This post hoc case was selected from existing records for clearer route comparison. Shared-LSTM MPC–DWA and standalone DWA reached the goal without contact. Standalone MPC reached the goal tolerance but had swept contact; position-hold MPC–DWA also collided before arrival. The three remaining integrated methods stopped without contact. Only saved positions through each terminal state are plotted; no smoothing, interpolation or extension was applied. Triangle/star: start/goal; circles: safe arrivals; squares: no-contact non-arrivals; X: terminal state of a run with swept contact, not its contact location. Colors and line styles identify methods. Figure 1 shows the separate scenario schematic, and Table 1 reports all outcomes. Both shared LSTM and standalone DWA arrived safely in this example, which illustrates route geometry rather than population-level performance.
 
-**中文图注：** 图 2 展示场景 79、采样种子 2 中七种方法的仿真三维轨迹。本例为事后选择；在 300 个匹配组合中，仅此一组由共享 LSTM 无接触到达目标，其他方法均未到达。其中一个基线发生扫掠接触，另外五种无接触停止。轨迹仅绘制已保存的位置，并截止于真实终止状态，不做平滑、重采样或延伸。三角形/星形表示起点/目标；圆圈表示安全到达，方块表示无接触未到达，X 表示发生扫掠接触运行的终止点（并非接触位置）。颜色和线型区分方法。图中不重复绘制障碍物几何，场景示意见图 1。坐标单位为米；总体结果见表 1。
+**中文图注：** 图 2 展示场景 72、采样种子 2 中七种方法的仿真三维轨迹。本例事后从已有记录中选取，以便更清楚地展示各方法路径。共享 LSTM 集成 MPC–DWA 和独立 DWA 均无扫掠接触地到达目标。独立 MPC 到达目标容差范围，但路径发生扫掠接触；最新位置保持 MPC–DWA 在到达前也发生接触。其余三种集成方法无接触停止。图中仅绘制截至各自真实终止状态的已保存位置，不进行平滑、插值或延伸。三角形/星形分别表示起点/目标；圆圈表示无碰撞到达，方块表示无接触但未到达，X 表示发生扫掠接触运行的终止点（并非接触位置）。颜色和线型区分方法。图 1 单独展示场景示意，表 1 汇总全部结果。本例中共享 LSTM 和独立 DWA 均安全到达，因此图示仅用于说明路径几何，不代表总体表现排序。
 
 <a id="S019"></a>
 **Source:** 02_source/main.tex, first results paragraph
@@ -390,6 +390,16 @@ Here $i$ indexes desired speed, pitch rate and yaw rate; $N=30$, $\Delta t=0.1$ 
 **Original caption:** Historical five-controller 3-D routes from scene 404, seed 2 in the 1-s DWA-screening study. The recorded paths end at their logged terminal states: latest-position-hold MPC--DWA (collision, step 224); standalone DWA + LSTM (stopped, step 20); standalone MPC + LSTM (collision, step 262); integrated MPC--DWA with LSTM to DWA only (stopped, step 220); and integrated MPC--DWA with shared LSTM (collision-free arrival, step 253). Only the shared controller arrived in this illustrative case; aggregate historical outcomes are in Table T002 and Supplementary Methods S4.3. Dashed lines show saved obstacle tracks through step 262. Circles mark arrivals, squares mark non-collision stops, and X marks a run with swept contact, not necessarily at the terminal marker.
 
 **中文图注：** 1 s DWA 筛查历史研究中，场景 404、种子 2 的五条控制器三维路径。所有记录路径均截止于日志记录的终止状态：最新位置保持 MPC–DWA（第 224 步碰撞）；独立 DWA+LSTM（第 20 步停止）；独立 MPC+LSTM（第 262 步碰撞）；仅向 DWA 输入 LSTM 的集成 MPC–DWA（第 220 步停止）；以及共享 LSTM 的集成 MPC–DWA（第 253 步无碰撞到达）。在这个示例中只有共享控制器到达目标；历史总体结果见表 T002 和补充方法 S4.3。虚线表示保存至第 262 步的障碍物轨迹。圆形表示到达，方形表示无碰撞停止，X 表示运行中发生过扫掠接触，接触位置不一定在终点标记处。
+
+<a id="F005"></a>
+### Supplementary Figure S5 / 补图 S5：共享 LSTM 独有安全到达示例
+
+![Scene 79, seed 2, the only matched set where shared LSTM safely reached the goal while all other methods had no goal arrival.](../02_source/figures/route_comparison_seven_method.png)
+
+<a id="C005"></a>
+**Original caption:** Unique shared-LSTM safe-arrival example from scene 79, seed 2. Among 300 matched sets, this was the only set in which shared LSTM reached the goal without swept contact and all six other methods had GoalArrival = 0. One comparator had swept contact; five stopped without contact. Paths contain only saved positions through each recorded terminal state, with no smoothing, interpolation or extension. This outcome-selected illustration is descriptive; all population-level comparisons use the complete evaluation.
+
+**中文图注：** 场景 79、采样种子 2 中共享 LSTM 独有的安全到达示例。在 300 个匹配组合中，仅此一组由共享 LSTM 无扫掠接触地到达目标，其他六种方法均未到达。一个比较方法发生扫掠接触，另外五种无接触停止。轨迹仅包含截至真实终止状态的已保存位置，不进行平滑、插值或延伸。本例为事后选择，仅作单场景说明；总体比较仍基于完整评估结果。
 
 ## References / 参考文献
 

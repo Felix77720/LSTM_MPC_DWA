@@ -144,11 +144,24 @@ def _extract_equation(segment: str, block_id: str) -> tuple[str, str]:
 
 def _extract_figure_path(segment: str, block_id: str) -> str:
     number = int(block_id[1:])
-    heading = re.search(
+    main_heading = re.search(
         r"(?m)^###\s+Figure\s+(\d+)\s*/\s*图\s*(\d+)[：:].+$", segment
     )
+    supplementary_heading = re.search(
+        r"(?m)^###\s+Supplementary Figure S(\d+)\s*/\s*补图\s*S(\d+)[：:].+$",
+        segment,
+    )
     images = list(re.finditer(r"!\[[^\]]*\]\(([^)]+)\)", segment))
-    if not heading or (int(heading.group(1)), int(heading.group(2))) != (number, number):
+    main_match = bool(
+        main_heading
+        and (int(main_heading.group(1)), int(main_heading.group(2))) == (number, number)
+    )
+    supplementary_match = bool(
+        supplementary_heading
+        and (int(supplementary_heading.group(1)), int(supplementary_heading.group(2)))
+        == (number, number)
+    )
+    if not (main_match or supplementary_match):
         raise ValueError(f"{block_id} is missing its matching bilingual figure heading.")
     if len(images) != 1:
         raise ValueError(f"{block_id} must contain exactly one linked image.")

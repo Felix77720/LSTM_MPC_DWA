@@ -23,7 +23,7 @@
     "V. Discussion",
     "VI. Conclusion",
     "Supplementary Methods clarification (S1.2–S1.3)",
-    "Historical route illustrations (Supplementary Figures S3–S4)",
+    "Historical and selected route illustrations (Supplementary Figures S3–S5)",
     "References"
   ],
   "block_order": [
@@ -66,6 +66,8 @@
     "C003",
     "F004",
     "C004",
+    "F005",
+    "C005",
     "R001",
     "R002",
     "R003",
@@ -305,9 +307,9 @@
       "type": "figure",
       "order": 26,
       "source_location": "main.tex: figure label fig:routes",
-      "original_text": "Seven recorded 3-D controller paths in preselected matched scene 1, seed 1; paths end at logged terminal states.",
-      "translation": "预先选定的匹配场景 1、种子 1 中七种控制器的实测三维路径，均截止于日志记录的终止状态。",
-      "image_path": "../02_source/figures/route_comparison_seven_method.svg",
+      "original_text": "Recorded simulated 3-D paths for seven methods in scene 72, seed 2; each route ends at its logged terminal state.",
+      "translation": "场景 72、种子 2 中七种方法的仿真三维路径，均截止于日志记录的终止状态。",
+      "image_path": "../02_source/figures/route_comparison_seven_method_scene72_seed2.svg",
       "caption_id": "C002",
       "placed_after": "S018"
     },
@@ -316,8 +318,8 @@
       "type": "caption",
       "order": 27,
       "source_location": "main.tex: caption for fig:routes",
-      "original_text": "Recorded simulated 3D paths for all seven methods in scene 79, seed 2. This post hoc case was the only one of 300 matched sets in which shared LSTM arrived without contact and the other methods did not reach the goal. One baseline had swept contact; five stopped without contact. Paths show saved positions only through each true terminal state, with no smoothing, resampling or extension. Triangle/star: start/goal; circles: safe arrivals; squares: no-contact non-arrivals; X: terminal point of a run with swept contact, not the contact location. Colors and line styles identify methods. Obstacle geometry is omitted here; Figure 1 shows the scenario schematic. Axes are in metres; Table 1 reports all outcomes.",
-      "translation": "图 2 展示场景 79、采样种子 2 中七种方法的仿真三维轨迹。本例为事后选择；在 300 个匹配组合中，仅此一组由共享 LSTM 无接触到达目标，其他方法均未到达。其中一个基线发生扫掠接触，另外五种无接触停止。轨迹仅绘制已保存的位置，并截止于真实终止状态，不做平滑、重采样或延伸。三角形/星形表示起点/目标；圆圈表示安全到达，方块表示无接触未到达，X 表示发生扫掠接触运行的终止点（并非接触位置）。颜色和线型区分方法。图中不重复绘制障碍物几何，场景示意见图 1。坐标单位为米；总体结果见表 1。"
+      "original_text": "Recorded simulated 3D paths for seven methods in scene 72, seed 2. This post hoc case was selected from existing records for clearer route comparison. Shared-LSTM MPC–DWA and standalone DWA reached the goal without contact. Standalone MPC reached the goal tolerance but had swept contact; position-hold MPC–DWA also collided before arrival. The three remaining integrated methods stopped without contact. Only saved positions through each terminal state are plotted; no smoothing, interpolation or extension was applied. Triangle/star: start/goal; circles: safe arrivals; squares: no-contact non-arrivals; X: terminal state of a run with swept contact, not its contact location. Colors and line styles identify methods. Figure 1 shows the separate scenario schematic, and Table 1 reports all outcomes. Both shared LSTM and standalone DWA arrived safely in this example, which illustrates route geometry rather than population-level performance.",
+      "translation": "图 2 展示场景 72、采样种子 2 中七种方法的仿真三维轨迹。本例事后从已有记录中选取，以便更清楚地展示各方法路径。共享 LSTM 集成 MPC–DWA 和独立 DWA 均无扫掠接触地到达目标。独立 MPC 到达目标容差范围，但路径发生扫掠接触；最新位置保持 MPC–DWA 在到达前也发生接触。其余三种集成方法无接触停止。图中仅绘制截至各自真实终止状态的已保存位置，不进行平滑、插值或延伸。三角形/星形分别表示起点/目标；圆圈表示无碰撞到达，方块表示无接触但未到达，X 表示发生扫掠接触运行的终止点（并非接触位置）。颜色和线型区分方法。图 1 单独展示场景示意，表 1 汇总全部结果。本例中共享 LSTM 和独立 DWA 均安全到达，因此图示仅用于说明路径几何，不代表总体表现排序。"
     },
     {
       "id": "S019",
@@ -498,9 +500,28 @@
       "translation": "1 s DWA 筛查历史研究中，场景 404、种子 2 的五条控制器三维路径。所有记录路径均截止于日志记录的终止状态：最新位置保持 MPC–DWA（第 224 步碰撞）；独立 DWA+LSTM（第 20 步停止）；独立 MPC+LSTM（第 262 步碰撞）；仅向 DWA 输入 LSTM 的集成 MPC–DWA（第 220 步停止）；以及共享 LSTM 的集成 MPC–DWA（第 253 步无碰撞到达）。在这个示例中只有共享控制器到达目标；历史总体结果见表 T002 和补充方法 S4.3。虚线表示保存至第 262 步的障碍物轨迹。圆形表示到达，方形表示无碰撞停止，X 表示运行中发生过扫掠接触，接触位置不一定在终点标记处。"
     },
     {
+      "id": "F005",
+      "type": "figure",
+      "order": 40,
+      "source_location": "../03_supplementary/supplementary_methods.tex: figure label fig:unique-shared-route, S8.1",
+      "original_text": "Supplementary Figure S5: unique shared-LSTM safe-arrival example from scene 79, seed 2; paths end at logged terminal states.",
+      "translation": "补充图 S5：场景 79、种子 2 中共享 LSTM 独有的安全到达示例；轨迹截止于日志记录的终止状态。",
+      "image_path": "../02_source/figures/route_comparison_seven_method.png",
+      "caption_id": "C005",
+      "placed_after": "C004"
+    },
+    {
+      "id": "C005",
+      "type": "caption",
+      "order": 41,
+      "source_location": "../03_supplementary/supplementary_methods.tex: caption for fig:unique-shared-route",
+      "original_text": "Unique shared-LSTM safe-arrival example from scene 79, seed 2. Among 300 matched sets, this was the only set in which shared LSTM reached the goal without swept contact and all six other methods had GoalArrival = 0. One comparator had swept contact; five stopped without contact. Paths contain only saved positions through each recorded terminal state, with no smoothing, interpolation or extension. This outcome-selected illustration is descriptive; all population-level comparisons use the complete evaluation.",
+      "translation": "场景 79、采样种子 2 中共享 LSTM 独有的安全到达示例。在 300 个匹配组合中，仅此一组由共享 LSTM 无扫掠接触地到达目标，其他六种方法均未到达。一个比较方法发生扫掠接触，另外五种无接触停止。轨迹仅包含截至真实终止状态的已保存位置，不进行平滑、插值或延伸。本例为事后选择，仅作单场景说明；总体比较仍基于完整评估结果。"
+    },
+    {
       "id": "R001",
       "type": "reference",
-      "order": 40,
+      "order": 42,
       "source_location": "main.bbl: bibitem mayne2000",
       "original_text": "D. Q. Mayne, J. B. Rawlings, C. V. Rao, and P. O. M. Scokaert, “Constrained model predictive control: Stability and optimality,” Automatica, 36(6), 789–814, 2000. doi:10.1016/S0005-1098(99)00214-9.",
       "translation": "正式文献信息保留原文。"
@@ -508,7 +529,7 @@
     {
       "id": "R002",
       "type": "reference",
-      "order": 41,
+      "order": 43,
       "source_location": "main.bbl: bibitem fox1997",
       "original_text": "D. Fox, W. Burgard, and S. Thrun, “The dynamic window approach to collision avoidance,” IEEE Robotics & Automation Magazine, 4(1), 23–33, 1997. doi:10.1109/100.580977.",
       "translation": "正式文献信息保留原文。"
@@ -516,7 +537,7 @@
     {
       "id": "R003",
       "type": "reference",
-      "order": 42,
+      "order": 44,
       "source_location": "main.bbl: bibitem olcay2024",
       "original_text": "E. Olcay, H. Meß, and G. Elger, “Dynamic obstacle avoidance for UAVs using MPC and GP-based motion forecast,” in 2024 European Control Conference (ECC), pp. 1024–1031, 2024. doi:10.23919/ECC64448.2024.10591083.",
       "translation": "正式文献信息保留原文。"
@@ -524,7 +545,7 @@
     {
       "id": "R004",
       "type": "reference",
-      "order": 43,
+      "order": 45,
       "source_location": "main.bbl: bibitem xu2025",
       "original_text": "Z. Xu, H. Jin, X. Han, H. Shen, and K. Shimada, “Intent prediction-driven model predictive control for UAV planning and navigation in dynamic environments,” IEEE Robotics and Automation Letters, 10(5), 4946–4953, 2025. doi:10.1109/LRA.2025.3555937.",
       "translation": "正式文献信息保留原文。"
@@ -532,7 +553,7 @@
     {
       "id": "R005",
       "type": "reference",
-      "order": 44,
+      "order": 46,
       "source_location": "main.bbl: bibitem chang2026mpcdwa",
       "original_text": "X. Chang, J. Wang, S. Dang, Y. Pei, and F. Zhu, “Research on UAV path planning algorithm based on MPC–DWA strategy,” Electronics Optics & Control (online first, 26 March 2026; bilingual Chinese article). CNKI record: https://link.cnki.net/urlid/41.1227.TN.20260325.1153.006.",
       "translation": "原刊直接刊载该英文题名，原文为中文；文献注明于2026年3月26日网络首发。"
@@ -540,7 +561,7 @@
     {
       "id": "R006",
       "type": "reference",
-      "order": 45,
+      "order": 47,
       "source_location": "main.bbl: bibitem hochreiter1997",
       "original_text": "S. Hochreiter and J. Schmidhuber, “Long short-term memory,” Neural Computation, 9(8), 1735–1780, 1997. doi:10.1162/NECO.1997.9.8.1735.",
       "translation": "正式文献信息保留原文。"
@@ -558,9 +579,9 @@
     {
       "id": "F002",
       "caption_id": "C002",
-      "image_path": "../02_source/figures/route_comparison_seven_method.svg",
+      "image_path": "../02_source/figures/route_comparison_seven_method_scene72_seed2.svg",
       "placement_hint": "after S018",
-      "alt_text": "Seven recorded 3-D controller paths in preselected matched scene 1, seed 1; each ends at its logged terminal state."
+      "alt_text": "Seven recorded 3-D controller paths in post hoc scene 72, sampling seed 2; each ends at its logged terminal state. Shared LSTM and standalone DWA arrive safely, while the other five do not."
     },
     {
       "id": "F003",
@@ -575,6 +596,13 @@
       "image_path": "assets/route_comparison.svg",
       "placement_hint": "after C003",
       "alt_text": "Supplementary Figure S4: historical five-controller 3-D routes from scene 404, seed 2; each route ends at its logged terminal state."
+    },
+    {
+      "id": "F005",
+      "caption_id": "C005",
+      "image_path": "../02_source/figures/route_comparison_seven_method.png",
+      "placement_hint": "after C004",
+      "alt_text": "Supplementary Figure S5: scene 79, seed 2, the only matched set where shared LSTM reached safely and the other six methods did not reach the goal."
     }
   ],
   "equations": [
