@@ -146,10 +146,12 @@ Under the frozen 1-s DWA/3-s MPC protocol and inherited weights, 500 scenes (thr
 
 Separately, an exploratory seven-arm comparison tested 100 scenes (three matched seeds; 300 runs per arm) using 0.1-s updates, 30-step (3-s) MPC/DWA horizons and a 650-step limit. Arms were standalone DWA-CV and MPC-CV, coupled MPC--DWA-CV, LSTM-to-MPC-only, LSTM-to-DWA-only, shared LSTM and latest-position-hold MPC--DWA. Safe arrival required goal tolerance without swept-path contact. Seeds were averaged within scene; 20,000 scene-cluster bootstrap resamples produced simultaneous max-|t| intervals for six shared-versus-comparator contrasts. The scene bank was distinct from the 500-scene benchmark.
 
+A matched route from the five-controller benchmark (scene 404, seed 2) is shown in Fig.~\ref{fig:routes}. Shared LSTM arrived safely, whereas the other four arms did not; aggregate rates use all matched runs.
+
 \begin{figure}[!b]
 \centering
-\includegraphics[width=\columnwidth]{route_comparison_seven_method_scene72_seed2.pdf}
-\caption{Recorded simulated 3D paths for seven methods in scene 72, seed 2. This post hoc case was selected from existing records for clearer route comparison. Shared-LSTM MPC--DWA and standalone DWA reached the goal without contact. Standalone MPC reached the goal tolerance but had swept contact; position-hold MPC--DWA also collided before arrival. The three remaining integrated methods stopped without contact. Only saved positions through each terminal state are plotted; no smoothing, interpolation or extension was applied. Triangle/star: start/goal; circles: safe arrivals; squares: no-contact non-arrivals; X: terminal state of a run with swept contact, not its contact location. Colors, line styles and route-point marker shapes identify methods. Fig.~1 shows the separate scenario schematic, and Table~\ref{tab:main_results} reports all outcomes. Both shared LSTM and standalone DWA arrived safely in this example, which illustrates route geometry rather than population-level performance.}
+\includegraphics[width=\columnwidth]{route_comparison_five_method_scene404_seed2.pdf}
+\caption{Recorded simulated 3D paths from the five-controller, 500-scene benchmark (scene 404, sampling seed 2). Shared LSTM achieved collision-free goal arrival. The reconstructed MPC--DWA baseline and standalone MPC + LSTM had swept contact; standalone DWA + LSTM and MPC--DWA with LSTM supplied only to DWA stopped before arrival. Each curve uses saved positions through its logged terminal state, with no smoothing, interpolation or extension. Triangle/star: start/goal; circle: safe arrival; square: no-contact stop; X: a run with swept contact, not its contact location; dashed lines: obstacle tracks. The outcome-selected matched case illustrates route geometry; aggregate results use all runs.}
 \label{fig:routes}
 \end{figure}
 

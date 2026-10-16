@@ -1,0 +1,6 @@
+MethodKey,Method,SweptSuccess,SweptCollision,Steps,TerminalX_m,TerminalY_m,TerminalZ_m
+static,Reconstructed MPC-DWA (latest-position hold),0,1,224,7.24520746356373,6.90611720885767,3.50177854218407
+standalone_dwa_lstm,Standalone DWA + LSTM,0,0,20,3.4505598950526,2.6630541077894,1.67963581996642
+standalone_mpc_lstm,Standalone MPC + LSTM,0,1,262,17.6611090093413,17.6675555990163,7.86671800881261
+lstm_dwa_only,Integrated: LSTM to DWA only,0,0,220,6.5672149035608,7.41435387269559,3.46660084671064
+lstm,Integrated: Shared LSTM,1,0,253,17.6218529691469,17.8464794913615,7.85335475827112
