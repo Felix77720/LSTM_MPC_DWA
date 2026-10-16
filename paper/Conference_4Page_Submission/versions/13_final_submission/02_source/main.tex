@@ -90,7 +90,7 @@ In the shared-LSTM arm, one time-aligned forecast is supplied to both planners s
 P_{\mathbf a}&=I_3-\frac{\mathbf a\mathbf a^{\mathsf T}}{\eta_{\mathbf a}},\\
 \mathbf e_{t+k|t}^{\perp}&=P_{\mathbf a}(\mathbf p_{t+k|t}-\mathbf s),\\
 J_r&=\sum_{k=1}^{30}\|\mathbf e_{t+k|t}^{\perp}\|_2^2,\\
-\min_{\mathbf u_1,\ldots,\mathbf u_{30}}\ J_{\rm MPC}={}&\sum_{k=0}^{29}w_p\|\mathbf p_{t+k|t}-\mathbf g\|_2^2\\
+\min_{\mathbf u_{\scriptstyle 1},\ldots,\mathbf u_{\scriptstyle 30}}\ J_{\rm MPC}={}&\sum_{k=0}^{29}w_p\|\mathbf p_{t+k|t}-\mathbf g\|_2^2\\
 &+\sum_{k=1}^{30}w_u\|\mathbf u_k\|_2^2\\
 &+w_f\|\mathbf p_{t+30|t}-\mathbf g\|_2^2+w_rJ_r\\
 &+w_{\Delta u}\sum_{k=2}^{30}\|\mathbf u_k-\mathbf u_{k-1}\|_2^2\\
@@ -129,9 +129,9 @@ DWA rejects candidate $b$ unless its rollout meets the clearance, flight-corrido
 &\hspace{1em}(v_{\rm end}^{(b)})^2\leq2a_{\max}d_{\min}^{(b)}\},\\
 S_b&=w_p^{\mathrm{DWA}}S_{p,b}+w_h^{\mathrm{DWA}}S_{h,b}\\
 &+w_v^{\mathrm{DWA}}S_{v,b}+w_o^{\mathrm{DWA}}S_{o,b}+w_zS_{z,b},\\
-b^*&=\arg\max_{b\in\mathcal A_t}S_b,\\
-u_{i,t}^{-}&=\max(u_i^{\min},\min_{b\in\mathcal A_t}u_i^{(b)}-\delta),\\
-u_{i,t}^{+}&=\min(u_i^{\max},\max_{b\in\mathcal A_t}u_i^{(b)}+\delta),\\
+b^*&=\arg\max_{b\in\mathcal A_{\scriptstyle t}}S_b,\\
+ u_{i,t}^{-}&=\max(u_i^{\min},\min_{b\in\mathcal A_{\scriptstyle t}}u_i^{(b)}-\delta),\\
+ u_{i,t}^{+}&=\min(u_i^{\max},\max_{b\in\mathcal A_{\scriptstyle t}}u_i^{(b)}+\delta),\\
 \mathcal U_t&=\prod_{i=1}^{3}[u_{i,t}^{-},u_{i,t}^{+}].
 \end{aligned}
 \label{eq:dwa}
@@ -149,7 +149,7 @@ Separately, an exploratory seven-arm comparison tested 100 scenes (three matched
 \begin{figure}[!b]
 \centering
 \includegraphics[width=\columnwidth]{route_comparison_seven_method.pdf}
-\caption{Recorded three-dimensional paths for all seven arms in the preselected matched scene (scene 1, seed 1). Each path ends at its recorded terminal state; none is smoothed, resampled or extended. The triangle and star mark the shared start and goal; circles mark collision-free goal arrivals, squares mark no-contact non-arrivals, and X marks a terminal state from a run with swept contact, not necessarily the contact location. Colors and line styles identify the arms. Axes are in metres; numeric ticks and obstacle tracks are omitted from this route overlay, while prescribed obstacle motion is shown in Fig.~\ref{fig:scenario}. All seven arms reached the goal without contact in this example. It illustrates route geometry only; Table~\ref{tab:main_results} reports aggregate outcomes.}
+\caption{Recorded simulated 3D paths for all seven methods in scene 79, seed 2. This post hoc case was the only one of 300 matched sets in which shared LSTM arrived without contact and the other methods did not reach the goal. One baseline had swept contact; five stopped without contact. Paths show saved positions only through each true terminal state, with no smoothing, resampling or extension. Triangle/star: start/goal; circles: safe arrivals; squares: no-contact non-arrivals; X: terminal point of a run with swept contact, not the contact location. Colors and line styles identify methods. Obstacle geometry is omitted here; Fig.~1 shows the scenario schematic. Axes are in metres; Table~\ref{tab:main_results} reports all outcomes.}
 \label{fig:routes}
 \end{figure}
 

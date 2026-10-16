@@ -391,9 +391,22 @@ $revisionRequiredFiles = @(
     '04_review\v13_final_submission_audit_20261015.md',
     '04_review\v13_final_submission_audit_20261016_addendum.md',
     '04_review\v13_final_submission_audit_20261016_forecast_update.md',
+    '04_review\v13_final_submission_audit_20261016_final.md',
+    '04_review\v13_route_illustration_amendment_20261016.md',
     '04_review\shared_vs_dwaonly_confirmatory_protocol.md',
     '04_review\reference_verification_v13.md',
     'qa\seven_method_route_endpoint_audit.json',
+    'qa\seven_method_figure_collision_audit.json',
+    'qa\route_example_scene79_seed2\selection_audit.json',
+    'qa\route_example_scene79_seed2\start_goal.csv',
+    'qa\route_example_scene79_seed2\route_status.csv',
+    'qa\route_example_scene79_seed2\trajectory_standalone_dwa_cv.csv',
+    'qa\route_example_scene79_seed2\trajectory_standalone_mpc_cv.csv',
+    'qa\route_example_scene79_seed2\trajectory_cv.csv',
+    'qa\route_example_scene79_seed2\trajectory_lstm_mpc_cv_dwa.csv',
+    'qa\route_example_scene79_seed2\trajectory_cv_mpc_lstm_dwa.csv',
+    'qa\route_example_scene79_seed2\trajectory_lstm.csv',
+    'qa\route_example_scene79_seed2\trajectory_static.csv',
     'qa\historical_scene2_route_endpoint_audit.json',
     'qa\confirmatory_route_figure_data\obstacle_tracks.csv',
     'qa\confirmatory_route_figure_data\route_cv.csv',
@@ -419,7 +432,8 @@ $scriptAllowlist = @(
     'run_v13_trust_scale_parameter_calibration.m',
     'run_v12a_seven_method_heldout.m', 'simulate_dynamic_v12a_timed.m',
     'simulate_standalone_controller_v12a_timed.m',
-    'sha256_sidecar_matches.m', 'sync_bilingual_source_map.py'
+    'sha256_sidecar_matches.m', 'sync_bilingual_source_map.py',
+    'export_v13_route_example_from_heldout.m'
 )
 $projectSourceAllowlist = @(
     'computeTrust_dynamic.m', 'config_LSTM.m', 'features_from_traj.m',
@@ -472,6 +486,22 @@ $deliveryRelativePaths = @(
     '02_source/figures/route_comparison_seven_method.svg',
     '02_source/figures/route_comparison_seven_method.png',
     '02_source/figures/route_comparison_seven_method.tiff',
+    'qa/seven_method_route_endpoint_audit.json',
+    'qa/seven_method_figure_collision_audit.json',
+    'scripts/generate_seven_method_route_figure.py',
+    'scripts/compile_final.ps1',
+    'scripts/build_reproducibility_package.ps1',
+    'scripts/export_v13_route_example_from_heldout.m',
+    'qa/route_example_scene79_seed2/selection_audit.json',
+    'qa/route_example_scene79_seed2/start_goal.csv',
+    'qa/route_example_scene79_seed2/route_status.csv',
+    'qa/route_example_scene79_seed2/trajectory_standalone_dwa_cv.csv',
+    'qa/route_example_scene79_seed2/trajectory_standalone_mpc_cv.csv',
+    'qa/route_example_scene79_seed2/trajectory_cv.csv',
+    'qa/route_example_scene79_seed2/trajectory_lstm_mpc_cv_dwa.csv',
+    'qa/route_example_scene79_seed2/trajectory_cv_mpc_lstm_dwa.csv',
+    'qa/route_example_scene79_seed2/trajectory_lstm.csv',
+    'qa/route_example_scene79_seed2/trajectory_static.csv',
     '03_supplementary/README.md', '03_supplementary/supplementary_methods.pdf',
     '03_supplementary/supplementary_methods.tex',
     '03_supplementary/confirmatory_raw.csv',
@@ -497,6 +527,8 @@ $deliveryRelativePaths = @(
     '04_review/v13_final_submission_audit_20261015.md',
     '04_review/v13_final_submission_audit_20261016_addendum.md',
     '04_review/v13_final_submission_audit_20261016_forecast_update.md',
+    '04_review/v13_final_submission_audit_20261016_final.md',
+    '04_review/v13_route_illustration_amendment_20261016.md',
     '04_review/shared_vs_dwaonly_confirmatory_protocol.md',
     '04_review/reference_verification_v13.md',
     '04_review/final_submission_audit.md', '04_review/reference_verification.md',
@@ -511,6 +543,16 @@ $deliveryRelativePaths = @(
     '04_review/seven_method_heldout_protocol_v13.md',
     '04_review/seven_method_100scene_exploratory_amendment_20261015.md',
     'qa/seven_method_route_endpoint_audit.json',
+    'qa/route_example_scene79_seed2/selection_audit.json',
+    'qa/route_example_scene79_seed2/start_goal.csv',
+    'qa/route_example_scene79_seed2/route_status.csv',
+    'qa/route_example_scene79_seed2/trajectory_standalone_dwa_cv.csv',
+    'qa/route_example_scene79_seed2/trajectory_standalone_mpc_cv.csv',
+    'qa/route_example_scene79_seed2/trajectory_cv.csv',
+    'qa/route_example_scene79_seed2/trajectory_lstm_mpc_cv_dwa.csv',
+    'qa/route_example_scene79_seed2/trajectory_cv_mpc_lstm_dwa.csv',
+    'qa/route_example_scene79_seed2/trajectory_lstm.csv',
+    'qa/route_example_scene79_seed2/trajectory_static.csv',
     'qa/historical_scene2_route_endpoint_audit.json',
     'qa/confirmatory_route_figure_data/obstacle_tracks.csv',
     'qa/confirmatory_route_figure_data/route_cv.csv',
@@ -712,7 +754,7 @@ try {
         'The 500-scene shared-LSTM versus DWA-only-LSTM contrast (3,000 paired episodes) is included with its frozen protocol, raw records, run audit, scene-cluster summaries, and bootstrap output. These episodes are a subset of the historical 7,500-run five-controller benchmark, not an additional cohort; the full five-controller run audit and summaries are included for reconciliation.',
         'Stage 1 contains the 4,320-run development summaries, selection/recovery manifests, and per-run SHA-256 index; individual Stage-1 episode MAT files are intentionally not copied.',
         'Stage 2 trust-scale calibration was not completed or verified. Its protocol/audit documents and separately allowlisted source scripts are retained, but no Stage-2 result tables or MAT files are included.',
-        'The finite v13 evaluation comprises 100 scenes x 3 seeds x 7 methods (2,100 episodes). It includes run-level outcomes, analysis records, manifests, the scenario bank, full trajectory archive, and fixed scene-1/seed-1 route CSVs. Individual held-out episode MAT checkpoints and the redundant combined experiment_bundle.mat are not duplicated.',
+        'The finite v13 evaluation comprises 100 scenes x 3 seeds x 7 methods (2,100 episodes). It includes run-level outcomes, analysis records, manifests, the scenario bank, full trajectory archive, and the originally fixed scene-1/seed-1 route CSVs. The main-paper route illustration is a separately documented post hoc scene-79/seed-2 selection; its exact saved paths, selection audit, endpoint audit and record-only exporter are included. Individual held-out episode MAT checkpoints and the redundant combined experiment_bundle.mat are not duplicated.',
         'The historical four-controller scene-2 route example includes the exact saved route CSVs, endpoint audit, and the six small source MAT records plus scenario/run audit needed by scripts/export_confirmatory_route_data.m. These files are exported from existing records; rebuilding them does not run simulations.',
         'Large historical experiment bundles and the combined v13 MAT bundle remain unchanged at their original results paths; OMITTED_ARTIFACTS_SHA256.csv records their source paths, sizes and hashes. Compact historical evidence is retained in the supplement and nested legacy reproducibility archive.',
         'CasADi 3.8.0 Windows/MATLAB binaries are not duplicated. The expected local path and license note are preserved, and CASADI_3.8.0_SHA256.csv inventories the original dependency files and hashes. A compatible CasADi distribution must be provided separately to rerun optimizations.',
@@ -776,6 +818,13 @@ try {
             'LSTM_MPC_DWA/SHA256SUMS.txt', 'LSTM_MPC_DWA/PACKAGE_CONTENTS.txt',
             'LSTM_MPC_DWA/OMITTED_ARTIFACTS_SHA256.csv',
             "LSTM_MPC_DWA/$revisionZipPath/qa/historical_scene2_route_endpoint_audit.json",
+            "LSTM_MPC_DWA/$revisionZipPath/qa/seven_method_route_endpoint_audit.json",
+            "LSTM_MPC_DWA/$revisionZipPath/qa/seven_method_figure_collision_audit.json",
+            "LSTM_MPC_DWA/$revisionZipPath/scripts/export_v13_route_example_from_heldout.m",
+            "LSTM_MPC_DWA/$revisionZipPath/scripts/generate_seven_method_route_figure.py",
+            "LSTM_MPC_DWA/$revisionZipPath/scripts/compile_final.ps1",
+            "LSTM_MPC_DWA/$revisionZipPath/scripts/build_reproducibility_package.ps1",
+            "LSTM_MPC_DWA/$revisionZipPath/04_review/v13_route_illustration_amendment_20261016.md",
             "LSTM_MPC_DWA/$revisionZipPath/qa/confirmatory_route_figure_data/obstacle_tracks.csv",
             "LSTM_MPC_DWA/$revisionZipPath/qa/confirmatory_route_figure_data/route_cv.csv",
             "LSTM_MPC_DWA/$revisionZipPath/qa/confirmatory_route_figure_data/route_kalman.csv",
@@ -809,6 +858,7 @@ try {
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/five_method_absolute_bootstrap.csv",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/five_method_terminal_outcomes.csv",
             "LSTM_MPC_DWA/$revisionZipPath/04_review/v13_final_submission_audit_20261016_forecast_update.md",
+            "LSTM_MPC_DWA/$revisionZipPath/04_review/v13_final_submission_audit_20261016_final.md",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/legacy/reproducibility_package_v13.zip",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/legacy/reproducibility_package_v13.zip.sha256",
             "LSTM_MPC_DWA/$revisionZipPath/03_supplementary/figures/route_comparison_seven_method.pdf",
@@ -832,6 +882,14 @@ try {
         )
         foreach ($relativePath in $referenceBundleAllowlist) {
             $requiredEntries += 'LSTM_MPC_DWA/results/' + $relativePath.Replace('\', '/')
+        }
+        foreach ($name in @(
+            'selection_audit.json', 'start_goal.csv', 'route_status.csv',
+            'trajectory_standalone_dwa_cv.csv', 'trajectory_standalone_mpc_cv.csv',
+            'trajectory_cv.csv', 'trajectory_lstm_mpc_cv_dwa.csv',
+            'trajectory_cv_mpc_lstm_dwa.csv', 'trajectory_lstm.csv', 'trajectory_static.csv'
+        )) {
+            $requiredEntries += "LSTM_MPC_DWA/$revisionZipPath/qa/route_example_scene79_seed2/$name"
         }
         foreach ($relativePath in ($stage1SourceFiles + $presentOptionalReferenceBundles)) {
             $requiredEntries += 'LSTM_MPC_DWA/results/' + $relativePath.Replace('\', '/')
@@ -864,13 +922,16 @@ try {
     finally { $zip.Dispose() }
 
     $timestamp = (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + [guid]::NewGuid().ToString('N')
+    $previousZipPath = Join-Path $supplementRoot "reproducibility_package_previous_$timestamp.zip"
+    $previousZipHashPath = Join-Path $supplementRoot "reproducibility_package_previous_$timestamp.zip.sha256"
+    $previousDeliveryManifestPath = Join-Path $supplementRoot "final_delivery_SHA256_previous_$timestamp.txt"
     Assert-Unlocked -LockPath (Join-Path $stage1Root '.pooled_development_lock') -StageName 'Stage 1 pooled-weight calibration'
     Assert-Unlocked -LockPath (Join-Path $heldoutRoot '.heldout_runner_lock') -StageName '100-scene seven-method evaluation'
     if (Test-Path -LiteralPath $zipPath) {
-        Move-Item -LiteralPath $zipPath -Destination (Join-Path $supplementRoot "reproducibility_package_previous_$timestamp.zip")
+        Move-Item -LiteralPath $zipPath -Destination $previousZipPath
     }
     if (Test-Path -LiteralPath $zipHashPath) {
-        Move-Item -LiteralPath $zipHashPath -Destination (Join-Path $supplementRoot "reproducibility_package_previous_$timestamp.zip.sha256")
+        Move-Item -LiteralPath $zipHashPath -Destination $previousZipHashPath
     }
     Move-Item -LiteralPath $pendingZip -Destination $zipPath
     $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -896,9 +957,25 @@ try {
     [System.IO.File]::WriteAllLines($pendingDeliveryManifestPath, `
         [string[]]$deliveryManifestLines, [System.Text.Encoding]::ASCII)
     if (Test-Path -LiteralPath $deliveryManifestPath) {
-        Move-Item -LiteralPath $deliveryManifestPath -Destination (Join-Path $supplementRoot "final_delivery_SHA256_previous_$timestamp.txt")
+        Move-Item -LiteralPath $deliveryManifestPath -Destination $previousDeliveryManifestPath
     }
     Move-Item -LiteralPath $pendingDeliveryManifestPath -Destination $deliveryManifestPath
+
+    $finalZipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $finalZipSidecar = (Get-Content -LiteralPath $zipHashPath -Raw).Trim()
+    if ($finalZipHash -ne $zipHash -or
+        -not $finalZipSidecar.StartsWith($zipHash, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Final archive or its SHA-256 sidecar failed the post-move verification.'
+    }
+    # Retain rollback files until the replacement archive and external manifest
+    # have both been written and checked; then remove only this run's generated
+    # duplicate files to avoid accumulating large archives on the system drive.
+    foreach ($generatedBackup in @($previousZipPath, $previousZipHashPath, $previousDeliveryManifestPath)) {
+        if (Test-Path -LiteralPath $generatedBackup -PathType Leaf) {
+            Assert-PathWithin -Path $generatedBackup -Root $supplementRoot -Purpose 'verified generated-backup cleanup'
+            Remove-Item -LiteralPath $generatedBackup -Force
+        }
+    }
 
     Write-Output "Created v13 reproducibility package: $zipPath"
     Write-Output "Package SHA-256: $zipHash"

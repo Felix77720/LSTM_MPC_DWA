@@ -274,12 +274,12 @@ $$
 <a id="F002"></a>
 ### Figure 2 / 图 2：七方法三维路径对比
 
-![Seven recorded 3-D controller paths in the preselected matched scene 1, seed 1; paths end at logged terminal states.](../02_source/figures/route_comparison_seven_method.svg)
+![Recorded simulated paths for seven methods in scene 79, sampling seed 2; this post hoc illustrative case was the only matched set in which shared LSTM reached the goal without contact.](../02_source/figures/route_comparison_seven_method.svg)
 
 <a id="C002"></a>
-**Original caption:** Recorded three-dimensional paths for all seven arms in the preselected matched scene (scene 1, seed 1). Each path ends at its recorded terminal state; none is smoothed, resampled or extended. The triangle and star mark the shared start and goal; circles mark collision-free goal arrivals, squares mark no-contact non-arrivals, and X marks a terminal state from a run with swept contact, not necessarily the contact location. Colors and line styles identify the arms. Axes are in metres; numeric ticks and obstacle tracks are omitted from this route overlay, while prescribed obstacle motion is shown in Fig. 1. All seven arms reached the goal without contact in this example. It illustrates route geometry only; Table 1 reports aggregate outcomes.
+**Original caption:** Recorded simulated 3D paths for all seven methods in scene 79, seed 2. This post hoc case was the only one of 300 matched sets in which shared LSTM arrived without contact and the other methods did not reach the goal. One baseline had swept contact; five stopped without contact. Paths show saved positions only through each true terminal state, with no smoothing, resampling or extension. Triangle/star: start/goal; circles: safe arrivals; squares: no-contact non-arrivals; X: terminal point of a run with swept contact, not the contact location. Colors and line styles identify methods. Obstacle geometry is omitted here; Figure 1 shows the scenario schematic. Axes are in metres; Table 1 reports all outcomes.
 
-**中文图注：** 图 2 展示预先选定的匹配场景（场景 1、种子 1）中七种方法记录的三维轨迹。每条轨迹均在其实际记录的终止状态处截止，未经过平滑、重采样或延伸。三角形和星形分别标出共同起点和目标点；圆圈表示无碰撞到达目标，方块表示无接触但未到达目标，X 表示运行中发生扫掠接触的方法的终止点（不一定是接触位置）。颜色和线型区分各方法。坐标轴单位为米；该轨迹图省略数值刻度和障碍物轨迹，障碍物预设运动见图 1。本示例中七种方法均无碰撞到达目标，但该图仅用于说明轨迹几何形态；总体结果见表 1。
+**中文图注：** 图 2 展示场景 79、采样种子 2 中七种方法的仿真三维轨迹。本例为事后选择；在 300 个匹配组合中，仅此一组由共享 LSTM 无接触到达目标，其他方法均未到达。其中一个基线发生扫掠接触，另外五种无接触停止。轨迹仅绘制已保存的位置，并截止于真实终止状态，不做平滑、重采样或延伸。三角形/星形表示起点/目标；圆圈表示安全到达，方块表示无接触未到达，X 表示发生扫掠接触运行的终止点（并非接触位置）。颜色和线型区分方法。图中不重复绘制障碍物几何，场景示意见图 1。坐标单位为米；总体结果见表 1。
 
 <a id="S019"></a>
 **Source:** 02_source/main.tex, first results paragraph
