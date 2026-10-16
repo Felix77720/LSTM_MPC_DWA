@@ -37,6 +37,15 @@ METHODS = [
     ("lstm", "MPC-DWA (shared LSTM)", "#332288", (0, (3, 1, 1, 1))),
     ("static", "MPC-DWA: position hold", "#6F7780", (0, (1, 1))),
 ]
+METHOD_MARKERS = {
+    "standalone_dwa_cv": "o",
+    "standalone_mpc_cv": "s",
+    "cv": "^",
+    "lstm_mpc_cv_dwa": "D",
+    "cv_mpc_lstm_dwa": "v",
+    "lstm": "P",
+    "static": "X",
+}
 STATUS_METHOD_LABELS = {
     "standalone_dwa_cv": "Standalone DWA (CV)",
     "standalone_mpc_cv": "Standalone MPC (CV)",
@@ -267,18 +276,25 @@ def main() -> None:
                 f"tolerance={goal_tolerance:.9g} m, collision={collision}."
             )
 
-        # Sparse dots mark actual saved states, making short terminal paths
+        # Sparse method-specific markers identify actual saved states, making short terminal paths
         # easier to follow without interpolating or modifying their geometry.
+        # A unique marker shape per method also distinguishes overlapping
+        # routes in grayscale and where colored traces lie close together.
         state_stride = max(1, int(np.ceil((len(xyz) - 1) / 12)))
+        route_marker = METHOD_MARKERS[key]
         ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], color=color,
                 linestyle=linestyle, linewidth=2.0, alpha=1.0,
-                marker=".", markersize=2.6, markevery=state_stride, zorder=4)
+                marker=route_marker, markersize=3.0,
+                markerfacecolor="white", markeredgecolor=color,
+                markeredgewidth=0.75, markevery=state_stride, zorder=4)
         ax.scatter(*xyz[-1], marker=endpoint_marker,
                    s=34 if safe else 35, linewidths=1.1,
                    facecolors="none", edgecolors=color,
                    depthshade=False, zorder=8)
         handles.append(plt.Line2D([0], [0], color=color, lw=2.1,
-                                  linestyle=linestyle,
+                                  linestyle=linestyle, marker=route_marker,
+                                  markersize=3.0, markerfacecolor="white",
+                                  markeredgecolor=color, markeredgewidth=0.75,
                                   label=label))
         endpoint_audit.append({
             "method_key": key,
@@ -367,7 +383,7 @@ def main() -> None:
         "trajectory_extension_after_terminal": False,
         "plotted_route_data": "all and only recorded XYZ states from trajectory CSVs",
         "route_distinguishability": (
-            "method-specific color and line style, stronger strokes, and sparse dots "
+            "method-specific color, line style and marker shape, with sparse markers "
             "at actual recorded states; start marker is neutral to avoid confusion "
             "with the green coupled-CV route"
         ),
@@ -378,6 +394,7 @@ def main() -> None:
         "method_line_styles": {
             key: repr(linestyle) for key, _, _, linestyle in METHODS
         },
+        "method_marker_shapes": METHOD_MARKERS,
         "obstacle_tracks_included": False,
         "start_goal_included": True,
         "endpoint_markers": {

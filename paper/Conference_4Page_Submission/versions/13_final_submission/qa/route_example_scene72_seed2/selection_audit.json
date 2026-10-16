@@ -1,0 +1,132 @@
+{
+  "source_run": "v13_seven_method_100scene_exploratory_20261015",
+  "source_files": [
+    "heldout_raw.csv",
+    "heldout_trajectories.mat",
+    "heldout_scenario_bank.mat"
+  ],
+  "selection": "Post hoc illustrative case requested by the author; selected from existing simulation records, not a prospective figure selection.",
+  "selection_mode": "route_visible",
+  "selection_rule": "Screen all 300 matched sets for a shared-LSTM safe arrival and exactly one additional safe arrival. Scene 72, seed 2 is the unique match; all six comparator paths span at least 5 s. The separately screened unique shared-only safe-arrival case (scene 79, seed 2) is retained as a supplementary illustration.",
+  "matched_sets_screened": 300,
+  "eligible_set_count": 1,
+  "selected_scene_index": 72,
+  "scenario_seed": 2.0261088E+7,
+  "sampling_seed": 2,
+  "start_xyz_m": [
+    1,
+    1,
+    1
+  ],
+  "goal_xyz_m": [
+    18,
+    18,
+    8
+  ],
+  "state_source": "Only saved position samples and timestamps are plotted; no smoothing, interpolation, resampling, bending, or extension.",
+  "figure_outcomes": [
+    {
+      "method_key": "standalone_dwa_cv",
+      "method_label": "Standalone DWA (CV)",
+      "goal_arrival": true,
+      "safe_goal_arrival": true,
+      "swept_collision": false,
+      "state_count": 244,
+      "trajectory_sha256": "89824775714937bea378c85c9ed0785acef7c8469b540163ddb58b850b97c142",
+      "path_length_m": 25.307284662526406,
+      "path_excess_over_chord_m": 0.68830464200178909,
+      "path_excess_over_chord_ratio": 1.0279582923999271,
+      "recorded_duration_s": 24.3
+    },
+    {
+      "method_key": "standalone_mpc_cv",
+      "method_label": "Standalone MPC (CV)",
+      "goal_arrival": true,
+      "safe_goal_arrival": false,
+      "swept_collision": true,
+      "state_count": 268,
+      "trajectory_sha256": "2428de9db66156dcdc80fcc478c30dbc37bcdf36ae95be017b1bda3f648830fd",
+      "path_length_m": 26.053343041485888,
+      "path_excess_over_chord_m": 1.5065868759626824,
+      "path_excess_over_chord_ratio": 1.0613762106000277,
+      "recorded_duration_s": 26.700000000000003
+    },
+    {
+      "method_key": "cv",
+      "method_label": "Coupled MPC-DWA (CV)",
+      "goal_arrival": false,
+      "safe_goal_arrival": false,
+      "swept_collision": false,
+      "state_count": 84,
+      "trajectory_sha256": "2b5b759eed40873d9a693959dcc4cc01ea6e0107249a69f59ab16ab458d0b2c9",
+      "path_length_m": 10.268771717358447,
+      "path_excess_over_chord_m": 0.080795527130041123,
+      "path_excess_over_chord_ratio": 1.0079304785976566,
+      "recorded_duration_s": 8.3
+    },
+    {
+      "method_key": "lstm_mpc_cv_dwa",
+      "method_label": "MPC-DWA (LSTM to MPC only)",
+      "goal_arrival": false,
+      "safe_goal_arrival": false,
+      "swept_collision": false,
+      "state_count": 88,
+      "trajectory_sha256": "5e5b5b52ff30709d887ff666c1f6921573ccc0ebdf44f207b1472f32c956a206",
+      "path_length_m": 9.9824888850641678,
+      "path_excess_over_chord_m": 0.16086725541847713,
+      "path_excess_over_chord_ratio": 1.016378889503635,
+      "recorded_duration_s": 8.7000000000000011
+    },
+    {
+      "method_key": "cv_mpc_lstm_dwa",
+      "method_label": "MPC-DWA (LSTM to DWA only)",
+      "goal_arrival": false,
+      "safe_goal_arrival": false,
+      "swept_collision": false,
+      "state_count": 67,
+      "trajectory_sha256": "58c0417503c180613df317ddf0115aa7cd1147805e00bf89e9add22905e29770",
+      "path_length_m": 8.5237050752795724,
+      "path_excess_over_chord_m": 0.000988374194697883,
+      "path_excess_over_chord_ratio": 1.0001159693826938,
+      "recorded_duration_s": 6.6000000000000005
+    },
+    {
+      "method_key": "lstm",
+      "method_label": "MPC-DWA (shared LSTM)",
+      "goal_arrival": true,
+      "safe_goal_arrival": true,
+      "swept_collision": false,
+      "state_count": 507,
+      "trajectory_sha256": "dae9aa49a1c70ad34712a0bfededd5418303206c817be5a1b5b9b7e32bb494db",
+      "path_length_m": 27.855162112440219,
+      "path_excess_over_chord_m": 3.2994487978047609,
+      "path_excess_over_chord_ratio": 1.1343658298795276,
+      "recorded_duration_s": 50.6
+    },
+    {
+      "method_key": "static",
+      "method_label": "Reconstructed MPC-DWA (latest-position hold)",
+      "goal_arrival": false,
+      "safe_goal_arrival": false,
+      "swept_collision": true,
+      "state_count": 85,
+      "trajectory_sha256": "e921caac2f5fc676c742df8674d5d44ae55b0ef2f794efb23dcc53025fc73d80",
+      "path_length_m": 10.850608828937132,
+      "path_excess_over_chord_m": 0.021329899690616827,
+      "path_excess_over_chord_ratio": 1.0019696509647573,
+      "recorded_duration_s": 8.4
+    }
+  ],
+  "route_legibility_summary": {
+    "comparator_count": 6,
+    "comparator_paths_at_least_5s": 6,
+    "comparator_paths_excess_at_least_0p10m": 3,
+    "comparator_paths_excess_at_least_0p25m": 2,
+    "path_excess_definition": "recorded polyline length minus start-to-terminal chord length, in metres"
+  },
+  "unique_shared_only_safe_arrival_case": [
+    79,
+    2
+  ],
+  "outcome_scope": "One outcome-selected illustration only; inferential and aggregate comparisons use all 100 scenes and 300 matched seed sets."
+}

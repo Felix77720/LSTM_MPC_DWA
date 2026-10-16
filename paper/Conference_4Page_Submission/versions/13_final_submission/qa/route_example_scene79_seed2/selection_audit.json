@@ -1,0 +1,99 @@
+{
+  "source_run": "v13_seven_method_100scene_exploratory_20261015",
+  "source_files": [
+    "heldout_raw.csv",
+    "heldout_trajectories.mat",
+    "heldout_scenario_bank.mat"
+  ],
+  "selection": "Post hoc illustrative case requested by the author; selected from existing records, not a prospective figure selection.",
+  "selection_rule": "Screen all 300 matched scene/sampling-seed sets; require shared LSTM safe-goal arrival and all other six methods to have GoalArrival = 0.",
+  "matched_sets_screened": 300,
+  "eligible_set_count": 1,
+  "selected_scene_index": 79,
+  "scenario_seed": 2.0261095E+7,
+  "sampling_seed": 2,
+  "start_xyz_m": [
+    1,
+    1,
+    1
+  ],
+  "goal_xyz_m": [
+    18,
+    18,
+    8
+  ],
+  "state_source": "Only saved position samples and timestamps are plotted; no smoothing, interpolation, resampling, bending, or extension.",
+  "figure_outcomes": [
+    {
+      "method_key": "standalone_dwa_cv",
+      "method_label": "Standalone DWA (CV)",
+      "goal_arrival": false,
+      "safe_goal_arrival": false,
+      "swept_collision": false,
+      "state_count": 133,
+      "trajectory_sha256": "2dee3ae36ff656a16776b95d56ae4552dd8b409c55d151f7c870133fc459b139",
+      "path_excess_over_chord_ratio": 1.0017061523508188
+    },
+    {
+      "method_key": "standalone_mpc_cv",
+      "method_label": "Standalone MPC (CV)",
+      "goal_arrival": false,
+      "safe_goal_arrival": false,
+      "swept_collision": true,
+      "state_count": 651,
+      "trajectory_sha256": "c187defa1b2273a88468fdb08569045e8f56951bae80de9ab466ac39af4c0d36",
+      "path_excess_over_chord_ratio": 1.2817781819127823
+    },
+    {
+      "method_key": "cv",
+      "method_label": "Coupled MPC-DWA (CV)",
+      "goal_arrival": false,
+      "safe_goal_arrival": false,
+      "swept_collision": false,
+      "state_count": 17,
+      "trajectory_sha256": "3bb093ba131e682c212d8484fdbaa184cb28e0c3ee9621a83c02716e289f06db",
+      "path_excess_over_chord_ratio": 1.0000782515362645
+    },
+    {
+      "method_key": "lstm_mpc_cv_dwa",
+      "method_label": "MPC-DWA (LSTM to MPC only)",
+      "goal_arrival": false,
+      "safe_goal_arrival": false,
+      "swept_collision": false,
+      "state_count": 17,
+      "trajectory_sha256": "c193202c61e3ef6dcd1d4aee902e07612d75a7d0bb589b4f9c7c3d733d25dc23",
+      "path_excess_over_chord_ratio": 1.0001224052839073
+    },
+    {
+      "method_key": "cv_mpc_lstm_dwa",
+      "method_label": "MPC-DWA (LSTM to DWA only)",
+      "goal_arrival": false,
+      "safe_goal_arrival": false,
+      "swept_collision": false,
+      "state_count": 22,
+      "trajectory_sha256": "26a6db038749d0952f375b81e1b4b9098ec4c3a34baca84a858377a2d48be4c0",
+      "path_excess_over_chord_ratio": 1.0013696383183917
+    },
+    {
+      "method_key": "lstm",
+      "method_label": "MPC-DWA (shared LSTM)",
+      "goal_arrival": true,
+      "safe_goal_arrival": true,
+      "swept_collision": false,
+      "state_count": 522,
+      "trajectory_sha256": "ec940848c308eb25b810a118a831bb3a6015d89a9709865b6ab130357c0d169d",
+      "path_excess_over_chord_ratio": 1.0279571112952446
+    },
+    {
+      "method_key": "static",
+      "method_label": "Reconstructed MPC-DWA (latest-position hold)",
+      "goal_arrival": false,
+      "safe_goal_arrival": false,
+      "swept_collision": false,
+      "state_count": 35,
+      "trajectory_sha256": "19113cd5f29fe1b72d85f3c956c29528d2d0f5379dd2f4e4b0ab3eadb8fb5d78",
+      "path_excess_over_chord_ratio": 1.0037632800002929
+    }
+  ],
+  "outcome_scope": "One outcome-selected illustration only; inferential and aggregate comparisons use all 100 scenes and 300 matched seed sets."
+}

@@ -1,6 +1,6 @@
 # Version 13 final submission package
 
-Release state: updated, compiled and audited on 2026-10-16. This is a revision of the existing project manuscript, not a replacement study. Version 08 remains the audit baseline; historical results, source records, and original simulation data are preserved. Main-text Figure 2 now uses the post hoc scene-72/seed-2 case: all comparator paths span at least 5 s, the routes are more visible, and only shared LSTM plus standalone DWA safely arrive. The unique shared-LSTM-only safe-arrival case (scene 79, seed 2) is retained as Supplementary Figure S5. Neither single-scene illustration substitutes for population statistics; the original scene-1/seed-1 export remains preserved.
+Release state: updated, compiled and audited on 2026-10-16. This is a revision of the existing project manuscript, not a replacement study. Version 08 remains the audit baseline; historical results, source records, and original simulation data are preserved. Main-text Figure 2 now uses the post hoc scene-72/seed-2 case: all comparator paths span at least 5 s, and method-specific colors, line styles and saved-state marker shapes make the overlapping traces easier to follow. Shared LSTM and standalone DWA safely arrive in this example. The unique shared-LSTM-only safe-arrival case (scene 79, seed 2) is retained as Supplementary Figure S5 with the same visual coding. Neither single-scene illustration substitutes for population statistics; the original scene-1/seed-1 export remains preserved.
 
 ## Deliverables
 
