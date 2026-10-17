@@ -503,14 +503,14 @@ def main() -> None:
     # canvas keeps the recorded 3-D paths large at print size and removes the
     # unused strip below the perspective projection; the SI still has all
     # four orthogonal views for route separation.
-    wide_fig = plt.figure(figsize=(6.95, 3.02), constrained_layout=False)
-    ax_wide = wide_fig.add_axes([0.015, 0.02, 0.75, 0.96], projection="3d")
+    wide_fig = plt.figure(figsize=(6.95, 2.68), constrained_layout=False)
+    ax_wide = wide_fig.add_axes([0.015, 0.005, 0.75, 0.99], projection="3d")
     ax_wide.view_init(elev=25, azim=-56)
     ax_wide.set_proj_type("ortho")
     ax_wide.set_xlim(0, 20)
     ax_wide.set_ylim(0, 20)
     ax_wide.set_zlim(-0.8, 10)
-    ax_wide.set_box_aspect((20, 20, 11), zoom=1.12)
+    ax_wide.set_box_aspect((20, 20, 11), zoom=1.14)
     ax_wide.set_xlabel("x (m)", labelpad=3, fontsize=8.0)
     ax_wide.set_ylabel("y (m)", labelpad=3, fontsize=8.0)
     ax_wide.set_zlabel("z (m)", labelpad=2, fontsize=8.0)
@@ -586,7 +586,7 @@ def main() -> None:
         "selection_scene": selected_scene,
         "sampling_seed": selected_seed,
         "coordinate_frame": "all seven saved XYZ trajectories in one shared 3-D perspective",
-        "target_canvas_inches": [6.95, 3.02],
+        "target_canvas_inches": [6.95, 2.68],
         "route_states": "all and only the original saved states; no smoothing, interpolation, resampling, or extension",
         "endpoint_checks_reused": True,
         "source_endpoint_audit": endpoint_audit_path.name,
@@ -597,6 +597,106 @@ def main() -> None:
     }
     (QA / f"{wide_stem}.json").write_text(
         json.dumps(wide_audit, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    # Native single-column candidate: render directly at the intended print
+    # width. It is an additional export so the paper can retain the panoramic
+    # version if seven coincident routes cannot be read in one column.
+    single_fig = plt.figure(figsize=(3.40, 3.30), constrained_layout=False)
+    ax_single = single_fig.add_axes([0.015, 0.30, 0.90, 0.69], projection="3d")
+    ax_single.view_init(elev=25, azim=-56)
+    ax_single.set_proj_type("ortho")
+    ax_single.set_xlim(0, 20)
+    ax_single.set_ylim(0, 20)
+    ax_single.set_zlim(-0.8, 10)
+    ax_single.set_box_aspect((20, 20, 11), zoom=1.18)
+    ax_single.set_xlabel("x (m)", labelpad=0.6, fontsize=6.0)
+    ax_single.set_ylabel("y (m)", labelpad=0.6, fontsize=6.0)
+    # mplot3d's native z-label falls outside a narrow column even when the
+    # plotted box fits. Place the same axis label inside the figure margin.
+    ax_single.set_zlabel("")
+    single_fig.text(0.94, 0.69, "z (m)", rotation=90, rotation_mode="anchor",
+                    ha="center", va="center",
+                    fontsize=6.0, color="#253746")
+    ax_single.set_xticks([0, 10, 20])
+    ax_single.set_yticks([0, 10, 20])
+    ax_single.set_zticks([0, 5, 10])
+    ax_single.tick_params(axis="both", labelsize=5.5, pad=0.5, length=1.5)
+    ax_single.zaxis.set_tick_params(labelsize=5.5, pad=0.5, length=1.5)
+    for axis in (ax_single.xaxis, ax_single.yaxis, ax_single.zaxis):
+        axis.pane.fill = False
+        axis._axinfo["grid"]["color"] = (0.80, 0.83, 0.85, 0.60)
+        axis._axinfo["grid"]["linewidth"] = 0.45
+
+    single_handles = []
+    for key, _, color, linestyle in METHODS:
+        record = audit_by_key[key]
+        route = np.loadtxt(run_dir / record["route_csv"], delimiter=",")
+        if route.ndim == 1:
+            route = route[None, :]
+        xyz = route[:, 1:4]
+        if (len(xyz) != record["path_states_plotted"]
+                or not np.allclose(xyz[-1], record["terminal_xyz_m"],
+                                   atol=STATUS_TERMINAL_TOLERANCE_M, rtol=0)):
+            raise ValueError(f"Single-column route does not match endpoint audit for {key}.")
+        stride = max(1, int(np.ceil((len(xyz) - 1) / 12)))
+        shared = key == "lstm"
+        line, = ax_single.plot(
+            xyz[:, 0], xyz[:, 1], xyz[:, 2], color=color, linestyle=linestyle,
+            linewidth=2.05 if shared else 1.65, alpha=0.98,
+            marker=METHOD_MARKERS[key], markersize=2.9 if shared else 2.55,
+            markerfacecolor="white", markeredgecolor=color, markeredgewidth=0.58,
+            markevery=stride, zorder=5 if shared else 4,
+        )
+        endpoint_marker = "o" if record["safe_goal_arrival"] else (
+            "X" if record["swept_collision"] else "s")
+        ax_single.scatter(*xyz[-1], marker=endpoint_marker, s=25,
+                          linewidths=0.85, facecolors="none", edgecolors=color,
+                          depthshade=False, zorder=9)
+        line.set_label(display_labels[key])
+        single_handles.append(line)
+
+    ax_single.scatter(*start, marker="^", s=33, color="#222222", edgecolor="white",
+                      linewidth=0.65, depthshade=False, zorder=10)
+    ax_single.scatter(*goal, marker="*", s=55, facecolors="none",
+                      edgecolors="#CC3311", linewidth=0.9, depthshade=False, zorder=3)
+    single_fig.legend(
+        handles=single_handles, loc="center", bbox_to_anchor=(0.50, 0.135),
+        ncol=2, frameon=False, fontsize=5.8, handlelength=1.55,
+        handletextpad=0.42, columnspacing=0.72, labelspacing=0.58,
+    )
+    single_stem = (
+        f"route_comparison_seven_method_scene{selected_scene}_seed{selected_seed}_singlecol"
+    )
+    single_alignment = require_matplotlib_panel_alignment(
+        single_fig,
+        json_out=QA / f"{single_stem}.alignment.json",
+        overlay_svg=QA / f"{single_stem}.alignment.svg",
+        tolerance_pt=1.5,
+        gutter_tolerance_pt=1.5,
+        strict=True,
+    )
+    single_fig.savefig(FIGURES / f"{single_stem}.pdf", facecolor="white")
+    single_svg = FIGURES / f"{single_stem}.svg"
+    single_fig.savefig(single_svg, facecolor="white")
+    single_svg.write_bytes(re.sub(rb"[ \t]+(?=\r?$)", b"", single_svg.read_bytes(),
+                                  flags=re.MULTILINE))
+    single_fig.savefig(FIGURES / f"{single_stem}.png", facecolor="white", dpi=600)
+    single_fig.savefig(FIGURES / f"{single_stem}.tiff", facecolor="white", dpi=600,
+                       pil_kwargs={"compression": "tiff_lzw"})
+    plt.close(single_fig)
+    (QA / f"{single_stem}.json").write_text(
+        json.dumps({
+            "source": run_dir.relative_to(PROJECT).as_posix(),
+            "selection_scene": selected_scene,
+            "sampling_seed": selected_seed,
+            "coordinate_frame": "all seven original saved XYZ routes in one 3-D scene",
+            "target_canvas_inches": [3.40, 3.30],
+            "route_states": "all original saved states through each true terminal; no path changes",
+            "source_endpoint_audit": endpoint_audit_path.name,
+            "alignment": single_alignment,
+            "methods": endpoint_audit,
+            "exports": [f"{single_stem}.{ext}" for ext in ("pdf", "svg", "png", "tiff")],
+        }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Saved seven-method 3D route figure and endpoint audit from {run_dir}.")
 
 

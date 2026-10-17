@@ -54,6 +54,8 @@ if ((Test-Path -LiteralPath $zipPath) -and -not $ReplaceExisting) {
 $stageRoot = Join-Path $revisionRoot (Join-Path 'tmp' ('bounded_package_' + [guid]::NewGuid().ToString('N')))
 $null = New-Item -ItemType Directory -Path $stageRoot
 $pendingZip = Join-Path $supplementRoot ('reproducibility_package_v13.pending_' + [guid]::NewGuid().ToString('N') + '.zip')
+$previousZipPath = $null
+$previousZipHashPath = $null
 
 try {
     # Main source and figures used by the four-page paper.
@@ -70,10 +72,10 @@ try {
         '02_source/figures/seven_method_outcomes_main.svg',
         '02_source/figures/seven_method_outcomes_main.png',
         '02_source/figures/seven_method_outcomes_main.tiff',
-        '02_source/figures/route_comparison_seven_method_scene72_seed2_main.pdf',
-        '02_source/figures/route_comparison_seven_method_scene72_seed2_main.svg',
-        '02_source/figures/route_comparison_seven_method_scene72_seed2_main.png',
-        '02_source/figures/route_comparison_seven_method_scene72_seed2_main.tiff',
+        '02_source/figures/route_comparison_seven_method_scene72_seed2_singlecol.pdf',
+        '02_source/figures/route_comparison_seven_method_scene72_seed2_singlecol.svg',
+        '02_source/figures/route_comparison_seven_method_scene72_seed2_singlecol.png',
+        '02_source/figures/route_comparison_seven_method_scene72_seed2_singlecol.tiff',
         'scripts/generate_main_manuscript_figures.py',
         'qa/main_result_figure_contract.md',
         'qa/route_example_scene72_seed2/selection_audit.json',
@@ -88,8 +90,9 @@ try {
         'qa/route_example_scene72_seed2/trajectory_static.csv',
         'qa/seven_method_route_endpoint_audit_scene72_seed2.json',
         'qa/seven_method_figure_collision_audit_scene72_seed2.json',
-        'qa/route_comparison_seven_method_scene72_seed2_main.json',
-        'qa/route_comparison_seven_method_scene72_seed2_main.collision-audit.json',
+        'qa/route_comparison_seven_method_scene72_seed2_singlecol.json',
+        'qa/route_comparison_seven_method_scene72_seed2_singlecol.alignment.json',
+        'qa/route_comparison_seven_method_scene72_seed2_singlecol.collision-audit.json',
         'qa/route_comparison_seven_method_scene72_seed2_si.collision-audit.json',
         'qa/algorithm_main_pseudocode.alignment.json',
         '04_review/v13_final_submission_audit_20261017.md',
@@ -190,15 +193,16 @@ try {
             'LSTM_MPC_DWA/02_source/figures/seven_method_outcomes_main.svg',
             'LSTM_MPC_DWA/02_source/figures/seven_method_outcomes_main.png',
             'LSTM_MPC_DWA/02_source/figures/seven_method_outcomes_main.tiff',
-            'LSTM_MPC_DWA/02_source/figures/route_comparison_seven_method_scene72_seed2_main.pdf',
+            'LSTM_MPC_DWA/02_source/figures/route_comparison_seven_method_scene72_seed2_singlecol.pdf',
             'LSTM_MPC_DWA/02_source/figures/route_comparison_seven_method_scene72_seed2.pdf',
             'LSTM_MPC_DWA/02_source/figures/route_comparison_five_method_scene404_seed2.pdf',
             'LSTM_MPC_DWA/03_supplementary/supplementary_methods.pdf',
             'LSTM_MPC_DWA/03_supplementary/stage1_development/pooled_development_raw.csv',
             'LSTM_MPC_DWA/03_supplementary/stage1_development/pooled_episode_sha256.csv',
             'LSTM_MPC_DWA/03_bilingual/paper.md',
-            'LSTM_MPC_DWA/qa/route_comparison_seven_method_scene72_seed2_main.json',
-            'LSTM_MPC_DWA/qa/route_comparison_seven_method_scene72_seed2_main.collision-audit.json',
+            'LSTM_MPC_DWA/qa/route_comparison_seven_method_scene72_seed2_singlecol.json',
+            'LSTM_MPC_DWA/qa/route_comparison_seven_method_scene72_seed2_singlecol.alignment.json',
+            'LSTM_MPC_DWA/qa/route_comparison_seven_method_scene72_seed2_singlecol.collision-audit.json',
             'LSTM_MPC_DWA/qa/route_comparison_seven_method_scene72_seed2_si.collision-audit.json',
             'LSTM_MPC_DWA/qa/algorithm_main_pseudocode.alignment.json',
             'LSTM_MPC_DWA/04_review/v13_final_submission_audit_20261017.md',
@@ -216,12 +220,26 @@ try {
     if ((Test-Path -LiteralPath $zipPath) -or (Test-Path -LiteralPath $zipHashPath)) {
         if (-not $ReplaceExisting) { throw "Existing release artifact appeared during package build: $zipPath" }
         $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-        if (Test-Path -LiteralPath $zipPath) { Move-Item -LiteralPath $zipPath -Destination "$zipPath.previous_$stamp" }
-        if (Test-Path -LiteralPath $zipHashPath) { Move-Item -LiteralPath $zipHashPath -Destination "$zipHashPath.previous_$stamp" }
+        $previousZipPath = "$zipPath.previous_$stamp"
+        $previousZipHashPath = "$zipHashPath.previous_$stamp"
+        if (Test-Path -LiteralPath $zipPath) { Move-Item -LiteralPath $zipPath -Destination $previousZipPath }
+        if (Test-Path -LiteralPath $zipHashPath) { Move-Item -LiteralPath $zipHashPath -Destination $previousZipHashPath }
     }
     Move-Item -LiteralPath $pendingZip -Destination $zipPath
     $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
     [System.IO.File]::WriteAllText($zipHashPath, "$zipHash  reproducibility_package_v13.zip`n", [System.Text.Encoding]::ASCII)
+    $verifiedZipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $verifiedSidecar = (Get-Content -LiteralPath $zipHashPath -Raw).Trim()
+    if ($verifiedZipHash -ne $zipHash -or
+        -not $verifiedSidecar.StartsWith($zipHash, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw 'The replacement compact archive or SHA-256 sidecar failed post-move verification.'
+    }
+    foreach ($generatedBackup in @($previousZipPath, $previousZipHashPath)) {
+        if ($generatedBackup -and (Test-Path -LiteralPath $generatedBackup -PathType Leaf)) {
+            Assert-Within -Path $generatedBackup -Root $supplementRoot -Purpose 'verified generated-backup cleanup'
+            Remove-Item -LiteralPath $generatedBackup -Force
+        }
+    }
     Write-Output "Created: $zipPath"
     Write-Output "SHA-256: $zipHash"
     Write-Output "ZIP entries: $entryCount"

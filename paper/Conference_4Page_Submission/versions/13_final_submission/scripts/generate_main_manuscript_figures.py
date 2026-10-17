@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -60,7 +61,7 @@ def generate_pseudocode() -> dict:
     """Render the main-text algorithm as a modular, stepwise flow diagram."""
     FIGURES.mkdir(parents=True, exist_ok=True)
     QA.mkdir(parents=True, exist_ok=True)
-    width, height = 3.48, 2.75
+    width, height = 3.48, 2.90
     fig, ax = plt.subplots(figsize=(width, height), dpi=300)
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
     ax.set_xlim(0, width)
@@ -68,49 +69,58 @@ def generate_pseudocode() -> dict:
     ax.set_axis_off()
 
     def module(x: float, y: float, w: float, h: float, title: str,
-               lines: tuple[str, ...], accent: str, *, body_size: float = 6.7) -> None:
+               lines: tuple[str, ...], accent: str, *, body_size: float = 6.35) -> None:
         ax.add_patch(FancyBboxPatch(
             (x, y), w, h, boxstyle="round,pad=0.018,rounding_size=0.045",
             linewidth=0.65, edgecolor=accent, facecolor="white", zorder=2,
         ))
         ax.add_patch(FancyBboxPatch(
-            (x + 0.008, y + h - 0.19), w - 0.016, 0.182,
+            (x + 0.008, y + h - 0.18), w - 0.016, 0.172,
             boxstyle="round,pad=0.006,rounding_size=0.035",
             linewidth=0, edgecolor="none", facecolor=accent, alpha=0.10, zorder=2,
         ))
-        ax.text(x + 0.085, y + h - 0.095, title, ha="left", va="center",
-                fontsize=7.3, fontweight="bold", color=accent, zorder=3)
-        body_y = y + h - 0.26
+        ax.text(x + 0.085, y + h - 0.091, title, ha="left", va="center",
+                fontsize=7.15, fontweight="bold", color=accent, zorder=3)
+        body_y = y + h - 0.235
         for index, line in enumerate(lines):
-            ax.text(x + 0.085, body_y - index * 0.105, line,
+            ax.text(x + 0.085, body_y - index * 0.099, line,
                     ha="left", va="center", fontsize=body_size,
                     color=INK, zorder=3)
 
-    # Step 1 fans one causal forecast into two distinct planner modules.
-    module(0.10, 2.30, 3.28, 0.42, "1  OBSERVE → FORECAST",
-           ("10 observations → LSTM → 30 positions (3 s)",
-            "The time-aligned forecast feeds both MPC and DWA."), SHARED)
-    module(0.10, 1.25, 1.54, 0.80, "2a  MPC | route optimizer",
-           ("30-step forecast enters cost.",
-            "Shift guide; compute trust.",
-            "Return route and command."), "#4B729D")
-    module(1.84, 1.25, 1.54, 0.80, "2b  DWA | action selector",
-           ("Use forecast and MPC guide.",
-            "Split guided/exploration samples.",
-            "Roll out, screen, score."), "#A86C20")
-    module(0.10, 0.60, 3.28, 0.45, "3  COUPLE + RE-SOLVE",
-           ("Passing DWA controls bound MPC's first input.",
-            "Recentered commands replace it only if re-screening passes."), "#4B729D")
-    module(0.10, 0.07, 3.28, 0.40, "4  EXECUTE + REPEAT",
-           ("Apply screened action for 0.1 s; then repeat.",
-            "If no emergency action passes, stop."), "#425466")
+    # The forecast is shared, while DWA also consumes the current MPC guide.
+    # The re-solve follows safety screening and precedes action execution.
+    module(0.10, 2.48, 3.28, 0.38, "1  INPUT + SETUP",
+           ("Current UAV state; latest 10 obstacle observations.",
+            "Carry the previous MPC sequence when available."), "#425466")
+    module(0.10, 2.03, 3.28, 0.36, "2  SHARED LSTM FORECAST",
+           ("Predict 30 time-aligned obstacle positions (3 s).",
+            "Send the same forecast to MPC and DWA."), SHARED)
+    module(0.10, 1.29, 1.54, 0.64, "3a  MPC | route guide",
+           ("Start: solve with forecast.",
+            "Later: shift prior guide.",
+            "Compute trust for DWA."), "#4B729D")
+    module(1.84, 1.29, 1.54, 0.64, "3b  DWA | safe action",
+           ("Use guide; split samples.",
+            "Roll out reachable controls.",
+            "Screen, then score."), "#A86C20")
+    module(0.10, 0.53, 3.28, 0.64, "4  SELECT + SAFETY RE-SCREEN",
+           ("Normal set: choose safe DWA action and first-input box.",
+            "Recenter only when predicted clearance >1 m and cross-track >0.5 m;",
+            "re-screen the change, or revert to the original action.",
+            "No normal set: screen/recheck emergency; stop if none passes."), "#4B729D",
+           body_size=6.20)
+    module(0.10, 0.03, 3.28, 0.42, "5  RE-SOLVE + EXECUTE",
+           ("Re-solve MPC on this forecast (safe box if present).",
+            "Apply screened action for 0.1 s; update and repeat."), "#425466")
 
     arrow = dict(arrowstyle="-|>", color="#758692", lw=0.75, mutation_scale=7)
-    ax.annotate("", xy=(0.86, 2.05), xytext=(0.86, 2.30), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(2.61, 2.05), xytext=(2.61, 2.30), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(0.87, 1.05), xytext=(0.87, 1.25), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(2.61, 1.05), xytext=(2.61, 1.25), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(1.74, 0.47), xytext=(1.74, 0.60), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(1.74, 2.39), xytext=(1.74, 2.48), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(0.87, 1.93), xytext=(0.87, 2.03), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.61, 1.93), xytext=(2.61, 2.03), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(1.82, 1.58), xytext=(1.66, 1.58), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(0.87, 1.17), xytext=(0.87, 1.29), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.61, 1.17), xytext=(2.61, 1.29), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(1.74, 0.45), xytext=(1.74, 0.53), arrowprops=arrow, zorder=1)
 
     fig.canvas.draw()
     alignment = require_matplotlib_panel_alignment(
@@ -123,7 +133,10 @@ def generate_pseudocode() -> dict:
     )
     stem = FIGURES / "algorithm_main_pseudocode"
     fig.savefig(stem.with_suffix(".pdf"), facecolor="white")
-    fig.savefig(stem.with_suffix(".svg"), facecolor="white")
+    svg_path = stem.with_suffix(".svg")
+    fig.savefig(svg_path, facecolor="white")
+    svg_path.write_bytes(re.sub(rb"[ \t]+(?=\r?$)", b"", svg_path.read_bytes(),
+                                flags=re.MULTILINE))
     fig.savefig(stem.with_suffix(".png"), dpi=600, facecolor="white")
     fig.savefig(stem.with_suffix(".tiff"), dpi=600, facecolor="white",
                 pil_kwargs={"compression": "tiff_lzw"})
@@ -137,7 +150,15 @@ def main() -> None:
                         help="Regenerate only the main-text pseudocode assets.")
     args = parser.parse_args()
     if args.pseudocode_only:
-        generate_pseudocode()
+        alignment = generate_pseudocode()
+        provenance_path = QA / "main_manuscript_figures_provenance.json"
+        if provenance_path.is_file():
+            provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+            provenance["pseudocode_alignment"] = alignment
+            provenance_path.write_text(
+                json.dumps(provenance, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
         print("Generated the main-text pseudocode only.")
         return
     FIGURES.mkdir(parents=True, exist_ok=True)

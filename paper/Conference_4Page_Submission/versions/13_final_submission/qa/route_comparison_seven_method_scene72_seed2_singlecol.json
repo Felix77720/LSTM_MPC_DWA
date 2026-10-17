@@ -2,38 +2,55 @@
   "source": "paper/Conference_4Page_Submission/versions/13_final_submission/qa/route_example_scene72_seed2",
   "selection_scene": 72,
   "sampling_seed": 2,
-  "coordinate_frame": "all seven saved XYZ trajectories in one shared 3-D perspective",
+  "coordinate_frame": "all seven original saved XYZ routes in one 3-D scene",
   "target_canvas_inches": [
-    6.95,
-    3.02
+    3.4,
+    3.3
   ],
-  "route_states": "all and only the original saved states; no smoothing, interpolation, resampling, or extension",
-  "endpoint_checks_reused": true,
+  "route_states": "all original saved states through each true terminal; no path changes",
   "source_endpoint_audit": "seven_method_route_endpoint_audit_scene72_seed2.json",
-  "method_keys": [
-    "standalone_dwa_cv",
-    "standalone_mpc_cv",
-    "cv",
-    "lstm_mpc_cv_dwa",
-    "cv_mpc_lstm_dwa",
-    "lstm",
-    "static"
-  ],
-  "method_labels": [
-    "Standalone DWA-CV",
-    "Standalone MPC-CV",
-    "Coupled MPC-DWA-CV",
-    "LSTM to MPC only",
-    "LSTM to DWA only",
-    "Shared LSTM",
-    "Latest-position hold"
-  ],
-  "exports": [
-    "route_comparison_seven_method_scene72_seed2_main.pdf",
-    "route_comparison_seven_method_scene72_seed2_main.svg",
-    "route_comparison_seven_method_scene72_seed2_main.png",
-    "route_comparison_seven_method_scene72_seed2_main.tiff"
-  ],
+  "alignment": {
+    "schema_version": 1,
+    "applicable": false,
+    "auditable": false,
+    "verdict": "NOT APPLICABLE",
+    "backend": "python-matplotlib",
+    "summary": {
+      "fail": 0,
+      "warn": 0,
+      "comparisons": 0,
+      "exemptions": 0
+    },
+    "tolerances": {
+      "alignment_pt": 1.5,
+      "gutter_pt": 1.5
+    },
+    "errors": [],
+    "findings": [],
+    "layout": {
+      "schema_version": 1,
+      "backend": "python-matplotlib",
+      "figure": {
+        "width_pt": 244.79999999999998,
+        "height_pt": 237.6
+      },
+      "panels": [
+        {
+          "id": "a",
+          "bbox_pt": [
+            31.860000000000007,
+            71.28,
+            195.804,
+            235.224
+          ]
+        }
+      ],
+      "row_groups": [],
+      "column_groups": [],
+      "boundary_groups": [],
+      "exemptions": []
+    }
+  },
   "methods": [
     {
       "method_key": "standalone_dwa_cv",
@@ -322,5 +339,11 @@
       "recorded_time_sequence_verified": true,
       "extended_after_terminal": false
     }
+  ],
+  "exports": [
+    "route_comparison_seven_method_scene72_seed2_singlecol.pdf",
+    "route_comparison_seven_method_scene72_seed2_singlecol.svg",
+    "route_comparison_seven_method_scene72_seed2_singlecol.png",
+    "route_comparison_seven_method_scene72_seed2_singlecol.tiff"
   ]
 }
