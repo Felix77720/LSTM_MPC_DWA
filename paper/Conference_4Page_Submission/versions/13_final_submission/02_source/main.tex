@@ -51,10 +51,11 @@ UAV, 3D path planning, dynamic obstacles, LSTM, model predictive control, dynami
 \section{Introduction}
 Unmanned aerial vehicles (UAVs) must avoid obstacles that move during flight. Turns, acceleration and pauses make recent positions unreliable guides to what happens next. Model predictive control (MPC) optimizes a short future route, whereas the dynamic window approach (DWA) selects a feasible next action \cite{mayne2000,fox1997}. Predictive UAV planners already use obstacle-motion forecasts in route optimization \cite{olcay2024,xu2025}; here we test where one causal long short-term memory (LSTM) forecast should enter a coupled MPC--DWA loop. The main comparison tests whether also giving MPC the forecast already used by DWA changes outcomes; CV-only, MPC-only-LSTM, DWA-only-LSTM and standalone arms provide context.
 
+\newpage
 \section{Problem Formulation}
 We model the UAV as a collision sphere in a bounded three-dimensional workspace with a start, goal and moving spherical obstacles. Each obstacle has an observed center, radius and time-varying path; future ground-truth positions are hidden from the planner. At each update, it chooses a dynamically feasible action to reach the goal without intersecting an obstacle along the simulated motion. Figure~\ref{fig:scenario} shows the scene geometry; recorded planner paths are compared separately.
 
-\begin{figure}[!hb]
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=0.90\columnwidth]{scenario_schematic.pdf}
 \caption{Problem geometry: the quadrotor is centered at the start and moves toward the goal among spherical obstacles following prescribed paths (arrows). The dashed line marks the direct start-to-goal direction, not a simulated route; planner trajectories appear separately in Figure~\ref{fig:routes}.}
