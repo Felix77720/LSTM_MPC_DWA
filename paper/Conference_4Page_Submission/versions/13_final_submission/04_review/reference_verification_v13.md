@@ -1,6 +1,6 @@
 # Reference verification — v13
 
-Audit date: 2026-10-15. All ten records in `02_source/references.bib` were checked field by field against publisher, proceedings, author-institution, or the supplied source-PDF metadata. The compiled paper cites six records; four other records remain in the editable BibTeX file but are uncited and therefore do not appear in the compiled reference list. No missing field was inferred.
+Audit date: 2026-10-17. All ten records in `02_source/references.bib` were checked field by field against publisher, proceedings, author-institution, or the supplied source-PDF metadata. The compiled paper cites five records; five other records remain in the editable BibTeX file but are uncited and therefore do not appear in the compiled reference list. The five cited records have complete verified author, title, year, venue, volume/issue where applicable, page range, and DOI metadata. No missing field was inferred.
 
 | Key | Authors and title | Year and venue | Volume / issue | Pages | DOI | Status and evidence |
 |---|---|---|---|---|---|---|
@@ -17,4 +17,4 @@ Audit date: 2026-10-15. All ten records in `02_source/references.bib` were check
 
 ### Cross-reference and disposition
 
-Six keys are cited in `main.tex`: `mayne2000`, `fox1997`, `olcay2024`, `xu2025`, `chang2026mpcdwa`, and `hochreiter1997`. The four uncited entries (`missura2019`, `dobrevski2024`, `lindqvist2020`, and `nair2022cdc`) remain in the editable `.bib` source for traceability but are not represented as citations in the paper. Conference volume/issue fields are marked not applicable; the Dobrevski issue is absent from the publisher record; the Chang volume, issue, pages, and DOI remain unverified. No bibliographic fields were guessed or silently completed.
+Five keys are cited in `main.tex`: `mayne2000`, `fox1997`, `olcay2024`, `xu2025`, and `hochreiter1997`. The five uncited entries (`missura2019`, `dobrevski2024`, `lindqvist2020`, `nair2022cdc`, and `chang2026mpcdwa`) remain in the editable `.bib` source for traceability but are not represented as citations in the paper. Conference volume/issue fields are marked not applicable; the Dobrevski issue is absent from the publisher record; the Chang volume, issue, pages, and DOI remain unverified. No bibliographic fields were guessed or silently completed. The cited references span foundational methods and recent UAV forecast-planning work, retain verified DOI links, and include authors affiliated with more than three countries in total.

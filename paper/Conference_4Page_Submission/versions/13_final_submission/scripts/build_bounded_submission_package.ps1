@@ -95,7 +95,10 @@ try {
         'qa/route_comparison_seven_method_scene72_seed2_singlecol.collision-audit.json',
         'qa/route_comparison_seven_method_scene72_seed2_si.collision-audit.json',
         'qa/algorithm_main_pseudocode.alignment.json',
+        'qa/algorithm_main_pseudocode.collision-audit.json',
+        'qa/seven_method_outcomes_main.collision-audit.json',
         '04_review/v13_final_submission_audit_20261017.md',
+        '04_review/publication_assessment_v13_20261017.md',
         '02_source/figures/route_comparison_five_method_scene404_seed2.pdf',
         '02_source/figures/route_comparison_five_method_scene404_seed2.svg',
         '02_source/figures/route_comparison_five_method_scene404_seed2.png',
@@ -205,7 +208,10 @@ try {
             'LSTM_MPC_DWA/qa/route_comparison_seven_method_scene72_seed2_singlecol.collision-audit.json',
             'LSTM_MPC_DWA/qa/route_comparison_seven_method_scene72_seed2_si.collision-audit.json',
             'LSTM_MPC_DWA/qa/algorithm_main_pseudocode.alignment.json',
+            'LSTM_MPC_DWA/qa/algorithm_main_pseudocode.collision-audit.json',
+            'LSTM_MPC_DWA/qa/seven_method_outcomes_main.collision-audit.json',
             'LSTM_MPC_DWA/04_review/v13_final_submission_audit_20261017.md',
+            'LSTM_MPC_DWA/04_review/publication_assessment_v13_20261017.md',
             'LSTM_MPC_DWA/04_review/v13_final_submission_audit_20261014.md',
             'LSTM_MPC_DWA/SHA256SUMS.txt', 'LSTM_MPC_DWA/PACKAGE_CONTENTS.txt'
         )) { if (-not $check.GetEntry($required)) { throw "Required archive entry missing: $required" } }

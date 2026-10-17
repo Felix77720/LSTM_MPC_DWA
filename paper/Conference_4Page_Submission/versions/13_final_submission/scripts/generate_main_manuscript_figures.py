@@ -58,10 +58,10 @@ def read_rows(path: Path) -> list[dict[str, str]]:
 
 
 def generate_pseudocode() -> dict:
-    """Render the main-text algorithm as a modular, stepwise flow diagram."""
+    """Render the shared-forecast receding-horizon algorithm as modular pseudocode."""
     FIGURES.mkdir(parents=True, exist_ok=True)
     QA.mkdir(parents=True, exist_ok=True)
-    width, height = 3.48, 2.90
+    width, height = 3.80, 3.40
     fig, ax = plt.subplots(figsize=(width, height), dpi=300)
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
     ax.set_xlim(0, width)
@@ -69,58 +69,91 @@ def generate_pseudocode() -> dict:
     ax.set_axis_off()
 
     def module(x: float, y: float, w: float, h: float, title: str,
-               lines: tuple[str, ...], accent: str, *, body_size: float = 6.35) -> None:
+               lines: tuple[str, ...], accent: str, *, body_size: float = 5.55,
+               title_size: float = 6.25) -> None:
         ax.add_patch(FancyBboxPatch(
-            (x, y), w, h, boxstyle="round,pad=0.018,rounding_size=0.045",
-            linewidth=0.65, edgecolor=accent, facecolor="white", zorder=2,
+            (x, y), w, h, boxstyle="round,pad=0.012,rounding_size=0.035",
+            linewidth=0.60, edgecolor=accent, facecolor="white", zorder=2,
         ))
-        ax.add_patch(FancyBboxPatch(
-            (x + 0.008, y + h - 0.18), w - 0.016, 0.172,
-            boxstyle="round,pad=0.006,rounding_size=0.035",
-            linewidth=0, edgecolor="none", facecolor=accent, alpha=0.10, zorder=2,
-        ))
-        ax.text(x + 0.085, y + h - 0.091, title, ha="left", va="center",
-                fontsize=7.15, fontweight="bold", color=accent, zorder=3)
-        body_y = y + h - 0.235
+        ax.add_patch(plt.Rectangle((x, y), 0.045, h, color=accent,
+                                   linewidth=0, zorder=2))
+        ax.text(x + 0.11, y + h - 0.095, title, ha="left", va="center",
+                fontsize=title_size, fontweight="bold", color=accent, zorder=3)
+        body_y = y + h - 0.205
         for index, line in enumerate(lines):
-            ax.text(x + 0.085, body_y - index * 0.099, line,
+            ax.text(x + 0.11, body_y - index * 0.100, line,
                     ha="left", va="center", fontsize=body_size,
                     color=INK, zorder=3)
 
-    # The forecast is shared, while DWA also consumes the current MPC guide.
-    # The re-solve follows safety screening and precedes action execution.
-    module(0.10, 2.48, 3.28, 0.38, "1  INPUT + SETUP",
-           ("Current UAV state; latest 10 obstacle observations.",
-            "Carry the previous MPC sequence when available."), "#425466")
-    module(0.10, 2.03, 3.28, 0.36, "2  SHARED LSTM FORECAST",
-           ("Predict 30 time-aligned obstacle positions (3 s).",
-            "Send the same forecast to MPC and DWA."), SHARED)
-    module(0.10, 1.29, 1.54, 0.64, "3a  MPC | route guide",
-           ("Start: solve with forecast.",
-            "Later: shift prior guide.",
-            "Compute trust for DWA."), "#4B729D")
-    module(1.84, 1.29, 1.54, 0.64, "3b  DWA | safe action",
-           ("Use guide; split samples.",
-            "Roll out reachable controls.",
-            "Screen, then score."), "#A86C20")
-    module(0.10, 0.53, 3.28, 0.64, "4  SELECT + SAFETY RE-SCREEN",
-           ("Normal set: choose safe DWA action and first-input box.",
-            "Recenter only when predicted clearance >1 m and cross-track >0.5 m;",
-            "re-screen the change, or revert to the original action.",
-            "No normal set: screen/recheck emergency; stop if none passes."), "#4B729D",
-           body_size=6.20)
-    module(0.10, 0.03, 3.28, 0.42, "5  RE-SOLVE + EXECUTE",
-           ("Re-solve MPC on this forecast (safe box if present).",
-            "Apply screened action for 0.1 s; update and repeat."), "#425466")
+    ax.text(0.43, 3.33, "SHARED-FORECAST PLANNER  |  UPDATE LOOP",
+            ha="left", va="top", fontsize=8.58, fontweight="bold", color=INK)
 
-    arrow = dict(arrowstyle="-|>", color="#758692", lw=0.75, mutation_scale=7)
-    ax.annotate("", xy=(1.74, 2.39), xytext=(1.74, 2.48), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(0.87, 1.93), xytext=(0.87, 2.03), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(2.61, 1.93), xytext=(2.61, 2.03), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(1.82, 1.58), xytext=(1.66, 1.58), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(0.87, 1.17), xytext=(0.87, 1.29), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(2.61, 1.17), xytext=(2.61, 1.29), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(1.74, 0.45), xytext=(1.74, 0.53), arrowprops=arrow, zorder=1)
+    # Step 3 separates the route guide from local action screening. The gate
+    # below exposes normal and emergency behavior without implying a guarantee.
+    module(0.43, 2.88, 3.20, 0.31, "1  OBSERVE + INITIALIZE",
+           ("UAV state, goal, latest 10 observations and previous MPC sequence.",),
+           "#425466", body_size=6.54, title_size=7.26)
+    module(0.43, 2.37, 3.20, 0.42, "2  PREDICT ONCE, SHARE",
+           ("Causal LSTM predicts 30 time-aligned obstacle positions (3 s).",
+            "Broadcast this same forecast to MPC and DWA."), SHARED,
+           body_size=6.54, title_size=7.26)
+    module(0.43, 1.55, 1.49, 0.64, "3a  MPC | ROUTE GUIDE",
+           ("Optimize the 30-step route",
+            "with the shared forecast;",
+            "output guide + trust."), "#4B729D", body_size=6.42, title_size=7.14)
+    module(2.14, 1.55, 1.49, 0.64, "3b  DWA | ACTION SCREEN",
+           ("Sample reachable controls",
+            "screen 10 / 30 steps using",
+            "forecast + guide; score."), "#A86C20", body_size=6.42, title_size=6.96)
+
+    ax.add_patch(FancyBboxPatch(
+        (0.43, 1.29), 3.20, 0.17,
+        boxstyle="round,pad=0.008,rounding_size=0.025",
+        linewidth=0.55, edgecolor="#526573", facecolor="#EEF2F4", zorder=2,
+    ))
+    ax.text(2.03, 1.375, "4  GATE: IS THE NORMAL DWA SAFE SET NONEMPTY?",
+            ha="center", va="center", fontsize=6.78, fontweight="bold",
+            color=INK, zorder=3)
+    module(0.43, 0.56, 1.56, 0.65, "YES  |  NORMAL",
+           ("Choose top-scored safe action;",
+            "bound MPC's first input.",
+            "If clear >1 m & cross-track >0.5 m,",
+            "recenter; re-screen, else revert."), "#16877D",
+           body_size=6.00, title_size=6.90)
+    module(2.07, 0.56, 1.56, 0.65, "NO  |  EMERGENCY",
+           ("Screen emergency actions;",
+            "use one only if it passes.",
+            "If none passes, stop."), "#A45B4A",
+           body_size=6.18, title_size=6.90)
+    module(0.43, 0.08, 3.20, 0.38, "5  RE-SOLVE + EXECUTE",
+           ("Re-solve MPC with the safe-set bound when available.",
+            "Execute the screened action for 0.1 s; update and repeat."),
+           "#425466", body_size=6.36, title_size=7.02)
+
+    arrow = dict(arrowstyle="-|>", color="#71818D", lw=0.65, mutation_scale=6.5)
+    ax.annotate("", xy=(2.03, 2.79), xytext=(2.03, 2.88), arrowprops=arrow, zorder=1)
+    # Fan the single forecast to both planners.
+    ax.annotate("", xy=(2.03, 2.27), xytext=(2.03, 2.37), arrowprops=arrow, zorder=1)
+    ax.plot([1.175, 2.885], [2.27, 2.27], color="#71818D", lw=0.55, zorder=1)
+    ax.annotate("", xy=(1.175, 2.19), xytext=(1.175, 2.27), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.885, 2.19), xytext=(2.885, 2.27), arrowprops=arrow, zorder=1)
+    # The MPC guide is an additional input to DWA.
+    ax.annotate("", xy=(2.14, 1.87), xytext=(1.92, 1.87), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.03, 1.46), xytext=(2.03, 1.55), arrowprops=arrow, zorder=1)
+    # Gate fans into mutually exclusive normal and emergency branches.
+    ax.annotate("", xy=(1.21, 1.21), xytext=(1.21, 1.29), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.85, 1.21), xytext=(2.85, 1.29), arrowprops=arrow, zorder=1)
+    # Merge branch outputs before executing exactly one screened action.
+    ax.annotate("", xy=(1.21, 0.51), xytext=(1.21, 0.56), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.85, 0.51), xytext=(2.85, 0.56), arrowprops=arrow, zorder=1)
+    ax.plot([1.21, 2.85], [0.51, 0.51], color="#71818D", lw=0.55, zorder=1)
+    ax.annotate("", xy=(2.03, 0.46), xytext=(2.03, 0.51), arrowprops=arrow, zorder=1)
+    # Return arrow marks the receding-horizon loop.
+    ax.plot([0.25, 0.25], [0.23, 2.98], color="#98A6B2", lw=0.55, zorder=1)
+    ax.plot([0.25, 0.43], [0.23, 0.23], color="#98A6B2", lw=0.55, zorder=1)
+    ax.annotate("", xy=(0.43, 2.98), xytext=(0.25, 2.98), arrowprops=arrow, zorder=1)
+    ax.text(0.16, 1.60, "repeat every 0.1 s", ha="center", va="center",
+            rotation=90, rotation_mode="anchor", fontsize=7.30, color=BODY)
 
     fig.canvas.draw()
     alignment = require_matplotlib_panel_alignment(
@@ -172,7 +205,7 @@ def main() -> None:
 
     historic_order = [
         ("MPC-DWA: position hold", "Reconstructed MPC-DWA (latest-position hold)"),
-        ("MPC-DWA: DWA-only LSTM", "Integrated: LSTM to DWA only"),
+        ("MPC-DWA: LSTM to DWA", "Integrated: LSTM to DWA only"),
         ("MPC-DWA: shared LSTM", "Integrated: Shared LSTM"),
         ("Standalone DWA + LSTM", "Standalone DWA + LSTM"),
         ("Standalone MPC + LSTM", "Standalone MPC + LSTM"),
@@ -184,10 +217,10 @@ def main() -> None:
         ("Standalone DWA-CV", "Standalone DWA-CV"),
         ("Standalone MPC-CV", "Standalone MPC-CV"),
         ("Coupled MPC-DWA-CV", "Coupled MPC-DWA-CV"),
-        ("LSTM to MPC only", "MPC-DWA (LSTM to MPC only)"),
-        ("LSTM to DWA only", "MPC-DWA (LSTM to DWA only)"),
-        ("Shared LSTM", "MPC-DWA (shared LSTM)"),
-        ("Latest-position hold", "MPC-DWA (latest-position hold)"),
+        ("Coupled: LSTM to MPC", "MPC-DWA (LSTM to MPC only)"),
+        ("Coupled: LSTM to DWA", "MPC-DWA (LSTM to DWA only)"),
+        ("Coupled: shared LSTM", "MPC-DWA (shared LSTM)"),
+        ("Coupled: position hold", "MPC-DWA (latest-position hold)"),
     ]
     seven = {row["method"]: row for row in seven_rows}
     if set(key for _, key in seven_order) != set(seven):
@@ -195,8 +228,8 @@ def main() -> None:
 
     # Panel contract: compare controller rates within each frozen protocol;
     # never combine the arms into one cross-protocol ranking.
-    fig, axes = plt.subplots(2, 1, figsize=(3.42, 3.25), sharex=True)
-    fig.subplots_adjust(left=0.39, right=0.98, bottom=0.105, top=0.91, hspace=0.58)
+    fig, axes = plt.subplots(2, 1, figsize=(3.48, 3.45), sharex=True)
+    fig.subplots_adjust(left=0.39, right=0.83, bottom=0.12, top=0.88, hspace=0.78)
     panels = [
         (axes[0], "a", "Frozen 500-scene benchmark", historic_order, historic, True),
         (axes[1], "b", "Separate 100-scene exploration", seven_order, seven, False),
@@ -218,21 +251,34 @@ def main() -> None:
         ax.barh(y, rates, height=0.64, color=colors, edgecolor="white", linewidth=0.45, zorder=3)
         ax.set_yticks(y, names)
         ax.invert_yaxis()
-        ax.set_xlim(0, 108)
+        ax.set_xlim(0, 100)
         ax.set_xticks([0, 25, 50, 75, 100])
         ax.set_title(title, loc="left", color=INK, fontweight="bold", pad=3)
         ax.grid(False, axis="x")
-        ax.tick_params(axis="both", length=1.8, width=0.5, pad=1.0, colors=BODY)
+        ax.tick_params(axis="both", length=1.8, width=0.5, pad=1.0, colors=BODY,
+                       labelsize=5.1)
         for yi, rate in zip(y, rates):
             if rate <= 5.0:
                 label_x, label_ha = rate + 2.0, "left"
             else:
                 label_x, label_ha = rate - 2.5, "right"
             ax.text(label_x, yi, f"{rate:.1f}%", va="center", ha=label_ha,
-                    color=INK, fontsize=5.5, clip_on=True, zorder=5)
+                    color=INK, fontsize=5.2, clip_on=True, zorder=5)
+            row = rows[order[yi][1]]
+            contacts = int(row["SweptCollisionRuns"]) if is_historic else int(row["swept_contacts"])
+            ax.text(1.035, yi, f"{contacts}", transform=ax.get_yaxis_transform(),
+                    va="center", ha="left", color=INK, fontsize=5.2, clip_on=False)
         ax.text(-0.18, 1.02, letter, transform=ax.transAxes, ha="left", va="bottom",
                 fontsize=7.2, fontweight="bold", color=INK)
+        ax.text(1.035, 1.02, "Swept\ncontacts", transform=ax.transAxes,
+                ha="left", va="bottom", fontsize=5.0, color=BODY, clip_on=False)
+        effect = ("Δ shared−DWA-only: +6.7 pp [4.2, 9.2]"
+                  if is_historic else
+                  "Δ shared−DWA-only: −1.0 pp [−4.8, 2.8]")
+        ax.text(0.00, 1.17, effect, transform=ax.transAxes, ha="left", va="bottom",
+                fontsize=5.05, color=BODY, clip_on=False)
     axes[0].set_xlabel("")
+    axes[1].set_xlabel("Collision-free goal arrival (%)", color=BODY, labelpad=2)
     fig.canvas.draw()
     alignment = require_matplotlib_panel_alignment(
         fig,
@@ -247,7 +293,9 @@ def main() -> None:
         raise RuntimeError(f"Outcome-figure alignment did not pass: {alignment.get('verdict')}")
     stem = FIGURES / "seven_method_outcomes_main"
     fig.savefig(stem.with_suffix(".pdf"), facecolor="white")
-    fig.savefig(stem.with_suffix(".svg"), facecolor="white")
+    svg_path = stem.with_suffix(".svg")
+    fig.savefig(svg_path, facecolor="white")
+    svg_path.write_bytes(re.sub(rb"[ \t]+(?=\r?$)", b"", svg_path.read_bytes(), flags=re.MULTILINE))
     fig.savefig(stem.with_suffix(".png"), dpi=600, facecolor="white")
     fig.savefig(stem.with_suffix(".tiff"), dpi=600, facecolor="white",
                 pil_kwargs={"compression": "tiff_lzw"})
@@ -262,7 +310,8 @@ def main() -> None:
         "protocols_are_separate": True,
         "source_rows_used": {"historical_arms": len(historic_order), "exploratory_arms": len(seven_rows)},
         "excluded_rows": 0,
-        "uncertainty": "Point estimates only. Matched scene-cluster intervals are reported in text/SI; they are not arm-wise intervals.",
+        "uncertainty": "Bars are point estimates; paired shared-minus-DWA-only intervals are shown directly above the panels (panel b uses a simultaneous max-|t| interval).",
+        "contact_counts": "Swept-contact counts are shown in a row-aligned column and read from the source outcome CSVs.",
         "simulations_rerun": False,
         "outcome_alignment": alignment,
         "pseudocode_alignment": pseudocode_alignment,
