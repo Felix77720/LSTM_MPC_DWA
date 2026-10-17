@@ -1,0 +1,96 @@
+{
+  "pdf": "C:\\Users\\Felix\\Desktop\\project\\LSTM_MPC_DWA\\paper\\Conference_4Page_Submission\\versions\\13_final_submission\\03_supplementary\\figures\\route_comparison_seven_method_scene72_seed2.pdf",
+  "auditable": true,
+  "verdict": "REVIEW REQUIRED",
+  "page_count": 1,
+  "visible_text_box_count": 50,
+  "text_trace_count": 50,
+  "stroke_path_count": 480,
+  "filled_region_count": 370,
+  "image_region_count": 0,
+  "summary": {
+    "fail": 0,
+    "warn": 3,
+    "contained_fill_overlays": 4,
+    "contained_image_overlays": 0
+  },
+  "thresholds": {
+    "text_inset_pt": 0.6,
+    "min_overlap_ratio": 0.05,
+    "clipping_tolerance_pt": 0.5
+  },
+  "findings": [
+    {
+      "severity": "WARN",
+      "kind": "text-fill-edge",
+      "page": 1,
+      "message": "Text partially overlaps the edge of 1 filled region(s)",
+      "text": "10",
+      "text_bbox": [
+        50.364383697509766,
+        68.93553161621094,
+        56.69678497314453,
+        74.63552856445312
+      ],
+      "other_text": null,
+      "other_bbox": [
+        40.293617248535156,
+        14.039993286132812,
+        99.02303314208984,
+        72.7694091796875
+      ],
+      "object_count": 1,
+      "object_indexes": [
+        1000
+      ]
+    },
+    {
+      "severity": "WARN",
+      "kind": "text-fill-edge",
+      "page": 1,
+      "message": "Text partially overlaps the edge of 1 filled region(s)",
+      "text": "0",
+      "text_bbox": [
+        84.06287384033203,
+        72.39385986328125,
+        87.23294067382812,
+        78.09385681152344
+      ],
+      "other_text": null,
+      "other_bbox": [
+        40.293617248535156,
+        14.039993286132812,
+        99.02303314208984,
+        72.7694091796875
+      ],
+      "object_count": 1,
+      "object_indexes": [
+        1000
+      ]
+    },
+    {
+      "severity": "WARN",
+      "kind": "text-fill-edge",
+      "page": 1,
+      "message": "Text partially overlaps the edge of 1 filled region(s)",
+      "text": "10",
+      "text_bbox": [
+        93.36767578125,
+        64.78578186035156,
+        99.7000732421875,
+        70.48577880859375
+      ],
+      "other_text": null,
+      "other_bbox": [
+        40.293617248535156,
+        14.039993286132812,
+        99.02303314208984,
+        72.7694091796875
+      ],
+      "object_count": 1,
+      "object_indexes": [
+        1000
+      ]
+    }
+  ]
+}

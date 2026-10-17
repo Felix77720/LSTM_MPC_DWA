@@ -5,7 +5,7 @@
   "coordinate_frame": "all seven saved XYZ trajectories in one shared 3-D perspective",
   "target_canvas_inches": [
     6.95,
-    3.58
+    3.02
   ],
   "route_states": "all and only the original saved states; no smoothing, interpolation, resampling, or extension",
   "endpoint_checks_reused": true,

@@ -499,14 +499,18 @@ def main() -> None:
 
     # A panoramic single-3-D view is used in the two-column main paper; the
     # four-view figure above remains in the supplement for coordinate detail.
-    wide_fig = plt.figure(figsize=(6.95, 3.58), constrained_layout=False)
-    ax_wide = wide_fig.add_axes([0.045, 0.14, 0.69, 0.78], projection="3d")
+    # The main-paper derivative occupies one two-column float. A shallower
+    # canvas keeps the recorded 3-D paths large at print size and removes the
+    # unused strip below the perspective projection; the SI still has all
+    # four orthogonal views for route separation.
+    wide_fig = plt.figure(figsize=(6.95, 3.02), constrained_layout=False)
+    ax_wide = wide_fig.add_axes([0.015, 0.02, 0.75, 0.96], projection="3d")
     ax_wide.view_init(elev=25, azim=-56)
     ax_wide.set_proj_type("ortho")
     ax_wide.set_xlim(0, 20)
     ax_wide.set_ylim(0, 20)
     ax_wide.set_zlim(-0.8, 10)
-    ax_wide.set_box_aspect((20, 20, 11))
+    ax_wide.set_box_aspect((20, 20, 11), zoom=1.12)
     ax_wide.set_xlabel("x (m)", labelpad=3, fontsize=8.0)
     ax_wide.set_ylabel("y (m)", labelpad=3, fontsize=8.0)
     ax_wide.set_zlabel("z (m)", labelpad=2, fontsize=8.0)
@@ -563,7 +567,7 @@ def main() -> None:
     ax_wide.scatter(*goal, marker="*", s=92, facecolors="none",
                     edgecolors="#CC3311", linewidth=1.1, depthshade=False, zorder=3)
     wide_fig.legend(
-        handles=wide_handles, loc="center left", bbox_to_anchor=(0.765, 0.52),
+        handles=wide_handles, loc="center left", bbox_to_anchor=(0.755, 0.52),
         ncol=1, frameon=False, fontsize=7.2, handlelength=1.5,
         handletextpad=0.5, labelspacing=0.9,
         title="Controller", title_fontsize=7.5,
@@ -582,7 +586,7 @@ def main() -> None:
         "selection_scene": selected_scene,
         "sampling_seed": selected_seed,
         "coordinate_frame": "all seven saved XYZ trajectories in one shared 3-D perspective",
-        "target_canvas_inches": [6.95, 3.58],
+        "target_canvas_inches": [6.95, 3.02],
         "route_states": "all and only the original saved states; no smoothing, interpolation, resampling, or extension",
         "endpoint_checks_reused": True,
         "source_endpoint_audit": endpoint_audit_path.name,
