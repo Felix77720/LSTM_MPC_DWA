@@ -18,9 +18,18 @@
 \renewcommand{\thetable}{\arabic{table}}
 \let\citeplain\cite
 \renewcommand{\cite}[1]{\textsuperscript{\citeplain{#1}}}
+\makeatletter
+\newcommand{\minipagefigurecaption}[2]{%
+  \refstepcounter{figure}%
+  \label{#1}%
+  \@makecaption{\figurename~\thefigure}{#2}%
+}
+\makeatother
 
 \graphicspath{{figures/}}
 \interdisplaylinepenalty=2500
+\setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{12pt plus 2pt minus 2pt}
 
 \title{A Shared LSTM Forecast for 3-D UAV Planning with Coupled MPC--DWA in Dynamic Obstacle Fields}
 \author{\IEEEauthorblockN{Zhenhui Fu\textsuperscript{*}}
@@ -152,21 +161,23 @@ Under the frozen 1-s DWA/3-s MPC protocol with inherited weights, 500 scenes and
 
 The separate exploratory evaluation comprised 2,100 episodes: seven arms, 100 distinct scenes and three matched seeds per scene. It used 0.1-s updates, 3-s MPC/DWA horizons and a 650-step limit. The arms were standalone DWA-CV and MPC-CV, coupled MPC--DWA-CV, LSTM to MPC only, LSTM to DWA only, shared LSTM and latest-position hold. Arrival required goal tolerance without swept-path contact; seeds were averaged within scene, and 20,000 scene-cluster bootstrap resamples formed simultaneous max-|t| intervals for six shared-versus-comparator contrasts. Shared LSTM reached in 221/300 runs (73.7\%), compared with 276/300 (92.0\%) for standalone MPC-CV, the highest rate; MPC-CV also had 15 swept-contact runs. Its difference from DWA-only LSTM was inconclusive; it exceeded position hold by 16.3 points (95\% CI, 5.1--27.6) but was 18.3 points below MPC-CV (95\% CI, -29.6 to -7.0). This evaluation also does not establish an overall best controller (Fig.~\ref{fig:rates}b; Supplementary Table S12).
 
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.98\columnwidth]{seven_method_outcomes_main.pdf}
-\caption{Collision-free goal-arrival rates in two separate protocols. (a) Frozen five-controller benchmark: 500 scenes, three matched seeds, $n=1{,}500$ per method and a 1-s DWA screen. (b) Separate seven-method exploration: 100 scenes, three matched seeds, $n=300$ per method and a 3-s screen. Bars are point estimates; the paired shared-minus-DWA-only contrast is shown above each panel: +6.7 percentage points (95\% scene-cluster CI 4.2--9.2) in (a), and -1.0 points (simultaneous 95\% CI -4.8--2.8) in (b). The right column gives swept contacts for each method. The highest-rate method differs by protocol; panels are not pooled.}
-\label{fig:rates}
-\end{figure}
-
 A matched route from the separate seven-method evaluation (scene 72, sampling seed 2) is shown in Fig.~\ref{fig:routes}. Shared LSTM and DWA-CV arrived safely in this example; the other five did not achieve collision-free goal arrival. This single case illustrates route geometry, not the aggregate ranking.
 
-\begin{figure}[!t]
+\begin{figure*}[!t]
 \centering
-\includegraphics[width=0.98\columnwidth]{route_comparison_seven_method_scene72_seed2_singlecol.pdf}
-\caption{Seven recorded paths in one matched case (scene 72, seed 2). Shared LSTM and DWA-CV arrived without swept contact; MPC-CV reached goal tolerance but had swept contact; the other methods stopped or contacted earlier. Lines join saved states without interpolation, smoothing or extension, and end at recorded terminal points. Markers show outcome, not contact location. This example is descriptive; aggregate rates appear in Fig.~\ref{fig:rates}b.}
-\label{fig:routes}
-\end{figure}
+\begin{minipage}[t]{0.485\textwidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth]{seven_method_outcomes_main.pdf}
+\minipagefigurecaption{fig:rates}{Collision-free goal-arrival rates in two separate protocols. (a) Frozen five-controller benchmark: 500 scenes, three matched seeds, $n=1{,}500$ per method and a 1-s DWA screen. (b) Separate seven-method exploration: 100 scenes, three matched seeds, $n=300$ per method and a 3-s screen. Bars are point estimates; the paired shared-minus-DWA-only contrast is shown above each panel: +6.7 percentage points (95\% scene-cluster CI 4.2--9.2) in (a), and -1.0 points (simultaneous 95\% CI -4.8--2.8) in (b). The right column gives swept contacts for each method. The highest-rate method differs by protocol; panels are not pooled.}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.485\textwidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth]{route_comparison_seven_method_scene72_seed2_singlecol.pdf}
+\minipagefigurecaption{fig:routes}{Seven recorded paths in one matched case (scene 72, seed 2). Shared LSTM and DWA-CV arrived without swept contact; MPC-CV reached goal tolerance but had swept contact; the other methods stopped or contacted earlier. Lines join saved states without interpolation, smoothing or extension, and end at recorded terminal points. Markers show outcome, not contact location. This example is descriptive; aggregate rates appear in Fig.~\ref{fig:rates}b.}
+\end{minipage}
+\end{figure*}
 
 \section{Discussion}
 The two protocols indicate a protocol-specific benefit: forecast sharing raised safe arrival in the frozen 1-s screen comparison, but not in the 3-s exploratory comparison; standalone MPC-CV had the highest rate there. Because scene banks, trust weights and horizons also differed, these studies do not isolate the source of that difference. LSTM uses simulator-recorded obstacle velocity and heading, whereas CV estimates velocity from positions, so the contrast concerns configured input pipelines as well as predictors. Prescribed tracks, point forecasts and no flight tests limit generalization.
@@ -178,7 +189,7 @@ In simulation, shared LSTM increased collision-free arrival by 6.7 percentage po
 
 \balance
 \bibliographystyle{IEEEtran}
-{\scriptsize\bibliography{references}}
+{\footnotesize\bibliography{references}}
 \end{document}
 
 
