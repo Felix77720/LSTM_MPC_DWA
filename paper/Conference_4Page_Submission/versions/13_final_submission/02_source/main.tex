@@ -72,7 +72,7 @@ v_{t+1}&=v_t+\frac{\Delta t}{\tau_v}(v_{c,t}-v_t),\\
 \label{eq:model}
 \end{equation}
 \endgroup
-Here $t$ is the current step, $k$ a future step, and $j=1,\ldots,M$ indexes the $M$ obstacles. The unit direction $\mathbf h_t$ follows the UAV's pitch $\theta_t$ and yaw $\psi_t$. The update period is $\Delta t=0.1$ s; $\tau_v$ is the speed-response time; $v_c,\omega_\theta,\omega_\psi$ are commanded speed, pitch rate and yaw rate. The UAV and obstacle radii are $r_u$ and $r_j$. Positive $\hat d_{j,k}$ means separation, zero contact, and negative overlap.
+Here $t$ is the current step, $k$ a future step, and $j=1,\ldots,M$ indexes the $M$ obstacles. The unit direction $\mathbf h_t$ follows the UAV's pitch $\theta_t$ and yaw $\psi_t$. The update period is $\Delta t=0.1$ s; $\tau_v$ is the speed-response time; $v_c,\omega_\theta,\omega_\psi$ are commanded speed, pitch rate and yaw rate. In the clearance term, $\mathbf p_{t+k|t}$ and $\hat{\mathbf o}_{j,t+k|t}$ are the predicted UAV position and obstacle centre at step $k$. The UAV and obstacle radii are $r_u$ and $r_j$. Positive $\hat d_{j,k}$ means separation, zero contact, and negative overlap.
 
 At each update, the causal LSTM \cite{hochreiter1997} maps ten obstacle observations to thirty 3-D offsets from the latest observed centre:
 \begingroup\small
@@ -116,7 +116,7 @@ B_g&=\operatorname{round}(B\tau),\quad B_e=B-B_g.
 \label{eq:trust}
 \end{equation}
 \endgroup
-The normalized scores $\tau_{\rm sa},\tau_g,\tau_{\rm ref},\tau_{\rm sm}$ denote safety, goal progress, reference agreement and smoothness; their corresponding nonnegative weights $\sigma_s,\sigma_g,\sigma_t,\sigma_m$ sum to one. $B$ is the DWA sample budget, split into guided $B_g$ and exploratory $B_e$ samples. The fixed $\alpha=1$ sets the maximum relative budget increase at low trust, while $\beta=3$ controls how quickly that increase decays as trust rises. For the 3-s evaluation, six candidate weight vectors were compared over 4,320 development episodes, selecting $[\sigma_s,\sigma_g,\sigma_t,\sigma_m]=[0.15,0.15,0.15,0.55]$ (equal-arm macro-average 0.8042). This same-data selection is descriptive, not held-out evidence. The frozen 1-s benchmark retained its inherited weights $[0.35,0.30,0.15,0.20]$. The score definitions and remaining parameters are in Supplementary Methods S1.2.
+The normalized scores $\tau_{\rm sa},\tau_g,\tau_{\rm ref},\tau_{\rm sm}$ denote safety, goal progress, reference agreement and smoothness; their nonnegative weights $\sigma_s,\sigma_g,\sigma_t,\sigma_m$ sum to one. $B$ is the sample budget, divided into MPC-guided $B_g$ and exploratory $B_e$ actions. Higher trust concentrates more of a smaller budget near the MPC guide; lower trust increases exploration. The dimensionless $\alpha=1$ and $\beta=3$ are fixed implementation settings, not selected in the 4,320-episode Stage-1 sweep, which selected the weights only. Six candidate weight vectors were compared for the 3-s evaluation, selecting $[\sigma_s,\sigma_g,\sigma_t,\sigma_m]=[0.15,0.15,0.15,0.55]$ (equal-arm macro-average 0.8042); this same-data selection is descriptive, not held-out evidence. The frozen 1-s benchmark retained its inherited weights $[0.35,0.30,0.15,0.20]$. Full score definitions and parameters are in Supplementary Methods S1.2.
 
 DWA rejects unsafe rollouts, scores the survivors, and uses their control range to bound MPC's first input:
 \begingroup\small
@@ -132,15 +132,15 @@ u_{i,t}^{+}&=\min\!\left(u_i^{\max},\max_{b\in\mathcal A_t}u_i^{(b)}+\delta\righ
 \label{eq:dwa}
 \end{equation}
 \endgroup
-Here $\mathcal B_t$ is the sampled set, $d_{\min}^{(b)}$ is candidate $b$'s minimum clearance across the 30 time-aligned states and all obstacles, and $\mathcal C_b=1$ means the rollout remains inside the flight corridor. The terminal speed is $v_{\rm end}^{(b)}$ and available deceleration is $a_{\max}=1.0$ m s$^{-2}$. $S_b$ ranks MPC-endpoint agreement, heading, speed, obstacle clearance and vertical profile. For a nonempty safe set $\mathcal A_t$, its per-coordinate extrema, expanded by $\delta=0.1$ in each control coordinate and clipped to that coordinate's physical limits $u_i^{\min},u_i^{\max}$, form $\mathcal U_t$; this numerical margin is an implementation heuristic because the controls have different units. The selected safe DWA action is executed; the envelope constrains only MPC's first command and is not itself a safety certificate. If the normal safe set is empty, emergency actions are screened; if none passes, the simulator stops. Full scores and fallback logic are in Supplementary Methods S1.2--S1.4.
+Here $\mathcal B_t$ is the sampled set, and $d_{\min}^{(b)}$ is candidate $b$'s minimum clearance over the active DWA screen and all obstacles. The frozen benchmark screens the first 10 forecast states (1 s); the separate exploratory evaluation screens all 30 (3 s). MPC uses a 30-step (3-s) horizon in both. The indicator $\mathcal C_b=1$ means the rollout remains inside the flight corridor. The terminal speed is $v_{\rm end}^{(b)}$ and available deceleration is $a_{\max}=1.0$ m s$^{-2}$. $S_b$ ranks MPC-endpoint agreement, heading, speed, obstacle clearance and vertical profile. For a nonempty safe set $\mathcal A_t$, its per-coordinate extrema, expanded by $\delta=0.1$ in each control coordinate and clipped to its physical limits $u_i^{\min},u_i^{\max}$, form $\mathcal U_t$; this numerical margin is an implementation heuristic because the controls have different units. The DWA action is executed unless optional lateral recentering is triggered; the adjusted rollout is re-screened, and failure reverts to the original screened action. The envelope constrains only MPC's first command and is not a safety certificate. If the normal safe set is empty, emergency actions are screened; if none passes, the simulator stops. Full scores and fallback logic are in Supplementary Methods S1.2--S1.4.
 
 \subsection{How the shared forecast is used}
-Every 0.1 s, the shared arm sends the same time-indexed 3-s forecast to both layers. MPC uses it in its route cost; DWA uses it to evaluate reachable action rollouts and apply explicit clearance, corridor and braking gates. DWA's passing controls bound the first MPC command on re-solve, while the screened DWA action is executed. Thus long-horizon route planning and near-term action selection assess the same predicted encounters. In the historical DWA-only arm, MPC holds the latest obstacle positions; in the 3-s one-layer ablation, MPC uses its configured CV input. The full cycle is shown in Figure~\ref{fig:algorithm} and Supplementary Methods S1.4.
+Every 0.1 s, the causal LSTM produces a time-aligned 3-s forecast for both layers. MPC uses all 30 future positions in its route cost; DWA screens the first 10 positions in the frozen benchmark and all 30 in the separate exploratory evaluation. DWA's passing controls bound MPC's first command on re-solve, while the screened DWA action is executed. The same predicted encounters therefore guide route optimization and reachable-action screening. In the historical DWA-only arm, MPC holds the latest obstacle positions; in the 3-s one-layer ablation, MPC uses its configured CV input. Figure~\ref{fig:algorithm} summarizes the cycle; Supplementary Methods S1.4 gives the full fallback logic.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.92\columnwidth]{algorithm_main_pseudocode.pdf}
-\caption{Pseudocode overview of one shared-forecast update. At each 0.1-s step, one causal 3-s LSTM forecast enters MPC and DWA; passing DWA controls bound only MPC's first input, while the screened DWA action is executed. The emergency branch is re-screened and stops if no feasible action remains.}
+\caption{Stepwise modules in one shared-forecast update. The same causal LSTM forecast feeds the MPC route optimizer and DWA action selector. Passing DWA controls bound MPC's first input; a triggered recentering is used only after re-screening. The screened DWA or emergency action is executed, with fail-closed stop if no emergency action passes.}
 \label{fig:algorithm}
 \end{figure}
 
@@ -149,29 +149,24 @@ We report the frozen matched comparison first and the separate exploratory evalu
 
 Under the frozen 1-s DWA/3-s MPC protocol with inherited weights, 500 scenes and three matched seeds compared shared LSTM with DWA-only LSTM. DWA received LSTM forecasts in both arms; only the shared arm also supplied them to MPC. Safe arrival was 936/1,500 (62.4\%) versus 836/1,500 (55.7\%), a paired gain of 6.7 percentage points (95\% scene-cluster CI, 4.2--9.2). These 3,000 runs are part of the 7,500-run benchmark, not an extra sample. In the same protocol, standalone DWA+LSTM and MPC+LSTM reached 82.4\% and 95.2\%, respectively, while the latest-position-hold reconstruction reached 2.2\% (Fig.~\ref{fig:rates}a; Supplementary Methods S4). Thus, forecast sharing improved on DWA-only input but did not outperform the independent controllers overall.
 
-The separate exploratory evaluation comprised 2,100 episodes: seven arms, 100 distinct scenes and three matched seeds per scene. It used 0.1-s updates, 3-s MPC/DWA horizons and a 650-step limit. The arms were standalone DWA-CV and MPC-CV, coupled MPC--DWA-CV, LSTM to MPC only, LSTM to DWA only, shared LSTM and latest-position hold. Arrival required goal tolerance without swept-path contact; seeds were averaged within scene, and 20,000 scene-cluster bootstrap resamples formed simultaneous max-|t| intervals for six shared-versus-comparator contrasts. Shared LSTM reached in 221/300 runs (73.7\%), compared with 276/300 (92.0\%) for standalone MPC-CV, the highest rate. Its difference from DWA-only LSTM was inconclusive; it exceeded position hold by 16.3 points (95\% CI, 5.1--27.6) but was 18.3 points below MPC-CV (95\% CI, -29.6 to -7.0). This evaluation also does not establish an overall best controller (Fig.~\ref{fig:rates}b; Supplementary Table S12).
+The separate exploratory evaluation comprised 2,100 episodes: seven arms, 100 distinct scenes and three matched seeds per scene. It used 0.1-s updates, 3-s MPC/DWA horizons and a 650-step limit. The arms were standalone DWA-CV and MPC-CV, coupled MPC--DWA-CV, LSTM to MPC only, LSTM to DWA only, shared LSTM and latest-position hold. Arrival required goal tolerance without swept-path contact; seeds were averaged within scene, and 20,000 scene-cluster bootstrap resamples formed simultaneous max-|t| intervals for six shared-versus-comparator contrasts. Shared LSTM reached in 221/300 runs (73.7\%), compared with 276/300 (92.0\%) for standalone MPC-CV, the highest rate; MPC-CV also had 15 swept-contact runs. Its difference from DWA-only LSTM was inconclusive; it exceeded position hold by 16.3 points (95\% CI, 5.1--27.6) but was 18.3 points below MPC-CV (95\% CI, -29.6 to -7.0). This evaluation also does not establish an overall best controller (Fig.~\ref{fig:rates}b; Supplementary Table S12).
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.98\columnwidth]{seven_method_outcomes_main.pdf}
+\caption{Collision-free goal-arrival rates in two separate protocols. (a) Frozen five-controller benchmark: 500 scenes, three matched seeds, $n=1{,}500$ per controller and a 1-s DWA screen. (b) Exploratory seven-controller evaluation: 100 distinct scenes, three matched seeds, $n=300$ per controller and a 3-s screen. Bars show point estimates; paired scene-cluster intervals are reported in the text and supplement. Swept-contact counts follow the displayed method order: 624, 2, 0, 0, 36 in (a), and 0, 15, 0, 0, 0, 0, 50 in (b). The highest-rate method differs by protocol; panels are not pooled.}
+\label{fig:rates}
+\end{figure}
 
 A matched route from the separate seven-method evaluation (scene 72, sampling seed 2) is shown in Fig.~\ref{fig:routes}. Shared LSTM and DWA-CV arrived safely in this example; the other five did not achieve collision-free goal arrival. This single case illustrates route geometry, not the aggregate ranking.
 
 \begin{figure*}[!t]
 \centering
-\begin{minipage}[t]{0.48\textwidth}
-\vspace{0pt}
-\centering
-\includegraphics[width=0.98\linewidth]{seven_method_outcomes_main.pdf}
-\caption{Collision-free goal-arrival rates in two separate protocols. (a) Frozen five-controller benchmark: 500 scenes, three matched seeds, $n=1{,}500$ runs per controller and a 1-s DWA screen. (b) Exploratory seven-controller evaluation: 100 distinct scenes, three matched seeds, $n=300$ runs per controller and a 3-s screen. Bars show observed point estimates; paired scene-cluster intervals are reported in the text and Supplementary Methods, not as arm-wise error bars. Swept-contact counts in row order are 624, 2, 0, 0, 36 in (a), and 0, 15, 0, 0, 0, 0, 50 in (b). Standalone MPC+LSTM and MPC-CV had the highest rates in their respective protocols; the panels are not pooled into one ranking.}
-\label{fig:rates}
-\end{minipage}\hfill%
-\begin{minipage}[t]{0.48\textwidth}
-\vspace{0pt}
-\centering
-\includegraphics[width=0.98\linewidth]{route_comparison_seven_method_scene72_seed2.pdf}
-\caption{Recorded paths from scene 72, seed 2 of the separate seven-method evaluation. The four views show (a) 3-D perspective, (b) $XY$, (c) $XZ$ and (d) $YZ$ projections; the legend names all seven controllers. Shared LSTM and DWA-CV safely arrived; MPC-CV had swept contact after reaching goal tolerance, and the remaining methods stopped or contacted earlier. Paths end at logged terminal states without smoothing, interpolation or extension. Triangle/star: start/goal; circle: safe arrival; square: no-contact stop; X: a run with swept contact (not its contact location). This is one matched example; aggregate rates are in Fig.~\ref{fig:rates}b.}
+\includegraphics[width=0.95\textwidth]{route_comparison_seven_method_scene72_seed2_main.pdf}
+\caption{All seven recorded trajectories from scene 72, seed 2, overlaid in one 3-D scene. Color, line style and sparse recorded-state markers identify each controller. Shared LSTM and DWA-CV safely arrived; MPC-CV reached goal tolerance but had swept contact; the other five stopped or contacted earlier. Paths end at logged states without smoothing, interpolation or extension. Triangle/star mark start/goal; terminal circle/square/X denote safe arrival, no-contact non-arrival or swept contact (X is not the contact location). This single example is not aggregate evidence; rates are in Fig.~\ref{fig:rates}b.}
 \label{fig:routes}
-\end{minipage}
 \end{figure*}
 
-\balance
 \section{Discussion}
 The two protocols indicate a protocol-specific benefit: forecast sharing raised safe arrival in the frozen 1-s screen comparison, but not in the 3-s exploratory comparison; standalone MPC-CV had the highest rate there. Because scene banks, trust weights and horizons also differed, these studies do not isolate the source of that difference. LSTM uses simulator-recorded obstacle velocity and heading, whereas CV estimates velocity from positions, so the contrast concerns configured input pipelines as well as predictors. Prescribed tracks, point forecasts and no flight tests limit generalization.
 \Needspace{7\baselineskip}
@@ -180,6 +175,7 @@ The two protocols indicate a protocol-specific benefit: forecast sharing raised 
 In simulation, shared LSTM increased collision-free arrival by 6.7 percentage points over DWA-only input in the frozen 500-scene, 1-s DWA comparison. In the separate 3-s evaluation, standalone MPC-CV had the highest rate, and the shared-versus-DWA-only contrast was inconclusive.
 \end{samepage}
 
+\balance
 \bibliographystyle{IEEEtran}
 {\scriptsize\bibliography{references}}
 \end{document}

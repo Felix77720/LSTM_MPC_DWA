@@ -148,7 +148,7 @@
       "type": "caption",
       "order": 7,
       "source_location": "main.tex: caption for fig:scenario",
-      "original_text": "Problem geometry: the quadrotor is centered at the start and moves toward the goal among spherical obstacles following prescribed paths (arrows). The dashed line marks the direct start-to-goal direction, not a simulated route; planner trajectories appear separately in Figure 2.",
+      "original_text": "Problem geometry: the quadrotor is centered at the start and moves toward the goal among spherical obstacles following prescribed paths (arrows). The dashed line marks the direct start-to-goal direction, not a simulated route; planner trajectories appear separately in Figure 4.",
       "translation": "问题几何：四旋翼无人机以起点为中心位置，朝目标移动；球形障碍物沿预设路径运动（箭头所示）。虚线表示起点到目标的直达方向，并非仿真路线；规划器轨迹另见图 4。",
       "refs": [
         "fig:routes"
@@ -185,8 +185,8 @@
       "type": "paragraph",
       "order": 11,
       "source_location": "main.tex: text after eq:model",
-      "original_text": "Here $t$ is the current step, $k$ a future step, and $j=1,\\ldots,M$ indexes the $M$ obstacles. The unit direction $\\mathbf h_t$ follows the UAV's pitch $\\theta_t$ and yaw $\\psi_t$. The update period is $\\Delta t=0.1$ s; $\\tau_v$ is the speed-response time; $v_c,\\omega_\\theta,\\omega_\\psi$ are commanded speed, pitch rate and yaw rate. The UAV and obstacle radii are $r_u$ and $r_j$. Positive $\\hat d_{j,k}$ means separation, zero contact, and negative overlap.",
-      "translation": "这里，$t$ 表示当前步，$k$ 表示未来步，$j=1,\\ldots,M$ 为 $M$ 个障碍物的索引。单位方向 $\\mathbf h_t$ 由无人机俯仰角 $\\theta_t$ 和偏航角 $\\psi_t$ 决定。更新间隔 $\\Delta t=0.1$ s；$\\tau_v$ 为速度响应时间；$v_c,\\omega_\\theta,\\omega_\\psi$ 分别是速度、俯仰角速度和偏航角速度指令。$r_u$ 和 $r_j$ 分别为无人机与障碍物半径。$\\hat d_{j,k}$ 为带符号表面间隙：正值表示分离，零表示接触，负值表示重叠。"
+      "original_text": "Here $t$ is the current step, $k$ a future step, and $j=1,\\ldots,M$ indexes the $M$ obstacles. The unit direction $\\mathbf h_t$ follows the UAV's pitch $\\theta_t$ and yaw $\\psi_t$. The update period is $\\Delta t=0.1$ s; $\\tau_v$ is the speed-response time; $v_c,\\omega_\\theta,\\omega_\\psi$ are commanded speed, pitch rate and yaw rate. In the clearance term, $\\mathbf p_{t+k|t}$ and $\\hat{\\mathbf o}_{j,t+k|t}$ are the predicted UAV position and obstacle centre at step $k$. The UAV and obstacle radii are $r_u$ and $r_j$. Positive $\\hat d_{j,k}$ means separation, zero contact, and negative overlap.",
+      "translation": "这里，$t$ 表示当前步，$k$ 表示未来步，$j=1,\\ldots,M$ 为 $M$ 个障碍物的索引。单位方向 $\\mathbf h_t$ 由无人机俯仰角 $\\theta_t$ 和偏航角 $\\psi_t$ 决定。更新间隔 $\\Delta t=0.1$ s；$\\tau_v$ 为速度响应时间；$v_c,\\omega_\\theta,\\omega_\\psi$ 分别是速度、俯仰角速度和偏航角速度指令。在间隙计算中，$\\mathbf p_{t+k|t}$ 与 $\\hat{\\mathbf o}_{j,t+k|t}$ 分别表示第 $k$ 步预测的无人机位置和障碍物中心。$r_u$ 和 $r_j$ 分别为无人机与障碍物半径。$\\hat d_{j,k}$ 为带符号表面间隙：正值表示分离，零表示接触，负值表示重叠。"
     },
     {
       "id": "S009",
@@ -266,8 +266,8 @@
       "type": "paragraph",
       "order": 20,
       "source_location": "main.tex: text after eq:trust",
-      "original_text": "The normalized scores $\\tau_{\\rm sa},\\tau_g,\\tau_{\\rm ref},\\tau_{\\rm sm}$ denote safety, goal progress, reference agreement and smoothness; their corresponding nonnegative weights $\\sigma_s,\\sigma_g,\\sigma_t,\\sigma_m$ sum to one. $B$ is the DWA sample budget, split into guided $B_g$ and exploratory $B_e$ samples. The fixed $\\alpha=1$ sets the maximum relative budget increase at low trust, while $\\beta=3$ controls how quickly that increase decays as trust rises. For the 3-s evaluation, six candidate weight vectors were compared over 4,320 development episodes, selecting $[\\sigma_s,\\sigma_g,\\sigma_t,\\sigma_m]=[0.15,0.15,0.15,0.55]$ (equal-arm macro-average 0.8042). This same-data selection is descriptive, not held-out evidence. The frozen 1-s benchmark retained its inherited weights $[0.35,0.30,0.15,0.20]$. The score definitions and remaining parameters are in Supplementary Methods S1.2.",
-      "translation": "四个归一化评分 $\\tau_{\\rm sa},\\tau_g,\\tau_{\\rm ref},\\tau_{\\rm sm}$ 依次表示安全性、目标推进、引导路线一致性和平滑性；对应的非负权重 $\\sigma_s,\\sigma_g,\\sigma_t,\\sigma_m$ 之和为 1。$B$ 是 DWA 采样总数，分为引导样本 $B_g$ 与探索样本 $B_e$。固定参数 $\\alpha=1$ 决定低信任度时采样预算的最大相对增幅，$\\beta=3$ 控制该增幅随信任度上升而衰减的速度。3 s 评估所用配置基于 4,320 次开发仿真比较六组候选权重，选出的向量为 $[\\sigma_s,\\sigma_g,\\sigma_t,\\sigma_m]=[0.15,0.15,0.15,0.55]$（五个集成分支等权宏平均为 0.8042）。该结果来自同一批开发记录，仅作校准描述，不是留出验证。冻结的 1 s 基准保留继承权重 $[0.35,0.30,0.15,0.20]$。评分定义与其余参数见补充方法 S1.2。"
+      "original_text": "The normalized scores $\\tau_{\\rm sa},\\tau_g,\\tau_{\\rm ref},\\tau_{\\rm sm}$ denote safety, goal progress, reference agreement and smoothness; their nonnegative weights $\\sigma_s,\\sigma_g,\\sigma_t,\\sigma_m$ sum to one. $B$ is the sample budget, divided into MPC-guided $B_g$ and exploratory $B_e$ actions. Higher trust concentrates more of a smaller budget near the MPC guide; lower trust increases exploration. The dimensionless $\\alpha=1$ and $\\beta=3$ are fixed implementation settings, not selected in the 4,320-episode Stage-1 sweep, which selected the weights only. Six candidate weight vectors were compared for the 3-s evaluation, selecting $[\\sigma_s,\\sigma_g,\\sigma_t,\\sigma_m]=[0.15,0.15,0.15,0.55]$ (equal-arm macro-average 0.8042); this same-data selection is descriptive, not held-out evidence. The frozen 1-s benchmark retained its inherited weights $[0.35,0.30,0.15,0.20]$. Full score definitions and parameters are in Supplementary Methods S1.2.",
+      "translation": "四个归一化评分 $\\tau_{\\rm sa},\\tau_g,\\tau_{\\rm ref},\\tau_{\\rm sm}$ 依次表示安全性、目标推进、引导路线一致性和平滑性；对应的非负权重 $\\sigma_s,\\sigma_g,\\sigma_t,\\sigma_m$ 之和为 1。$B$ 是采样预算，分为 MPC 引导动作 $B_g$ 与探索动作 $B_e$。信任度较高时，总预算较小，但更多样本集中在 MPC 引导附近；信任度较低时，则增加探索样本。无量纲参数 $\\alpha=1$ 与 $\\beta=3$ 是固定实现设置，并非从 4,320 次 Stage-1 扫描中选出；该扫描只用于选择权重。3 s 评估的六组候选权重比较选出 $[\\sigma_s,\\sigma_g,\\sigma_t,\\sigma_m]=[0.15,0.15,0.15,0.55]$（等权宏平均为 0.8042）；这是同一开发集上的描述性选参结果，并非留出验证。冻结的 1 s 基准保留继承权重 $[0.35,0.30,0.15,0.20]$。完整评分定义与参数见补充方法 S1.2。"
     },
     {
       "id": "S015",
@@ -292,16 +292,16 @@
       "type": "paragraph",
       "order": 23,
       "source_location": "main.tex: text after eq:dwa",
-      "original_text": "Here $\\mathcal B_t$ is the sampled set; $d_{\\min}^{(b)}$ is candidate $b$'s minimum clearance across the 30 time-aligned states and all obstacles; and $\\mathcal C_b=1$ means the rollout remains inside the flight corridor. The terminal speed is $v_{\\rm end}^{(b)}$, and available deceleration is $a_{\\max}=1.0$ m s$^{-2}$. $S_b$ ranks MPC-endpoint agreement, heading, speed, obstacle clearance and vertical profile. For a nonempty safe set $\\mathcal A_t$, its per-coordinate extrema, expanded by $\\delta=0.1$ in each control coordinate and clipped to that coordinate's physical limits $u_i^{\\min},u_i^{\\max}$, form $\\mathcal U_t$; this numerical margin is an implementation heuristic because the controls have different units. The selected safe DWA action is executed; the envelope constrains only MPC's first command and is not itself a safety certificate. If the normal safe set is empty, emergency actions are screened; if none passes, the simulator stops. Full scores and fallback logic are in Supplementary Methods S1.2--S1.4.",
-      "translation": "这里，$\\mathcal B_t$ 是采样动作集合；$d_{\\min}^{(b)}$ 是候选动作 $b$ 在全部障碍物与 30 个时间对齐状态中的最小间隙；$\\mathcal C_b=1$ 表示轨迹未离开飞行走廊。$v_{\\rm end}^{(b)}$ 为末端速度，可用减速度 $a_{\\max}=1.0$ m s$^{-2}$。评分 $S_b$ 综合 MPC 终点一致性、航向、速度、障碍物间隙和垂直剖面。若安全集 $\\mathcal A_t$ 非空，则各控制分量在安全候选中的最小值和最大值经 $\\delta=0.1$ 扩展，并裁剪到对应分量的物理限值 $u_i^{\\min},u_i^{\\max}$，形成 $\\mathcal U_t$；由于三个控制分量单位不同，这个数值裕度是实现中的启发式量。实际执行得分最高的安全 DWA 动作；该范围只约束 MPC 首个控制指令，本身不保证范围内每个控制量都安全。若普通安全集为空，则筛查应急动作；若均不通过，仿真停止。完整评分与回退流程见补充方法 S1.2–S1.4。"
+      "original_text": "Here $\\mathcal B_t$ is the sampled set, and $d_{\\min}^{(b)}$ is candidate $b$'s minimum clearance over the active DWA screen and all obstacles. The frozen benchmark screens the first 10 forecast states (1 s); the separate exploratory evaluation screens all 30 (3 s). MPC uses a 30-step (3-s) horizon in both. The indicator $\\mathcal C_b=1$ means the rollout remains inside the flight corridor. The terminal speed is $v_{\\rm end}^{(b)}$ and available deceleration is $a_{\\max}=1.0$ m s$^{-2}$. $S_b$ ranks MPC-endpoint agreement, heading, speed, obstacle clearance and vertical profile. For a nonempty safe set $\\mathcal A_t$, its per-coordinate extrema, expanded by $\\delta=0.1$ in each control coordinate and clipped to its physical limits $u_i^{\\min},u_i^{\\max}$, form $\\mathcal U_t$; this numerical margin is an implementation heuristic because the controls have different units. The DWA action is executed unless optional lateral recentering is triggered; the adjusted rollout is re-screened, and failure reverts to the original screened action. The envelope constrains only MPC's first command and is not a safety certificate. If the normal safe set is empty, emergency actions are screened; if none passes, the simulator stops. Full scores and fallback logic are in Supplementary Methods S1.2--S1.4.",
+      "translation": "这里，$\\mathcal B_t$ 是采样动作集合；$d_{\\min}^{(b)}$ 是候选动作 $b$ 在当前 DWA 筛查时域和全部障碍物中的最小间隙。冻结基准筛查前 10 个预测状态（1 s），另一项探索性评估筛查全部 30 个状态（3 s）；两者的 MPC 时域均为 30 步（3 s）。$\\mathcal C_b=1$ 表示轨迹未离开飞行走廊。$v_{\\rm end}^{(b)}$ 为末端速度，可用减速度 $a_{\\max}=1.0$ m s$^{-2}$。评分 $S_b$ 综合 MPC 终点一致性、航向、速度、障碍物间隙和垂直剖面。若安全集 $\\mathcal A_t$ 非空，则各控制分量在安全候选中的最小值和最大值经 $\\delta=0.1$ 扩展，并裁剪到对应分量的物理限值 $u_i^{\\min},u_i^{\\max}$，形成 $\\mathcal U_t$；由于三个控制分量单位不同，这个数值裕度是实现中的启发式量。若触发可选横向重居中，调整后的轨迹必须重新筛查；未通过时恢复原先筛查通过的动作。该范围只约束 MPC 首个控制指令，不是安全证书。若普通安全集为空，则筛查应急动作；若均不通过，仿真停止。完整评分与回退流程见补充方法 S1.2–S1.4。"
     },
     {
       "id": "S017",
       "type": "paragraph",
       "order": 24,
       "source_location": "main.tex: How the shared forecast is used",
-      "original_text": "Every 0.1 s, the shared arm sends the same time-indexed 3-s forecast to both layers. MPC uses it in its route cost; DWA uses it to evaluate reachable action rollouts and apply explicit clearance, corridor and braking gates. DWA's passing controls bound the first MPC command on re-solve, while the screened DWA action is executed. Thus long-horizon route planning and near-term action selection assess the same predicted encounters. In the historical DWA-only arm, MPC holds the latest obstacle positions; in the 3-s one-layer ablation, MPC uses its configured CV input. The full cycle is shown in Figure 2 and Supplementary Methods S1.4.",
-      "translation": "每 0.1 s，共享方案将同一条按时间对齐的 3 s 预测同时送入 MPC 和 DWA。MPC 将其用于路线代价；DWA 则用它评估可达动作轨迹，并执行间隙、飞行走廊和制动门限。通过筛查的 DWA 控制范围在 MPC 重求解时约束其首个指令，同时实际执行筛查通过的 DWA 动作。因此，长时域路线规划和近期动作选择依据同一组障碍物遭遇预测。历史 DWA-only 组中的 MPC 保持障碍物最新观测位置；3 s 单层消融中，未接收 LSTM 的 MPC 使用其配置的 CV 输入。完整流程见图 2 和补充方法 S1.4。"
+      "original_text": "Every 0.1 s, the causal LSTM produces a time-aligned 3-s forecast for both layers. MPC uses all 30 future positions in its route cost; DWA screens the first 10 positions in the frozen benchmark and all 30 in the separate exploratory evaluation. DWA's passing controls bound MPC's first command on re-solve, while the screened DWA action is executed. The same predicted encounters therefore guide route optimization and reachable-action screening. In the historical DWA-only arm, MPC holds the latest obstacle positions; in the 3-s one-layer ablation, MPC uses its configured CV input. Figure 2 summarizes the cycle; Supplementary Methods S1.4 gives the full fallback logic.",
+      "translation": "每 0.1 s，因果 LSTM 为两层生成同一条按时间对齐的 3 s 预测。MPC 在路线代价中使用全部 30 个未来位置；冻结基准中的 DWA 筛查前 10 个位置，另一项探索性评估中的 DWA 则筛查全部 30 个位置。通过筛查的 DWA 控制范围在 MPC 重求解时约束其首个指令，同时执行筛查通过的 DWA 动作。因此，两层依据相同的障碍物遭遇预测进行路线优化和可达动作筛查。历史 DWA-only 组中的 MPC 保持障碍物最新观测位置；3 s 单层消融中，未接收 LSTM 的 MPC 使用其配置的 CV 输入。图 2 概括该循环，完整回退流程见补充方法 S1.4。"
     },
     {
       "id": "F006",
@@ -317,8 +317,8 @@
       "id": "C006",
       "type": "caption",
       "source_location": "main.tex: caption for fig:algorithm",
-      "original_text": "Pseudocode overview of one shared-forecast update. At each 0.1-s step, one causal 3-s LSTM forecast enters MPC and DWA; passing DWA controls bound only MPC's first input, while the screened DWA action is executed. The emergency branch is re-screened and stops if no feasible action remains.",
-      "translation": "共享预测规划器单次更新的伪代码概览。每个 0.1 s 周期中，同一条因果 3 s LSTM 预测输入 MPC 和 DWA；通过筛选的 DWA 控制范围只约束 MPC 的首个指令，实际执行筛选通过的 DWA 动作。应急分支会重新筛查；若无可行动作，仿真停止。",
+      "original_text": "Stepwise modules in one shared-forecast update. The same causal LSTM forecast feeds the MPC route optimizer and DWA action selector. Passing DWA controls bound MPC's first input; a triggered recentering is used only after re-screening. The screened DWA or emergency action is executed, with fail-closed stop if no emergency action passes.",
+      "translation": "共享预测规划器单次更新的分步骤模块图。同一条因果 LSTM 预测同时输入 MPC 路线优化模块和 DWA 动作筛选模块。通过筛选的 DWA 控制范围约束 MPC 的首个指令；触发横向重居中后，调整动作只有通过复筛才会采用。最终执行筛查通过的 DWA 或应急动作；若没有应急动作通过，则安全停止。",
       "order": 26
     },
     {
@@ -334,8 +334,8 @@
       "type": "paragraph",
       "order": 28,
       "source_location": "main.tex: seven-method primary results paragraph",
-      "original_text": "The separate exploratory evaluation comprised 2,100 episodes: seven arms, 100 distinct scenes and three matched seeds per scene. It used 0.1-s updates, 3-s MPC/DWA horizons and a 650-step limit. The arms were standalone DWA-CV and MPC-CV, coupled MPC--DWA-CV, LSTM to MPC only, LSTM to DWA only, shared LSTM and latest-position hold. Arrival required goal tolerance without swept-path contact; seeds were averaged within scene, and 20,000 scene-cluster bootstrap resamples formed simultaneous max-|t| intervals for six shared-versus-comparator contrasts. Shared LSTM reached in 221/300 runs (73.7%), compared with 276/300 (92.0%) for standalone MPC-CV, the highest rate. Its difference from DWA-only LSTM was inconclusive; it exceeded position hold by 16.3 points (95% CI, 5.1--27.6) but was 18.3 points below MPC-CV (95% CI, -29.6 to -7.0). This evaluation also does not establish an overall best controller.",
-      "translation": "另一个探索性评估共 2,100 次运行：七种方法、100 个独立场景，每场景三个匹配种子。仿真每 0.1 s 更新，MPC 与 DWA 时域均为 3 s，最多运行 650 步。七种方法为独立 DWA-CV、独立 MPC-CV、耦合 MPC–DWA-CV、仅 MPC 使用 LSTM、仅 DWA 使用 LSTM、共享 LSTM 和最新位置保持。安全到达要求进入目标容差且扫掠路径无接触；先在场景内平均种子结果，再通过 20,000 次场景聚类 bootstrap 为六项共享方法对比构造同时 max-|t| 区间。共享 LSTM 到达 221/300 次（73.7%）；独立 MPC-CV 为 276/300 次（92.0%），是该评估中的最高率。共享方法与仅 DWA 使用 LSTM 的差异尚不确定；它比位置保持高 16.3 个百分点（95% CI：5.1–27.6），但比 MPC-CV 低 18.3 个百分点（95% CI：−29.6 至 −7.0）。该评估不能据此确定总体最优方法。"
+      "original_text": "The separate exploratory evaluation comprised 2,100 episodes: seven arms, 100 distinct scenes and three matched seeds per scene. It used 0.1-s updates, 3-s MPC/DWA horizons and a 650-step limit. The arms were standalone DWA-CV and MPC-CV, coupled MPC--DWA-CV, LSTM to MPC only, LSTM to DWA only, shared LSTM and latest-position hold. Arrival required goal tolerance without swept-path contact; seeds were averaged within scene, and 20,000 scene-cluster bootstrap resamples formed simultaneous max-|t| intervals for six shared-versus-comparator contrasts. Shared LSTM reached in 221/300 runs (73.7%), compared with 276/300 (92.0%) for standalone MPC-CV, the highest rate; MPC-CV also had 15 swept-contact runs. Its difference from DWA-only LSTM was inconclusive; it exceeded position hold by 16.3 points (95% CI, 5.1--27.6) but was 18.3 points below MPC-CV (95% CI, -29.6 to -7.0). This evaluation also does not establish an overall best controller.",
+      "translation": "另一个探索性评估共 2,100 次运行：七种方法、100 个独立场景，每场景三个匹配种子。仿真每 0.1 s 更新，MPC 与 DWA 时域均为 3 s，最多运行 650 步。七种方法为独立 DWA-CV、独立 MPC-CV、耦合 MPC–DWA-CV、仅 MPC 使用 LSTM、仅 DWA 使用 LSTM、共享 LSTM 和最新位置保持。安全到达要求进入目标容差且扫掠路径无接触；先在场景内平均种子结果，再通过 20,000 次场景聚类 bootstrap 为六项共享方法对比构造同时 max-|t| 区间。共享 LSTM 到达 221/300 次（73.7%）；独立 MPC-CV 为 276/300 次（92.0%），是该评估中的最高率，此外还有 15 次扫掠接触。共享方法与仅 DWA 使用 LSTM 的差异尚不确定；它比位置保持高 16.3 个百分点（95% CI：5.1–27.6），但比 MPC-CV 低 18.3 个百分点（95% CI：−29.6 至 −7.0）。该评估不能据此确定总体最优方法。"
     },
     {
       "id": "F007",
@@ -351,8 +351,8 @@
       "id": "C007",
       "type": "caption",
       "source_location": "main.tex: caption for fig:rates",
-      "original_text": "Collision-free goal-arrival rates in two separate protocols. (a) Frozen five-controller benchmark: 500 scenes, three matched seeds, $n=1{,}500$ runs per controller and a 1-s DWA screen. (b) Exploratory seven-controller evaluation: 100 distinct scenes, three matched seeds, $n=300$ runs per controller and a 3-s screen. Bars show observed point estimates; paired scene-cluster intervals are reported in the text and Supplementary Methods, not as arm-wise error bars. Swept-contact counts in row order are 624, 2, 0, 0, 36 in (a), and 0, 15, 0, 0, 0, 0, 50 in (b). Standalone MPC+LSTM and MPC-CV had the highest rates in their respective protocols; the panels are not pooled into one ranking.",
-      "translation": "两套独立方案中的无碰撞到达率。(a) 冻结的五控制器基准：500 个场景、每场景三个匹配种子、每种控制器 $n=1{,}500$ 次运行，DWA 筛查时域为 1 s。(b) 探索性七方法评估：100 个不同场景、每场景三个匹配种子、每种控制器 $n=300$ 次运行，DWA 时域为 3 s。柱形表示观察到的点估计；配对场景聚类区间在正文和补充方法中报告，不以各方法的普通误差线代替。扫掠接触数按图中方法顺序分别为 (a) 624、2、0、0、36 次，(b) 0、15、0、0、0、0、50 次。两套方案中到达率最高者分别为独立 MPC+LSTM 和独立 MPC-CV；两面板不合并排序。",
+      "original_text": "Collision-free goal-arrival rates in two separate protocols. (a) Frozen five-controller benchmark: 500 scenes, three matched seeds, $n=1{,}500$ runs per controller and a 1-s DWA screen. (b) Exploratory seven-controller evaluation: 100 distinct scenes, three matched seeds, $n=300$ runs per controller and a 3-s screen. Bars show observed point estimates; paired scene-cluster intervals are reported in the text and Supplementary Methods. Swept-contact counts follow the displayed method order: 624, 2, 0, 0, 36 in (a), and 0, 15, 0, 0, 0, 0, 50 in (b). The highest-rate method differs by protocol; the panels are not pooled.",
+      "translation": "两套独立方案中的无碰撞到达率。(a) 冻结的五控制器基准：500 个场景、每场景三个匹配种子、每种控制器 $n=1{,}500$ 次运行，DWA 筛查时域为 1 s。(b) 探索性七方法评估：100 个不同场景、每场景三个匹配种子、每种控制器 $n=300$ 次运行，DWA 时域为 3 s。柱形表示观察到的点估计；配对场景聚类区间见正文和补充方法。扫掠接触数按图中方法顺序分别为 (a) 624、2、0、0、36 次，(b) 0、15、0、0、0、0、50 次。两套方案中观察到的最高到达率分别属于独立 MPC+LSTM 和独立 MPC-CV；两面板不合并排序。",
       "order": 30
     },
     {
@@ -370,7 +370,7 @@
       "source_location": "main.tex: figure label fig:routes",
       "original_text": "Recorded simulated 3-D paths from the five-controller, 500-scene benchmark, scene 404, seed 2; each plotted route ends at its logged terminal state.",
       "translation": "五控制器 500 场景基准中场景 404、种子 2 的仿真三维路径；每条绘制轨迹均截止于日志记录的终止状态。",
-      "image_path": "../02_source/figures/route_comparison_seven_method_scene72_seed2.png",
+      "image_path": "../02_source/figures/route_comparison_seven_method_scene72_seed2_main.png",
       "caption_id": "C002",
       "placed_after": "S026"
     },
@@ -379,8 +379,8 @@
       "type": "caption",
       "order": 33,
       "source_location": "main.tex: caption for fig:routes",
-      "original_text": "Recorded paths from scene 72, seed 2 of the separate seven-method evaluation. The four views show (a) 3-D perspective, (b) $XY$, (c) $XZ$ and (d) $YZ$ projections; the legend names all seven controllers. Shared LSTM and DWA-CV safely arrived; MPC-CV had swept contact after reaching goal tolerance, and the remaining methods stopped or contacted earlier. Paths end at logged terminal states without smoothing, interpolation or extension. Triangle/star: start/goal; circle: safe arrival; square: no-contact stop; X: a run with swept contact (not its contact location). This is one matched example; aggregate rates are in Figure 3b.",
-      "translation": "另一项七方法评估中场景 72、种子 2 的记录路径。四个视图分别为 (a) 三维透视图、(b) $XY$ 投影、(c) $XZ$ 投影和 (d) $YZ$ 投影；图例标明全部七种控制器。共享 LSTM 与 DWA-CV 安全到达；MPC-CV 虽进入目标容差，但发生扫掠接触；其余方法较早停止或发生接触。每条路径均截止于日志记录的终止状态，未作平滑、插值或延伸。三角形/星形表示起点/目标；圆形表示安全到达；方形表示无接触停止；X 表示运行中发生扫掠接触，但不代表接触位置。本例仅作示意；总体率见图 3(b)。"
+      "original_text": "All seven recorded trajectories from scene 72, seed 2, overlaid in one 3-D scene. Color, line style and sparse recorded-state markers identify each controller. Shared LSTM and DWA-CV safely arrived; MPC-CV reached goal tolerance but had swept contact; the other five stopped or contacted earlier. Paths end at logged states without smoothing, interpolation or extension. Triangle/star mark start/goal; terminal circle/square/X denote safe arrival, no-contact non-arrival or swept contact (X is not the contact location). This single example is not aggregate evidence; rates are in Figure 3b.",
+      "translation": "另一项七方法探索性评估中，场景 72、种子 2 的七条记录轨迹叠加在同一三维场景中。不同颜色、线型及稀疏的已记录状态标记区分各方法。共享 LSTM 与 DWA-CV 安全到达；MPC-CV 虽进入目标容差，但发生扫掠接触；其余五种方法较早停止或发生接触。轨迹均截止于日志记录的终止状态，未作平滑、插值或延伸。三角形/星形表示共同起点/目标；终点圆形/方形/X 分别表示安全到达、无接触但未到达、发生扫掠接触（X 不是接触位置）。本例仅展示一组匹配路线，不代表总体结果；总体率见图 3(b)。"
     },
     {
       "id": "T001",
@@ -652,7 +652,7 @@
     {
       "id": "F002",
       "caption_id": "C002",
-      "image_path": "../02_source/figures/route_comparison_seven_method_scene72_seed2.png",
+      "image_path": "../02_source/figures/route_comparison_seven_method_scene72_seed2_main.png",
       "placement_hint": "after S026",
       "alt_text": "Seven-method recorded trajectories from scene 72, seed 2 in 3-D and XY, XZ and YZ views. The legend names all controllers; routes terminate at recorded states. Shared LSTM and DWA-CV safely arrive in this matched example.",
       "display_number": 4,

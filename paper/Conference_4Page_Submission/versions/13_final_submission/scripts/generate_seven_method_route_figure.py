@@ -496,6 +496,103 @@ def main() -> None:
     )
     endpoint_audit_path.write_text(
         json.dumps(audit, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    # A panoramic single-3-D view is used in the two-column main paper; the
+    # four-view figure above remains in the supplement for coordinate detail.
+    wide_fig = plt.figure(figsize=(6.95, 3.58), constrained_layout=False)
+    ax_wide = wide_fig.add_axes([0.045, 0.14, 0.69, 0.78], projection="3d")
+    ax_wide.view_init(elev=25, azim=-56)
+    ax_wide.set_proj_type("ortho")
+    ax_wide.set_xlim(0, 20)
+    ax_wide.set_ylim(0, 20)
+    ax_wide.set_zlim(-0.8, 10)
+    ax_wide.set_box_aspect((20, 20, 11))
+    ax_wide.set_xlabel("x (m)", labelpad=3, fontsize=8.0)
+    ax_wide.set_ylabel("y (m)", labelpad=3, fontsize=8.0)
+    ax_wide.set_zlabel("z (m)", labelpad=2, fontsize=8.0)
+    ax_wide.set_xticks([0, 5, 10, 15, 20])
+    ax_wide.set_yticks([0, 5, 10, 15, 20])
+    ax_wide.set_zticks([0, 2.5, 5, 7.5, 10])
+    ax_wide.tick_params(axis="both", labelsize=7.0, pad=1.0, length=2.0)
+    ax_wide.zaxis.set_tick_params(labelsize=7.0, pad=1.0, length=2.0)
+    for axis in (ax_wide.xaxis, ax_wide.yaxis, ax_wide.zaxis):
+        axis.pane.fill = False
+        axis._axinfo["grid"]["color"] = (0.80, 0.83, 0.85, 0.62)
+        axis._axinfo["grid"]["linewidth"] = 0.55
+
+    audit_by_key = {row["method_key"]: row for row in endpoint_audit}
+    wide_handles = []
+    for key, label, color, linestyle in METHODS:
+        record = audit_by_key[key]
+        route = np.loadtxt(run_dir / record["route_csv"], delimiter=",")
+        if route.ndim == 1:
+            route = route[None, :]
+        xyz = route[:, 1:4]
+        if (len(xyz) != record["path_states_plotted"]
+                or not np.allclose(xyz[-1], record["terminal_xyz_m"],
+                                   atol=STATUS_TERMINAL_TOLERANCE_M, rtol=0)):
+            raise ValueError(f"Wide-view route does not match endpoint audit for {key}.")
+        stride = max(1, int(np.ceil((len(xyz) - 1) / 12)))
+        shared = key == "lstm"
+        display_labels = {
+            "standalone_dwa_cv": "Standalone DWA-CV",
+            "standalone_mpc_cv": "Standalone MPC-CV",
+            "cv": "Coupled MPC-DWA-CV",
+            "lstm_mpc_cv_dwa": "LSTM to MPC only",
+            "cv_mpc_lstm_dwa": "LSTM to DWA only",
+            "lstm": "Shared LSTM",
+            "static": "Latest-position hold",
+        }
+        line, = ax_wide.plot(
+            xyz[:, 0], xyz[:, 1], xyz[:, 2], color=color, linestyle=linestyle,
+            linewidth=2.45 if shared else 1.85, alpha=0.98,
+            marker=METHOD_MARKERS[key], markersize=3.3 if shared else 2.9,
+            markerfacecolor="white", markeredgecolor=color, markeredgewidth=0.75,
+            markevery=stride, zorder=5 if shared else 4,
+        )
+        endpoint_marker = "o" if record["safe_goal_arrival"] else (
+            "X" if record["swept_collision"] else "s")
+        ax_wide.scatter(*xyz[-1], marker=endpoint_marker, s=38 if endpoint_marker != "X" else 40,
+                        linewidths=1.05, facecolors="none", edgecolors=color,
+                        depthshade=False, zorder=9)
+        line.set_label(display_labels[key])
+        wide_handles.append(line)
+
+    ax_wide.scatter(*start, marker="^", s=52, color="#222222", edgecolor="white",
+                    linewidth=0.8, depthshade=False, zorder=10)
+    ax_wide.scatter(*goal, marker="*", s=92, facecolors="none",
+                    edgecolors="#CC3311", linewidth=1.1, depthshade=False, zorder=3)
+    wide_fig.legend(
+        handles=wide_handles, loc="center left", bbox_to_anchor=(0.765, 0.52),
+        ncol=1, frameon=False, fontsize=7.2, handlelength=1.5,
+        handletextpad=0.5, labelspacing=0.9,
+        title="Controller", title_fontsize=7.5,
+    )
+    wide_stem = f"route_comparison_seven_method_scene{selected_scene}_seed{selected_seed}_main"
+    wide_fig.savefig(FIGURES / f"{wide_stem}.pdf", facecolor="white")
+    wide_svg = FIGURES / f"{wide_stem}.svg"
+    wide_fig.savefig(wide_svg, facecolor="white")
+    wide_svg.write_bytes(re.sub(rb"[ \t]+(?=\r?$)", b"", wide_svg.read_bytes(), flags=re.MULTILINE))
+    wide_fig.savefig(FIGURES / f"{wide_stem}.png", facecolor="white", dpi=600)
+    wide_fig.savefig(FIGURES / f"{wide_stem}.tiff", facecolor="white", dpi=600,
+                     pil_kwargs={"compression": "tiff_lzw"})
+    plt.close(wide_fig)
+    wide_audit = {
+        "source": run_dir.relative_to(PROJECT).as_posix(),
+        "selection_scene": selected_scene,
+        "sampling_seed": selected_seed,
+        "coordinate_frame": "all seven saved XYZ trajectories in one shared 3-D perspective",
+        "target_canvas_inches": [6.95, 3.58],
+        "route_states": "all and only the original saved states; no smoothing, interpolation, resampling, or extension",
+        "endpoint_checks_reused": True,
+        "source_endpoint_audit": endpoint_audit_path.name,
+        "method_keys": method_keys,
+        "method_labels": [handle.get_label() for handle in wide_handles],
+        "exports": [f"{wide_stem}.{ext}" for ext in ("pdf", "svg", "png", "tiff")],
+        "methods": endpoint_audit,
+    }
+    (QA / f"{wide_stem}.json").write_text(
+        json.dumps(wide_audit, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"Saved seven-method 3D route figure and endpoint audit from {run_dir}.")
 
 
