@@ -5,7 +5,7 @@
   "coordinate_frame": "all seven original saved XYZ routes in one 3-D scene",
   "target_canvas_inches": [
     3.4,
-    3.3
+    3.16
   ],
   "route_states": "all original saved states through each true terminal; no path changes",
   "source_endpoint_audit": "seven_method_route_endpoint_audit_scene72_seed2.json",
@@ -32,16 +32,16 @@
       "backend": "python-matplotlib",
       "figure": {
         "width_pt": 244.79999999999998,
-        "height_pt": 237.6
+        "height_pt": 227.52
       },
       "panels": [
         {
           "id": "a",
           "bbox_pt": [
-            31.860000000000007,
-            71.28,
-            195.804,
-            235.224
+            34.855199999999996,
+            64.8432,
+            195.25680000000003,
+            225.2448
           ]
         }
       ],

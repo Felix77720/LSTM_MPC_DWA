@@ -601,27 +601,29 @@ def main() -> None:
     # Native single-column candidate: render directly at the intended print
     # width. It is an additional export so the paper can retain the panoramic
     # version if seven coincident routes cannot be read in one column.
-    single_fig = plt.figure(figsize=(3.40, 3.30), constrained_layout=False)
-    ax_single = single_fig.add_axes([0.015, 0.30, 0.90, 0.69], projection="3d")
-    ax_single.view_init(elev=25, azim=-56)
+    single_fig = plt.figure(figsize=(3.40, 3.16), constrained_layout=False)
+    ax_single = single_fig.add_axes([0.005, 0.285, 0.93, 0.705], projection="3d")
+    # Expose the DWA-CV detour while retaining the vertical separation of the
+    # six central routes at the native single-column size.
+    ax_single.view_init(elev=27, azim=-58)
     ax_single.set_proj_type("ortho")
     ax_single.set_xlim(0, 20)
     ax_single.set_ylim(0, 20)
     ax_single.set_zlim(-0.8, 10)
-    ax_single.set_box_aspect((20, 20, 11), zoom=1.18)
-    ax_single.set_xlabel("x (m)", labelpad=0.6, fontsize=6.0)
-    ax_single.set_ylabel("y (m)", labelpad=0.6, fontsize=6.0)
+    ax_single.set_box_aspect((20, 20, 11), zoom=1.22)
+    ax_single.set_xlabel("x (m)", labelpad=0.7, fontsize=6.3)
+    ax_single.set_ylabel("y (m)", labelpad=0.7, fontsize=6.3)
     # mplot3d's native z-label falls outside a narrow column even when the
     # plotted box fits. Place the same axis label inside the figure margin.
     ax_single.set_zlabel("")
-    single_fig.text(0.94, 0.69, "z (m)", rotation=90, rotation_mode="anchor",
+    single_fig.text(0.975, 0.70, "z (m)", rotation=90, rotation_mode="anchor",
                     ha="center", va="center",
-                    fontsize=6.0, color="#253746")
+                    fontsize=6.3, color="#253746")
     ax_single.set_xticks([0, 10, 20])
     ax_single.set_yticks([0, 10, 20])
     ax_single.set_zticks([0, 5, 10])
-    ax_single.tick_params(axis="both", labelsize=5.5, pad=0.5, length=1.5)
-    ax_single.zaxis.set_tick_params(labelsize=5.5, pad=0.5, length=1.5)
+    ax_single.tick_params(axis="both", labelsize=6.0, pad=0.5, length=1.5)
+    ax_single.zaxis.set_tick_params(labelsize=6.0, pad=0.5, length=1.5)
     for axis in (ax_single.xaxis, ax_single.yaxis, ax_single.zaxis):
         axis.pane.fill = False
         axis._axinfo["grid"]["color"] = (0.80, 0.83, 0.85, 0.60)
@@ -642,10 +644,10 @@ def main() -> None:
         shared = key == "lstm"
         line, = ax_single.plot(
             xyz[:, 0], xyz[:, 1], xyz[:, 2], color=color, linestyle=linestyle,
-            linewidth=2.05 if shared else 1.65, alpha=0.98,
-            marker=METHOD_MARKERS[key], markersize=2.9 if shared else 2.55,
+            linewidth=2.35 if shared else 1.72, alpha=1.0,
+            marker=METHOD_MARKERS[key], markersize=3.15 if shared else 2.65,
             markerfacecolor="white", markeredgecolor=color, markeredgewidth=0.58,
-            markevery=stride, zorder=5 if shared else 4,
+            markevery=stride, zorder=7 if shared else 4,
         )
         endpoint_marker = "o" if record["safe_goal_arrival"] else (
             "X" if record["swept_collision"] else "s")
@@ -659,10 +661,21 @@ def main() -> None:
                       linewidth=0.65, depthshade=False, zorder=10)
     ax_single.scatter(*goal, marker="*", s=55, facecolors="none",
                       edgecolors="#CC3311", linewidth=0.9, depthshade=False, zorder=3)
+    short_labels = {
+        "standalone_dwa_cv": "DWA-CV",
+        "standalone_mpc_cv": "MPC-CV",
+        "cv": "MPC-DWA-CV",
+        "lstm_mpc_cv_dwa": "LSTM to MPC",
+        "cv_mpc_lstm_dwa": "LSTM to DWA",
+        "lstm": "Shared LSTM",
+        "static": "Position hold",
+    }
+    for handle, (key, _, _, _) in zip(single_handles, METHODS):
+        handle.set_label(short_labels[key])
     single_fig.legend(
-        handles=single_handles, loc="center", bbox_to_anchor=(0.50, 0.135),
-        ncol=2, frameon=False, fontsize=5.8, handlelength=1.55,
-        handletextpad=0.42, columnspacing=0.72, labelspacing=0.58,
+        handles=single_handles, loc="center", bbox_to_anchor=(0.50, 0.095),
+        ncol=3, frameon=False, fontsize=6.1, handlelength=1.45,
+        handletextpad=0.38, columnspacing=0.72, labelspacing=0.50,
     )
     single_stem = (
         f"route_comparison_seven_method_scene{selected_scene}_seed{selected_seed}_singlecol"
@@ -690,7 +703,7 @@ def main() -> None:
             "selection_scene": selected_scene,
             "sampling_seed": selected_seed,
             "coordinate_frame": "all seven original saved XYZ routes in one 3-D scene",
-            "target_canvas_inches": [3.40, 3.30],
+            "target_canvas_inches": [3.40, 3.16],
             "route_states": "all original saved states through each true terminal; no path changes",
             "source_endpoint_audit": endpoint_audit_path.name,
             "alignment": single_alignment,
