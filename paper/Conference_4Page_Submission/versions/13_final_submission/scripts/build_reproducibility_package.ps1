@@ -215,6 +215,36 @@ $resultsRoot = Join-Path $projectRoot 'results'
 $supplementRoot = Join-Path $revisionRoot '03_supplementary'
 $revisionPackagePath = 'paper\Conference_4Page_Submission\versions\13_final_submission'
 $revisionZipPath = $revisionPackagePath.Replace('\', '/')
+$agentTraceRelativeRoot = 'paper\agent_conversations\v13_final_submission'
+$agentTraceRoot = Join-Path $projectRoot $agentTraceRelativeRoot
+$projectDocumentRoot = Join-Path $projectRoot 'paper'
+$projectDocumentAllowlist = @('DOCUMENT_INDEX.md')
+$agentTraceAllowlist = @(
+    'README.md',
+    'final_referee_A.md', 'final_referee_B.md', 'final_referee_C.md',
+    'final_review_synthesis.md', 'main_paper_self_review.md',
+    'post_revision_assessment_round6_historical.md', 'post_revision_assessment.md',
+    'review_report.md', 'review_round2_referee_A.md', 'review_round2_referee_B.md',
+    'review_round2_referee_C.md', 'review_round2_synthesis.md',
+    'review_round3_referee_A.md', 'review_round3_referee_B.md',
+    'review_round3_referee_C.md', 'review_round3_synthesis.md',
+    'review_round4_referee_A.md', 'review_round4_referee_B.md',
+    'review_round4_referee_C.md', 'review_round4_synthesis.md',
+    'review_round5_referee_A.md', 'review_round5_referee_B.md',
+    'review_round5_referee_C.md', 'review_round5_synthesis.md',
+    'review_round6_synthesis.md', 'review_round7_synthesis.md',
+    'revision_response.md', 'round10_post_review_synthesis.md',
+    'round10_reviewer_1.md', 'round10_reviewer_2.md', 'round10_reviewer_3.md',
+    'round11_author_revision_check.md', 'round12_author_revision_check.md',
+    'round12_post_review_synthesis.md', 'round12_reviewer_1.md',
+    'round12_reviewer_2.md', 'round12_reviewer_3.md',
+    'round14_author_revision_check.md', 'round15_author_revision_check.md',
+    'round16_author_revision_check.md', 'round3_revision_actions.md',
+    'round4_revision_actions.md', 'table_redesign_self_review.md',
+    'historical_final_referee_A_revision09.md', 'historical_final_referee_B_revision09.md',
+    'historical_final_referee_C_revision09.md', 'historical_final_review_synthesis_revision09.md',
+    'review_round10_packet.md'
+)
 $stage1PackageRelativePath = 'results\v12a_pooled_weight_development_inclusive_dev48_20261012'
 $stage1ArchivePath = $stage1PackageRelativePath.Replace('\', '/')
 $heldoutPackageRelativePath = 'results\v13_seven_method_100scene_exploratory_20261015'
@@ -381,6 +411,7 @@ if ($confirmedBilingualAssetAllowlist.Count -eq 0) {
 $revisionRequiredFiles = @(
     'README.md', 'REVISION_STATUS.md',
     '02_source\main.pdf', '02_source\main.tex', '02_source\references.bib',
+    '04_review\AI_TRACE_ARCHIVE.md',
     '04_review\v13_final_submission_audit_20261017.md',
     '04_review\v13_final_submission_audit_20261018.md',
     '04_review\publication_assessment_v13_20261017.md',
@@ -466,8 +497,6 @@ $revisionRequiredFiles = @(
     '03_supplementary\shared_lstm_random12_revised.csv',
     '04_review\final_submission_audit.md', '04_review\reference_verification.md',
     '04_review\formula_symbol_audit.md', '04_review\command_template_compliance.md',
-    '04_review\final_review_synthesis.md', '04_review\final_referee_A.md',
-    '04_review\final_referee_B.md', '04_review\final_referee_C.md',
     '04_review\seven_method_figure_contract_v12a.md',
     '04_review\v12a_result_figure_contract.md',
     '04_review\v12a_multidimensional_claim_contract.md',
@@ -589,6 +618,7 @@ $deliveryRelativePaths = @(
     '02_source/main.pdf', '02_source/main.tex', '02_source/references.bib',
     '04_review/v13_final_submission_audit_20261017.md',
     '04_review/v13_final_submission_audit_20261018.md',
+    '04_review/AI_TRACE_ARCHIVE.md',
     '04_review/publication_assessment_v13_20261017.md',
     'scripts/generate_main_manuscript_figures.py',
     'qa/main_result_figure_contract.md',
@@ -720,8 +750,6 @@ $deliveryRelativePaths = @(
     '04_review/reference_verification_v13.md',
     '04_review/final_submission_audit.md', '04_review/reference_verification.md',
     '04_review/formula_symbol_audit.md', '04_review/command_template_compliance.md',
-    '04_review/final_review_synthesis.md', '04_review/final_referee_A.md',
-    '04_review/final_referee_B.md', '04_review/final_referee_C.md',
     '04_review/v12a_multidimensional_claim_contract.md',
     '04_review/protocol_amendment_endpoint_inclusive_20261012.md',
     '04_review/seven_method_figure_contract_v12a.md',
@@ -755,6 +783,12 @@ $deliveryRelativePaths = @(
 # Confirm every explicitly named artifact before creating a staging directory.
 foreach ($relativePath in $revisionRequiredFiles) {
     Assert-RequiredFile -Path (Join-Path $revisionRoot $relativePath)
+}
+foreach ($name in $agentTraceAllowlist) {
+    Assert-RequiredFile -Path (Join-Path $agentTraceRoot $name)
+}
+foreach ($name in $projectDocumentAllowlist) {
+    Assert-RequiredFile -Path (Join-Path $projectDocumentRoot $name)
 }
 Assert-CsvRecordCount -Path (Join-Path $supplementRoot 'confirmatory_raw.csv') `
     -ExpectedCount 3000 -Description '500-scene paired contrast raw records'
@@ -826,6 +860,16 @@ try {
     foreach ($relativePath in $revisionRequiredFiles) {
         Copy-RequiredFile -Source (Join-Path $revisionRoot $relativePath) `
             -DestinationRoot $packageRevisionRoot -RelativePath $relativePath
+    }
+    foreach ($name in $agentTraceAllowlist) {
+        $relativePath = Join-Path $agentTraceRelativeRoot $name
+        Copy-RequiredFile -Source (Join-Path $agentTraceRoot $name) `
+            -DestinationRoot $packageRoot -RelativePath $relativePath
+    }
+    foreach ($name in $projectDocumentAllowlist) {
+        $relativePath = Join-Path 'paper' $name
+        Copy-RequiredFile -Source (Join-Path $projectDocumentRoot $name) `
+            -DestinationRoot $packageRoot -RelativePath $relativePath
     }
     foreach ($relativePath in $confirmedFigureAllowlist) {
         Copy-RequiredFile -Source (Join-Path $revisionRoot $relativePath) `
@@ -1148,10 +1192,16 @@ try {
     $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
     [System.IO.File]::WriteAllText($zipHashPath, "$zipHash  reproducibility_package.zip`n", [System.Text.Encoding]::ASCII)
 
-    # Hash precisely the top-level final deliverables and explicitly confirmed
-    # reader assets. No whole-directory enumeration is used for this manifest.
+    # Hash top-level deliverables, explicitly confirmed reader assets, and the
+    # explicit AI-review archive allowlist. No whole-directory sweep is used.
     $deliveryRelativePaths += $confirmedFigureAllowlist | ForEach-Object { $_.Replace('\', '/') }
     $deliveryRelativePaths += $confirmedBilingualAssetAllowlist | ForEach-Object { $_.Replace('\', '/') }
+    $deliveryRelativePaths += $agentTraceAllowlist | ForEach-Object {
+        '../../../agent_conversations/v13_final_submission/' + $_
+    }
+    $deliveryRelativePaths += $projectDocumentAllowlist | ForEach-Object {
+        '../../../' + $_
+    }
     $deliveryRelativePaths = @($deliveryRelativePaths | Sort-Object -Unique)
     $deliveryManifestLines = @(
         '# Independent SHA-256 manifest for final v13 delivery artifacts.',
@@ -1160,7 +1210,15 @@ try {
     foreach ($relativePath in $deliveryRelativePaths) {
         $normalized = $relativePath.Replace('/', '\')
         $filePath = [System.IO.Path]::GetFullPath((Join-Path $revisionRoot $normalized))
-        Assert-PathWithin -Path $filePath -Root $revisionRoot -Purpose 'delivery hash'
+        if ($relativePath.StartsWith('../../../agent_conversations/v13_final_submission/', [System.StringComparison]::OrdinalIgnoreCase)) {
+            Assert-PathWithin -Path $filePath -Root $agentTraceRoot -Purpose 'AI review record delivery hash'
+        }
+        elseif ($relativePath -eq '../../../DOCUMENT_INDEX.md') {
+            Assert-PathWithin -Path $filePath -Root $projectDocumentRoot -Purpose 'paper index delivery hash'
+        }
+        else {
+            Assert-PathWithin -Path $filePath -Root $revisionRoot -Purpose 'delivery hash'
+        }
         Assert-RequiredFile -Path $filePath
         $artifactHash = (Get-FileHash -LiteralPath $filePath -Algorithm SHA256).Hash.ToLowerInvariant()
         $deliveryManifestLines += "$artifactHash  $relativePath"

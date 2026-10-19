@@ -15,6 +15,7 @@ The main manuscript was edited in place and rebuilt as a four-page Letter-size I
 - Redrew the seven-method route figure at native single-column width. The camera, line hierarchy, marker density and three-column legend were revised for legibility; every trajectory still uses all and only the saved states through its recorded terminal point.
 - Updated the Figure 4 caption to decode safe-arrival, swept-contact and other-non-arrival endpoint markers.
 - Synchronized the affected English/Chinese passages and the bilingual source map.
+- Added a paper-level reading-order index and centralized 48 AI-assisted review-process records under `paper/agent_conversations/v13_final_submission/`, including the older Revision 09 final-review set and Round 10 review packet. The 08 baseline, earlier version snapshots, experimental evidence, protocols, and current authoritative audit records remain preserved.
 
 ## Evidence and consistency checks
 

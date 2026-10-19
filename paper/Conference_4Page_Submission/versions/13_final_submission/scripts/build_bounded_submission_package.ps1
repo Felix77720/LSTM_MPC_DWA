@@ -4,6 +4,36 @@ param([switch]$ReplaceExisting)
 $ErrorActionPreference = 'Stop'
 $revisionRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $revisionRoot '..\..\..\..'))
+$agentTraceRelativeRoot = 'paper\agent_conversations\v13_final_submission'
+$agentTraceRoot = Join-Path $repositoryRoot $agentTraceRelativeRoot
+$projectDocumentRoot = Join-Path $repositoryRoot 'paper'
+$projectDocumentAllowlist = @('DOCUMENT_INDEX.md')
+$agentTraceAllowlist = @(
+    'README.md',
+    'final_referee_A.md', 'final_referee_B.md', 'final_referee_C.md',
+    'final_review_synthesis.md', 'main_paper_self_review.md',
+    'post_revision_assessment_round6_historical.md', 'post_revision_assessment.md',
+    'review_report.md', 'review_round2_referee_A.md', 'review_round2_referee_B.md',
+    'review_round2_referee_C.md', 'review_round2_synthesis.md',
+    'review_round3_referee_A.md', 'review_round3_referee_B.md',
+    'review_round3_referee_C.md', 'review_round3_synthesis.md',
+    'review_round4_referee_A.md', 'review_round4_referee_B.md',
+    'review_round4_referee_C.md', 'review_round4_synthesis.md',
+    'review_round5_referee_A.md', 'review_round5_referee_B.md',
+    'review_round5_referee_C.md', 'review_round5_synthesis.md',
+    'review_round6_synthesis.md', 'review_round7_synthesis.md',
+    'revision_response.md', 'round10_post_review_synthesis.md',
+    'round10_reviewer_1.md', 'round10_reviewer_2.md', 'round10_reviewer_3.md',
+    'round11_author_revision_check.md', 'round12_author_revision_check.md',
+    'round12_post_review_synthesis.md', 'round12_reviewer_1.md',
+    'round12_reviewer_2.md', 'round12_reviewer_3.md',
+    'round14_author_revision_check.md', 'round15_author_revision_check.md',
+    'round16_author_revision_check.md', 'round3_revision_actions.md',
+    'round4_revision_actions.md', 'table_redesign_self_review.md',
+    'historical_final_referee_A_revision09.md', 'historical_final_referee_B_revision09.md',
+    'historical_final_referee_C_revision09.md', 'historical_final_review_synthesis_revision09.md',
+    'review_round10_packet.md'
+)
 $supplementRoot = Join-Path $revisionRoot '03_supplementary'
 $zipPath = Join-Path $supplementRoot 'reproducibility_package_v13.zip'
 $zipHashPath = "$zipPath.sha256"
@@ -27,6 +57,36 @@ function Add-File {
     if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Required package input missing: $RelativeSource" }
     $destination = [System.IO.Path]::GetFullPath((Join-Path $stageRoot (Join-Path 'LSTM_MPC_DWA' $PackagePath)))
     Assert-Within -Path $destination -Root $stageRoot -Purpose 'package copy'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+    Copy-Item -LiteralPath $source -Destination $destination
+}
+
+function Add-AgentTrace {
+    param([Parameter(Mandatory)][string]$Name)
+    if ($agentTraceAllowlist -notcontains $Name) { throw "AI trace is not allowlisted: $Name" }
+    $source = [System.IO.Path]::GetFullPath((Join-Path $agentTraceRoot $Name))
+    Assert-Within -Path $source -Root $agentTraceRoot -Purpose 'AI review archive read'
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Required AI review record missing: $Name" }
+    $packageRelativePath = Join-Path $agentTraceRelativeRoot $Name
+    $packageKey = $packageRelativePath.Replace('\', '/')
+    if (-not $script:copiedPackagePaths.Add($packageKey)) { return }
+    $destination = [System.IO.Path]::GetFullPath((Join-Path $stageRoot (Join-Path 'LSTM_MPC_DWA' $packageRelativePath)))
+    Assert-Within -Path $destination -Root $stageRoot -Purpose 'AI review archive package copy'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+    Copy-Item -LiteralPath $source -Destination $destination
+}
+
+function Add-ProjectDocument {
+    param([Parameter(Mandatory)][string]$Name)
+    if ($projectDocumentAllowlist -notcontains $Name) { throw "Project document is not allowlisted: $Name" }
+    $source = [System.IO.Path]::GetFullPath((Join-Path $projectDocumentRoot $Name))
+    Assert-Within -Path $source -Root $projectDocumentRoot -Purpose 'project document read'
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Required project document missing: $Name" }
+    $packageRelativePath = Join-Path 'paper' $Name
+    $packageKey = $packageRelativePath.Replace('\', '/')
+    if (-not $script:copiedPackagePaths.Add($packageKey)) { return }
+    $destination = [System.IO.Path]::GetFullPath((Join-Path $stageRoot (Join-Path 'LSTM_MPC_DWA' $packageRelativePath)))
+    Assert-Within -Path $destination -Root $stageRoot -Purpose 'project document package copy'
     New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
     Copy-Item -LiteralPath $source -Destination $destination
 }
@@ -97,6 +157,8 @@ try {
         'qa/algorithm_main_pseudocode.alignment.json',
         'qa/algorithm_main_pseudocode.collision-audit.json',
         'qa/seven_method_outcomes_main.collision-audit.json',
+        '04_review/AI_TRACE_ARCHIVE.md',
+        '04_review/v13_final_submission_audit_20261018.md',
         '04_review/v13_final_submission_audit_20261017.md',
         '04_review/publication_assessment_v13_20261017.md',
         '02_source/figures/route_comparison_five_method_scene404_seed2.pdf',
@@ -148,6 +210,9 @@ try {
         'scripts/generate_route_comparison.m',
         'scripts/generate_scenario_schematic.py'
     )) { Add-File -RelativeSource $file -PackagePath $file }
+
+    foreach ($name in $agentTraceAllowlist) { Add-AgentTrace -Name $name }
+    foreach ($name in $projectDocumentAllowlist) { Add-ProjectDocument -Name $name }
 
     # Supplementary data, protocols, historical assets, and the recovered Stage-1 artifacts.
     Add-TreeByExtension -RelativeSource '03_supplementary' -PackagePath '03_supplementary' -Extensions @('.csv', '.md', '.mat', '.sha256')

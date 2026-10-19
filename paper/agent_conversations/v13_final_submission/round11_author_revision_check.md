@@ -1,0 +1,14 @@
+# Round 11 author-side revision check
+
+This is a targeted author check against the frozen Round 10 reviewer reports after the requested edits. It is not a new independent peer-review round.
+
+| Comment | Author action in this revision | Status and evidence boundary |
+|---|---|---|
+| R1-M1, distinguish the contribution from predictive DWA and forecast-informed MPC | The Introduction identifies those neighboring approaches and defines the contribution as a matched forecast-interface ablation: DWA is fixed and only MPC's forecast input changes. The historical longer DWA rollout remains explicitly separate. | Addressed within the bounded claim. The paper does not claim a new general planning principle or matched superiority over standalone planners. |
+| R1-m1, make the code/run archive identifiable and reviewable | Supplementary Methods S8 names reproducibility_package.zip, generator snapshot reproducibility_release_v1.0.0, and an adjacent ZIP checksum sidecar. The scene manifest checksum is printed in S8 and the scene-generation specification. | Included as a local companion file. External reviewer access still depends on attaching the archive to the submission or hosting it persistently. |
+| R2-M1, describe the sampled scene distribution | Supplementary Methods S3 and scene_generation_specification.md report obstacle counts, initial-state ranges, seven equally sampled motion families, family-specific parameter ranges, master seed and scene seeds. The exact manifest is included and checksummed. | Addressed for the generated simulation distribution. This does not test performance on unseen motion families. |
+| R2-m1, clarify runtime summaries | The Discussion describes the reported value as a descriptive mean and states that it does not establish target-hardware real-time feasibility. | Addressed; no upper-tail timing claim is made. |
+| R3-m1, prevent confusion between planner and forecast-input conditions | The process diagram shows both MPC inputs. The results plot labels the DWA-only-LSTM and shared-LSTM conditions and states that DWA gets the same forecast in both. | Addressed in the main figures and captions. |
+| R3-m2, distinguish the historical route example from primary evidence | The required four-method 3D route figure remains unchanged and its caption now says it is a historical illustration outside the 500-scene test. The matched current-test route pair is in Supplementary Methods S7. | The historical figure is retained to satisfy the author's earlier explicit instruction and to preserve the requested CV/Kalman route comparison. It is illustrative; the aggregate primary chart carries the confirmatory evidence. |
+
+The targeted changes do not alter simulation data, the confirmatory analysis, or the historical route values. The primary estimate remains 936/1,500 versus 836/1,500 successes, with a paired difference of +6.67 percentage points (95% scene-cluster bootstrap CI +4.20 to +9.20).
