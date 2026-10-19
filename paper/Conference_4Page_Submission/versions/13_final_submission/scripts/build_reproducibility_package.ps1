@@ -69,6 +69,42 @@ function Copy-RequiredFile {
     Copy-Item -LiteralPath $Source -Destination $destination -Force
 }
 
+function Get-HistoricalReviewRecords {
+    $records = @()
+    foreach ($version in $historicalReviewVersionAllowlist) {
+        $sourceReviewRoot = [System.IO.Path]::GetFullPath((Join-Path (Join-Path $historicalSourceRoot $version) '04_review'))
+        $archiveVersionRoot = [System.IO.Path]::GetFullPath((Join-Path $historicalTraceRoot $version))
+        Assert-PathWithin -Path $sourceReviewRoot -Root $historicalSourceRoot -Purpose 'historical review source read'
+        Assert-PathWithin -Path $archiveVersionRoot -Root $historicalTraceRoot -Purpose 'historical review archive read'
+        Assert-RequiredDirectory -Path $sourceReviewRoot
+        Assert-RequiredDirectory -Path $archiveVersionRoot
+        $sourceFiles = @(Get-ChildItem -LiteralPath $sourceReviewRoot -File -Filter '*.md' |
+            Where-Object { $_.Name -match $historicalReviewNamePattern } | Sort-Object Name)
+        $archiveFiles = @(Get-ChildItem -LiteralPath $archiveVersionRoot -File -Filter '*.md' | Sort-Object Name)
+        if ($sourceFiles.Count -ne $archiveFiles.Count -or
+            (Compare-Object @($sourceFiles.Name) @($archiveFiles.Name)).Count -ne 0) {
+            throw "The historical review archive file list does not match source version $version"
+        }
+        foreach ($sourceFile in $sourceFiles) {
+            $archiveFile = Join-Path $archiveVersionRoot $sourceFile.Name
+            $sourceHash = (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            $archiveHash = (Get-FileHash -LiteralPath $archiveFile -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($sourceHash -ne $archiveHash) { throw "Historical review archive hash mismatch: $version/$($sourceFile.Name)" }
+            $records += [PSCustomObject]@{
+                Version = $version
+                Name = $sourceFile.Name
+                SHA256 = $sourceHash
+                ArchivePath = $archiveFile
+                PackageRelativePath = Join-Path $historicalTraceRelativeRoot (Join-Path $version $sourceFile.Name)
+                DeliveryRelativePath = "../../../agent_conversations/historical_versions/$version/$($sourceFile.Name)"
+            }
+        }
+    }
+    if ($records.Count -ne 183) { throw "Expected 183 preserved historical review records; found $($records.Count)" }
+    Assert-RequiredFile -Path $historicalTraceReadme
+    return $records
+}
+
 function Assert-Unlocked {
     param([Parameter(Mandatory)][string]$LockPath, [Parameter(Mandatory)][string]$StageName)
     if (Test-Path -LiteralPath $LockPath) {
@@ -217,6 +253,17 @@ $revisionPackagePath = 'paper\Conference_4Page_Submission\versions\13_final_subm
 $revisionZipPath = $revisionPackagePath.Replace('\', '/')
 $agentTraceRelativeRoot = 'paper\agent_conversations\v13_final_submission'
 $agentTraceRoot = Join-Path $projectRoot $agentTraceRelativeRoot
+$historicalTraceRelativeRoot = 'paper\agent_conversations\historical_versions'
+$historicalTraceRoot = Join-Path $projectRoot $historicalTraceRelativeRoot
+$historicalTraceReadme = Join-Path $historicalTraceRoot 'README.md'
+$historicalSourceRoot = Join-Path $projectRoot 'paper\Conference_4Page_Submission\versions'
+$historicalReviewVersionAllowlist = @(
+    '08_reviewer_revision', '09_final_submission', '10_final_submission',
+    '11_final_submission', '12_redesigned_submission'
+)
+$historicalReviewNamePattern = 'reviewer|referee|synthesis|self.review|revision.response|post.review|review.packet|revision.actions'
+$agentConversationRoot = Join-Path $projectRoot 'paper\agent_conversations'
+$agentConversationReadme = Join-Path $agentConversationRoot 'README.md'
 $projectDocumentRoot = Join-Path $projectRoot 'paper'
 $projectDocumentAllowlist = @('DOCUMENT_INDEX.md')
 $agentTraceAllowlist = @(
@@ -790,6 +837,8 @@ foreach ($name in $agentTraceAllowlist) {
 foreach ($name in $projectDocumentAllowlist) {
     Assert-RequiredFile -Path (Join-Path $projectDocumentRoot $name)
 }
+Assert-RequiredFile -Path $agentConversationReadme
+$historicalReviewRecords = @(Get-HistoricalReviewRecords)
 Assert-CsvRecordCount -Path (Join-Path $supplementRoot 'confirmatory_raw.csv') `
     -ExpectedCount 3000 -Description '500-scene paired contrast raw records'
 Assert-CsvRecordCount -Path (Join-Path $supplementRoot 'confirmatory_method_summary.csv') `
@@ -870,6 +919,17 @@ try {
         $relativePath = Join-Path 'paper' $name
         Copy-RequiredFile -Source (Join-Path $projectDocumentRoot $name) `
             -DestinationRoot $packageRoot -RelativePath $relativePath
+    }
+    Copy-RequiredFile -Source $agentConversationReadme -DestinationRoot $packageRoot `
+        -RelativePath (Join-Path 'paper\agent_conversations' 'README.md')
+    Copy-RequiredFile -Source $historicalTraceReadme -DestinationRoot $packageRoot `
+        -RelativePath (Join-Path $historicalTraceRelativeRoot 'README.md')
+    foreach ($record in $historicalReviewRecords) {
+        Copy-RequiredFile -Source $record.ArchivePath -DestinationRoot $packageRoot `
+            -RelativePath $record.PackageRelativePath
+        $packagedPath = Join-Path $packageRoot $record.PackageRelativePath
+        $packagedHash = (Get-FileHash -LiteralPath $packagedPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($packagedHash -ne $record.SHA256) { throw "Packaged historical review hash mismatch: $($record.Version)/$($record.Name)" }
     }
     foreach ($relativePath in $confirmedFigureAllowlist) {
         Copy-RequiredFile -Source (Join-Path $revisionRoot $relativePath) `
@@ -1036,6 +1096,14 @@ try {
             'LSTM_MPC_DWA/README_reproducibility.md',
             'LSTM_MPC_DWA/SHA256SUMS.txt', 'LSTM_MPC_DWA/PACKAGE_CONTENTS.txt',
             'LSTM_MPC_DWA/OMITTED_ARTIFACTS_SHA256.csv',
+            'LSTM_MPC_DWA/paper/DOCUMENT_INDEX.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/README.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/README.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/08_reviewer_revision/main_paper_self_review.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/09_final_submission/final_referee_A.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/10_final_submission/historical_final_referee_A_revision09.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/11_final_submission/final_review_synthesis.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/12_redesigned_submission/final_referee_A.md',
             "LSTM_MPC_DWA/$revisionZipPath/qa/historical_scene2_route_endpoint_audit.json",
             "LSTM_MPC_DWA/$revisionZipPath/qa/seven_method_route_endpoint_audit.json",
             "LSTM_MPC_DWA/$revisionZipPath/qa/seven_method_figure_collision_audit.json",
@@ -1202,6 +1270,9 @@ try {
     $deliveryRelativePaths += $projectDocumentAllowlist | ForEach-Object {
         '../../../' + $_
     }
+    $deliveryRelativePaths += '../../../agent_conversations/historical_versions/README.md'
+    $deliveryRelativePaths += '../../../agent_conversations/README.md'
+    $deliveryRelativePaths += $historicalReviewRecords | ForEach-Object { $_.DeliveryRelativePath }
     $deliveryRelativePaths = @($deliveryRelativePaths | Sort-Object -Unique)
     $deliveryManifestLines = @(
         '# Independent SHA-256 manifest for final v13 delivery artifacts.',
@@ -1215,6 +1286,12 @@ try {
         }
         elseif ($relativePath -eq '../../../DOCUMENT_INDEX.md') {
             Assert-PathWithin -Path $filePath -Root $projectDocumentRoot -Purpose 'paper index delivery hash'
+        }
+        elseif ($relativePath -eq '../../../agent_conversations/README.md') {
+            Assert-PathWithin -Path $filePath -Root $agentConversationRoot -Purpose 'AI archive index delivery hash'
+        }
+        elseif ($relativePath.StartsWith('../../../agent_conversations/historical_versions/', [System.StringComparison]::OrdinalIgnoreCase)) {
+            Assert-PathWithin -Path $filePath -Root $historicalTraceRoot -Purpose 'historical AI review record delivery hash'
         }
         else {
             Assert-PathWithin -Path $filePath -Root $revisionRoot -Purpose 'delivery hash'

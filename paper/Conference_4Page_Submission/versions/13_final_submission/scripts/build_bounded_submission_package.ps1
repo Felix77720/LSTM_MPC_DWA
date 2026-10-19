@@ -6,6 +6,17 @@ $revisionRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $revisionRoot '..\..\..\..'))
 $agentTraceRelativeRoot = 'paper\agent_conversations\v13_final_submission'
 $agentTraceRoot = Join-Path $repositoryRoot $agentTraceRelativeRoot
+$historicalTraceRoot = Join-Path $repositoryRoot 'paper\agent_conversations\historical_versions'
+$historicalTraceRelativeRoot = 'paper\agent_conversations\historical_versions'
+$historicalTraceReadme = Join-Path $historicalTraceRoot 'README.md'
+$historicalSourceRoot = Join-Path $repositoryRoot 'paper\Conference_4Page_Submission\versions'
+$historicalReviewVersionAllowlist = @(
+    '08_reviewer_revision', '09_final_submission', '10_final_submission',
+    '11_final_submission', '12_redesigned_submission'
+)
+$historicalReviewNamePattern = 'reviewer|referee|synthesis|self.review|revision.response|post.review|review.packet|revision.actions'
+$agentConversationRoot = Join-Path $repositoryRoot 'paper\agent_conversations'
+$agentConversationReadme = Join-Path $agentConversationRoot 'README.md'
 $projectDocumentRoot = Join-Path $repositoryRoot 'paper'
 $projectDocumentAllowlist = @('DOCUMENT_INDEX.md')
 $agentTraceAllowlist = @(
@@ -46,6 +57,83 @@ function Assert-Within {
     if (-not $fullPath.StartsWith($fullRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
         throw "Refusing $Purpose outside the intended directory: $fullPath"
     }
+}
+
+function Get-HistoricalReviewRecords {
+    $records = @()
+    foreach ($version in $historicalReviewVersionAllowlist) {
+        $sourceReviewRoot = [System.IO.Path]::GetFullPath((Join-Path (Join-Path $historicalSourceRoot $version) '04_review'))
+        $archiveVersionRoot = [System.IO.Path]::GetFullPath((Join-Path $historicalTraceRoot $version))
+        Assert-Within -Path $sourceReviewRoot -Root $historicalSourceRoot -Purpose 'historical review source read'
+        Assert-Within -Path $archiveVersionRoot -Root $historicalTraceRoot -Purpose 'historical review archive read'
+        if (-not (Test-Path -LiteralPath $sourceReviewRoot -PathType Container) -or
+            -not (Test-Path -LiteralPath $archiveVersionRoot -PathType Container)) {
+            throw "Historical review source or central archive is missing for $version"
+        }
+        $sourceFiles = @(Get-ChildItem -LiteralPath $sourceReviewRoot -File -Filter '*.md' |
+            Where-Object { $_.Name -match $historicalReviewNamePattern } | Sort-Object Name)
+        $archiveFiles = @(Get-ChildItem -LiteralPath $archiveVersionRoot -File -Filter '*.md' | Sort-Object Name)
+        if ($sourceFiles.Count -ne $archiveFiles.Count -or
+            (Compare-Object @($sourceFiles.Name) @($archiveFiles.Name)).Count -ne 0) {
+            throw "The historical review archive file list does not match source version $version"
+        }
+        foreach ($sourceFile in $sourceFiles) {
+            $archiveFile = Join-Path $archiveVersionRoot $sourceFile.Name
+            $sourceHash = (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            $archiveHash = (Get-FileHash -LiteralPath $archiveFile -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($sourceHash -ne $archiveHash) { throw "Historical review archive hash mismatch: $version/$($sourceFile.Name)" }
+            $records += [PSCustomObject]@{
+                Version = $version
+                Name = $sourceFile.Name
+                SHA256 = $sourceHash
+                ArchivePath = $archiveFile
+                PackageRelativePath = Join-Path $historicalTraceRelativeRoot (Join-Path $version $sourceFile.Name)
+                DeliveryRelativePath = "../../../agent_conversations/historical_versions/$version/$($sourceFile.Name)"
+            }
+        }
+    }
+    if ($records.Count -ne 183) { throw "Expected 183 preserved historical review records; found $($records.Count)" }
+    if (-not (Test-Path -LiteralPath $historicalTraceReadme -PathType Leaf)) { throw 'Historical review archive README is missing.' }
+    return $records
+}
+
+function Add-HistoricalReviewRecord {
+    param([Parameter(Mandatory)][psobject]$Record)
+    $source = [System.IO.Path]::GetFullPath($Record.ArchivePath)
+    Assert-Within -Path $source -Root $historicalTraceRoot -Purpose 'historical review archive package read'
+    $packageKey = $Record.PackageRelativePath.Replace('\', '/')
+    if (-not $script:copiedPackagePaths.Add($packageKey)) { return }
+    $destination = [System.IO.Path]::GetFullPath((Join-Path $stageRoot (Join-Path 'LSTM_MPC_DWA' $Record.PackageRelativePath)))
+    Assert-Within -Path $destination -Root $stageRoot -Purpose 'historical review archive package copy'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+    Copy-Item -LiteralPath $source -Destination $destination
+    $copiedHash = (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($copiedHash -ne $Record.SHA256) { throw "Packaged historical review hash mismatch: $($Record.Version)/$($Record.Name)" }
+}
+
+function Add-HistoricalReviewReadme {
+    $packageRelativePath = Join-Path $historicalTraceRelativeRoot 'README.md'
+    $source = [System.IO.Path]::GetFullPath($historicalTraceReadme)
+    Assert-Within -Path $source -Root $historicalTraceRoot -Purpose 'historical review archive README read'
+    $packageKey = $packageRelativePath.Replace('\', '/')
+    if (-not $script:copiedPackagePaths.Add($packageKey)) { return }
+    $destination = [System.IO.Path]::GetFullPath((Join-Path $stageRoot (Join-Path 'LSTM_MPC_DWA' $packageRelativePath)))
+    Assert-Within -Path $destination -Root $stageRoot -Purpose 'historical review archive README package copy'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+    Copy-Item -LiteralPath $source -Destination $destination
+}
+
+function Add-AgentConversationReadme {
+    $packageRelativePath = Join-Path 'paper\agent_conversations' 'README.md'
+    $source = [System.IO.Path]::GetFullPath($agentConversationReadme)
+    Assert-Within -Path $source -Root $agentConversationRoot -Purpose 'AI archive index read'
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw 'AI archive index README is missing.' }
+    $packageKey = $packageRelativePath.Replace('\', '/')
+    if (-not $script:copiedPackagePaths.Add($packageKey)) { return }
+    $destination = [System.IO.Path]::GetFullPath((Join-Path $stageRoot (Join-Path 'LSTM_MPC_DWA' $packageRelativePath)))
+    Assert-Within -Path $destination -Root $stageRoot -Purpose 'AI archive index package copy'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+    Copy-Item -LiteralPath $source -Destination $destination
 }
 
 function Add-File {
@@ -110,6 +198,8 @@ function Add-TreeByExtension {
 if ((Test-Path -LiteralPath $zipPath) -and -not $ReplaceExisting) {
     throw "Archive already exists; rerun with -ReplaceExisting to preserve it under a timestamped backup: $zipPath"
 }
+
+$historicalReviewRecords = @(Get-HistoricalReviewRecords)
 
 $stageRoot = Join-Path $revisionRoot (Join-Path 'tmp' ('bounded_package_' + [guid]::NewGuid().ToString('N')))
 $null = New-Item -ItemType Directory -Path $stageRoot
@@ -213,6 +303,9 @@ try {
 
     foreach ($name in $agentTraceAllowlist) { Add-AgentTrace -Name $name }
     foreach ($name in $projectDocumentAllowlist) { Add-ProjectDocument -Name $name }
+    Add-AgentConversationReadme
+    Add-HistoricalReviewReadme
+    foreach ($record in $historicalReviewRecords) { Add-HistoricalReviewRecord -Record $record }
 
     # Supplementary data, protocols, historical assets, and the recovered Stage-1 artifacts.
     Add-TreeByExtension -RelativeSource '03_supplementary' -PackagePath '03_supplementary' -Extensions @('.csv', '.md', '.mat', '.sha256')
@@ -278,6 +371,12 @@ try {
             'LSTM_MPC_DWA/04_review/v13_final_submission_audit_20261017.md',
             'LSTM_MPC_DWA/04_review/publication_assessment_v13_20261017.md',
             'LSTM_MPC_DWA/04_review/v13_final_submission_audit_20261014.md',
+            'LSTM_MPC_DWA/paper/DOCUMENT_INDEX.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/README.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/README.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/README.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/08_reviewer_revision/main_paper_self_review.md',
+            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/12_redesigned_submission/final_referee_A.md',
             'LSTM_MPC_DWA/SHA256SUMS.txt', 'LSTM_MPC_DWA/PACKAGE_CONTENTS.txt'
         )) { if (-not $check.GetEntry($required)) { throw "Required archive entry missing: $required" } }
         foreach ($entry in $check.Entries) {
