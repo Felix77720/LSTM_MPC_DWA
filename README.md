@@ -11,7 +11,7 @@ The experiment archive is organized under the [experiment archive index](experim
 - Frozen shared-LSTM versus DWA-only contrast: 500 scenes, 3,000 matched attempts, and a 6.7 percentage-point improvement (95% scene-cluster CI 4.2–9.2) for shared prediction. This is a subset of the five-controller benchmark, not a separate sample.
 - All results are simulation-only. No real-flight validation is claimed. The 100-scene bank overlaps the first 100 scenes of a retired holdout design and is reported as exploratory, not independent confirmation.
 
-For the detailed data inventory and protocol separation, see [`experiments/README.md`](experiments/README.md) and the Version 13 audit. Core MATLAB experiment drivers remain alongside the simulator source because their current paths are hash-bound to historical run records; the experiment index lists them without making duplicate copies.
+For the detailed data inventory and protocol separation, see [`experiments/README.md`](experiments/README.md) and the Version 13 audit. Historical run drivers remain beside the simulator locally to preserve recorded paths and hashes. GitHub carries the current paper sources and selected reproduction scripts; multi-gigabyte raw runs and one-off development drivers are not uploaded.
 
 ## Reproduction
 
