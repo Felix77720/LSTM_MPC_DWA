@@ -8,7 +8,7 @@ The current and only active submission package is Version 13. Historical snapsho
 2. [Four-page submission PDF](Conference_4Page_Submission/versions/13_final_submission/02_source/main.pdf) and [editable LaTeX source](Conference_4Page_Submission/versions/13_final_submission/02_source/main.tex)
 3. [Complete bilingual manuscript](Conference_4Page_Submission/versions/13_final_submission/03_bilingual/paper.md)
 4. [Supplementary methods PDF](Conference_4Page_Submission/versions/13_final_submission/03_supplementary/supplementary_methods.pdf) and its editable source
-5. [Final submission audit](Conference_4Page_Submission/versions/13_final_submission/04_review/v13_final_submission_audit_20261018.md), supporting reference checks, protocols, and SHA-256 manifests
+5. [Final submission audit](Conference_4Page_Submission/versions/13_final_submission/04_review/v13_final_submission_audit_20261019.md), supporting reference checks, protocols, and SHA-256 manifests
 
 ## Retained baseline
 

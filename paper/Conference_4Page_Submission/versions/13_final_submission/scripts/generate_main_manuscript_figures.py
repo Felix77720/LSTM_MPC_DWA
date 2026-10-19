@@ -61,50 +61,55 @@ def generate_pseudocode() -> dict:
     """Render the shared-forecast receding-horizon algorithm as modular pseudocode."""
     FIGURES.mkdir(parents=True, exist_ok=True)
     QA.mkdir(parents=True, exist_ok=True)
-    width, height = 3.80, 3.40
+    # Draw close to the final IEEE column width so exported type remains legible
+    # after the small scale change applied by LaTeX.
+    width, height = 3.45, 3.40
     fig, ax = plt.subplots(figsize=(width, height), dpi=300)
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
-    ax.set_xlim(0, width)
+    ax.set_xlim(0, 3.80)
     ax.set_ylim(0, height)
     ax.set_axis_off()
 
     def module(x: float, y: float, w: float, h: float, title: str,
-               lines: tuple[str, ...], accent: str, *, body_size: float = 5.55,
-               title_size: float = 6.25) -> None:
+               lines: tuple[str, ...], accent: str, *, body_size: float = 7.25,
+               title_size: float = 7.75, title_inset: float = 0.095,
+               body_inset: float = 0.215) -> None:
         ax.add_patch(FancyBboxPatch(
             (x, y), w, h, boxstyle="round,pad=0.012,rounding_size=0.035",
             linewidth=0.60, edgecolor=accent, facecolor="white", zorder=2,
         ))
         ax.add_patch(plt.Rectangle((x, y), 0.045, h, color=accent,
                                    linewidth=0, zorder=2))
-        ax.text(x + 0.11, y + h - 0.095, title, ha="left", va="center",
+        ax.text(x + 0.11, y + h - title_inset, title, ha="left", va="center",
                 fontsize=title_size, fontweight="bold", color=accent, zorder=3)
-        body_y = y + h - 0.205
+        body_y = y + h - body_inset
         for index, line in enumerate(lines):
-            ax.text(x + 0.11, body_y - index * 0.100, line,
+            ax.text(x + 0.11, body_y - index * 0.115, line,
                     ha="left", va="center", fontsize=body_size,
                     color=INK, zorder=3)
 
     ax.text(0.43, 3.33, "SHARED-FORECAST PLANNER  |  UPDATE LOOP",
-            ha="left", va="top", fontsize=8.58, fontweight="bold", color=INK)
+            ha="left", va="top", fontsize=8.30, fontweight="bold", color=INK)
 
     # Step 3 separates the route guide from local action screening. The gate
     # below exposes normal and emergency behavior without implying a guarantee.
     module(0.43, 2.88, 3.20, 0.31, "1  OBSERVE + INITIALIZE",
-           ("UAV state, goal, latest 10 observations and previous MPC sequence.",),
-           "#425466", body_size=6.54, title_size=7.26)
+           ("Read UAV state, goal, 10 observations and previous route.",),
+           "#425466", body_size=7.25, title_size=7.75)
     module(0.43, 2.37, 3.20, 0.42, "2  PREDICT ONCE, SHARE",
            ("Causal LSTM predicts 30 time-aligned obstacle positions (3 s).",
             "Broadcast this same forecast to MPC and DWA."), SHARED,
-           body_size=6.54, title_size=7.26)
+           body_size=7.25, title_size=7.75)
     module(0.43, 1.55, 1.49, 0.64, "3a  MPC | ROUTE GUIDE",
-           ("Optimize the 30-step route",
-            "with the shared forecast;",
-            "output guide + trust."), "#4B729D", body_size=6.42, title_size=7.14)
-    module(2.14, 1.55, 1.49, 0.64, "3b  DWA | ACTION SCREEN",
+           ("First update: solve route.",
+            "Later: shift prior route;",
+            "set guide + trust."), "#4B729D", body_size=7.05, title_size=7.55,
+           title_inset=0.125, body_inset=0.245)
+    module(2.14, 1.55, 1.49, 0.64, "3b  DWA | SCREEN",
            ("Sample reachable controls",
-            "screen 10 / 30 steps using",
-            "forecast + guide; score."), "#A86C20", body_size=6.42, title_size=6.96)
+            "screen all 30 steps using",
+            "forecast + guide; score."), "#A86C20", body_size=7.05, title_size=7.35,
+           title_inset=0.125, body_inset=0.245)
 
     ax.add_patch(FancyBboxPatch(
         (0.43, 1.29), 3.20, 0.17,
@@ -115,20 +120,20 @@ def generate_pseudocode() -> dict:
             ha="center", va="center", fontsize=6.78, fontweight="bold",
             color=INK, zorder=3)
     module(0.43, 0.56, 1.56, 0.65, "YES  |  NORMAL",
-           ("Choose top-scored safe action;",
-            "bound MPC's first input.",
-            "If clear >1 m & cross-track >0.5 m,",
-            "recenter; re-screen, else revert."), "#16877D",
-           body_size=6.00, title_size=6.90)
+           ("Choose screened action;",
+            "send ranges to MPC.",
+            "Optional recentering:",
+            "re-screen or revert."), "#16877D",
+            body_size=7.05, title_size=7.45)
     module(2.07, 0.56, 1.56, 0.65, "NO  |  EMERGENCY",
            ("Screen emergency actions;",
             "use one only if it passes.",
             "If none passes, stop."), "#A45B4A",
-           body_size=6.18, title_size=6.90)
-    module(0.43, 0.08, 3.20, 0.38, "5  RE-SOLVE + EXECUTE",
-           ("Re-solve MPC with the safe-set bound when available.",
-            "Execute the screened action for 0.1 s; update and repeat."),
-           "#425466", body_size=6.36, title_size=7.02)
+            body_size=7.05, title_size=7.45)
+    module(0.43, 0.08, 3.20, 0.38, "5  PLAN NEXT + EXECUTE",
+           ("Solve the next MPC route with the screened bound if available.",
+            "Execute one verified action for 0.1 s; observe and repeat."),
+           "#425466", body_size=7.00, title_size=7.55)
 
     arrow = dict(arrowstyle="-|>", color="#71818D", lw=0.65, mutation_scale=6.5)
     ax.annotate("", xy=(2.03, 2.79), xytext=(2.03, 2.88), arrowprops=arrow, zorder=1)

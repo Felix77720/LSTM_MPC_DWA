@@ -28,15 +28,18 @@ RUN_DIR = REVISION / "qa" / "route_example_scene72_seed2"
 FIGURES = REVISION / "02_source" / "figures"
 QA = REVISION / "qa"
 
-METHODS = [
+ALL_METHODS = [
     ("standalone_dwa_cv", "Standalone DWA-CV", "#E69F00", "-"),
     ("standalone_mpc_cv", "Standalone MPC-CV", "#0072B2", "--"),
-    ("cv", "Coupled MPC-DWA-CV", "#009E73", "-."),
-    ("lstm_mpc_cv_dwa", "MPC-DWA (LSTM to MPC only)", "#CC79A7", ":"),
-    ("cv_mpc_lstm_dwa", "MPC-DWA (LSTM to DWA only)", "#D55E00", (0, (6, 2, 1, 2))),
-    ("lstm", "MPC-DWA (shared LSTM)", "#332288", (0, (3, 1, 1, 1))),
-    ("static", "MPC-DWA: position hold", "#6F7780", (0, (1, 1))),
+    ("cv", "Coupled MPC-DWA-CV", "#8DA0CB", "-."),
+    ("lstm_mpc_cv_dwa", "MPC-DWA (LSTM to MPC only)", "#C7B9D9", ":"),
+    ("cv_mpc_lstm_dwa", "MPC-DWA (LSTM to DWA only)", "#D9A0AE", (0, (6, 2, 1, 2))),
+    ("lstm", "MPC-DWA (shared LSTM)", "#4B2E83", (0, (3, 1, 1, 1))),
+    ("static", "MPC-DWA: position hold", "#9AA0A6", (0, (1, 1))),
 ]
+INTEGRATED_METHOD_KEYS = {
+    "cv", "lstm_mpc_cv_dwa", "cv_mpc_lstm_dwa", "lstm", "static"
+}
 METHOD_MARKERS = {
     "standalone_dwa_cv": "o",
     "standalone_mpc_cv": "s",
@@ -98,11 +101,19 @@ def normalize_label(value: str) -> str:
 
 
 def main() -> None:
-    run_dir = Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else RUN_DIR
-    if len(sys.argv) > 2:
+    args = sys.argv[1:]
+    integrated_only = "--integrated" in args
+    args = [arg for arg in args if arg != "--integrated"]
+    run_dir = Path(args[0]).resolve() if len(args) == 1 else RUN_DIR
+    if len(args) > 1:
         raise SystemExit(
-            "Usage: generate_seven_method_route_figure.py [route-export-directory]"
+            "Usage: generate_seven_method_route_figure.py [--integrated] "
+            "[route-export-directory]"
         )
+    methods = [
+        method for method in ALL_METHODS
+        if not integrated_only or method[0] in INTEGRATED_METHOD_KEYS
+    ]
     if not run_dir.is_dir():
         raise FileNotFoundError(f"Route export directory does not exist: {run_dir}")
     selection_path = run_dir / "selection_audit.json"
@@ -134,13 +145,15 @@ def main() -> None:
 
     status_list = read_csv(run_dir / "route_status.csv")
     status_rows = {row["MethodKey"]: row for row in status_list}
-    method_keys = [key for key, _, _, _ in METHODS]
+    method_keys = [key for key, _, _, _ in methods]
     if len(status_rows) != len(status_list):
         raise ValueError("route_status.csv contains duplicate method keys.")
-    if set(status_rows) != set(method_keys):
+    if not set(method_keys).issubset(status_rows):
         missing = sorted(set(method_keys) - set(status_rows))
+        raise ValueError(f"Route-status file is missing required keys: {missing}.")
+    if not integrated_only and set(status_rows) != set(method_keys):
         extra = sorted(set(status_rows) - set(method_keys))
-        raise ValueError(f"Unexpected route-status keys; missing={missing}, extra={extra}.")
+        raise ValueError(f"Unexpected route-status keys: {extra}.")
 
     obstacle_path = run_dir / "obstacle_tracks.csv"
     obstacle_rows = (np.loadtxt(obstacle_path, delimiter=",")
@@ -235,7 +248,7 @@ def main() -> None:
             "radius_drawn_in_route_figure": False,
         })
 
-    for key, label, color, linestyle in METHODS:
+    for key, label, color, linestyle in methods:
         trajectory_path = run_dir / f"trajectory_{key}.csv"
         data = np.loadtxt(trajectory_path, delimiter=",")
         if data.ndim == 1:
@@ -396,7 +409,8 @@ def main() -> None:
         ncol=2, frameon=False, fontsize=6.0, handlelength=1.05,
         columnspacing=0.7, labelspacing=0.38, handletextpad=0.35)
 
-    stem = f"route_comparison_seven_method_scene{selected_scene}_seed{selected_seed}"
+    scope = "integrated_five_method" if integrated_only else "seven_method"
+    stem = f"route_comparison_{scope}_scene{selected_scene}_seed{selected_seed}"
     alignment_report = require_matplotlib_panel_alignment(
         fig,
         json_out=QA / f"{stem}.alignment.json",
@@ -469,7 +483,7 @@ def main() -> None:
         ),
         "z_axis_limits_m": [-0.8, 10.0],
         "method_line_styles": {
-            key: repr(linestyle) for key, _, _, linestyle in METHODS
+            key: repr(linestyle) for key, _, _, linestyle in methods
         },
         "method_marker_shapes": METHOD_MARKERS,
         "obstacle_tracks_included": False,
@@ -526,7 +540,7 @@ def main() -> None:
 
     audit_by_key = {row["method_key"]: row for row in endpoint_audit}
     wide_handles = []
-    for key, label, color, linestyle in METHODS:
+    for key, label, color, linestyle in methods:
         record = audit_by_key[key]
         route = np.loadtxt(run_dir / record["route_csv"], delimiter=",")
         if route.ndim == 1:
@@ -572,7 +586,7 @@ def main() -> None:
         handletextpad=0.5, labelspacing=0.9,
         title="Controller", title_fontsize=7.5,
     )
-    wide_stem = f"route_comparison_seven_method_scene{selected_scene}_seed{selected_seed}_main"
+    wide_stem = f"route_comparison_{scope}_scene{selected_scene}_seed{selected_seed}_main"
     wide_fig.savefig(FIGURES / f"{wide_stem}.pdf", facecolor="white")
     wide_svg = FIGURES / f"{wide_stem}.svg"
     wide_fig.savefig(wide_svg, facecolor="white")
@@ -611,26 +625,26 @@ def main() -> None:
     ax_single.set_ylim(0, 20)
     ax_single.set_zlim(-0.8, 10)
     ax_single.set_box_aspect((20, 20, 11), zoom=1.22)
-    ax_single.set_xlabel("x (m)", labelpad=0.7, fontsize=6.3)
-    ax_single.set_ylabel("y (m)", labelpad=0.7, fontsize=6.3)
+    ax_single.set_xlabel("x (m)", labelpad=0.7, fontsize=7.6)
+    ax_single.set_ylabel("y (m)", labelpad=0.7, fontsize=7.6)
     # mplot3d's native z-label falls outside a narrow column even when the
     # plotted box fits. Place the same axis label inside the figure margin.
     ax_single.set_zlabel("")
     single_fig.text(0.975, 0.70, "z (m)", rotation=90, rotation_mode="anchor",
                     ha="center", va="center",
-                    fontsize=6.3, color="#253746")
+                    fontsize=7.6, color="#253746")
     ax_single.set_xticks([0, 10, 20])
     ax_single.set_yticks([0, 10, 20])
     ax_single.set_zticks([0, 5, 10])
-    ax_single.tick_params(axis="both", labelsize=6.0, pad=0.5, length=1.5)
-    ax_single.zaxis.set_tick_params(labelsize=6.0, pad=0.5, length=1.5)
+    ax_single.tick_params(axis="both", labelsize=7.3, pad=0.5, length=1.5)
+    ax_single.zaxis.set_tick_params(labelsize=7.3, pad=0.5, length=1.5)
     for axis in (ax_single.xaxis, ax_single.yaxis, ax_single.zaxis):
         axis.pane.fill = False
         axis._axinfo["grid"]["color"] = (0.80, 0.83, 0.85, 0.60)
         axis._axinfo["grid"]["linewidth"] = 0.45
 
     single_handles = []
-    for key, _, color, linestyle in METHODS:
+    for key, _, color, linestyle in methods:
         record = audit_by_key[key]
         route = np.loadtxt(run_dir / record["route_csv"], delimiter=",")
         if route.ndim == 1:
@@ -661,6 +675,26 @@ def main() -> None:
                       linewidth=0.65, depthshade=False, zorder=10)
     ax_single.scatter(*goal, marker="*", s=55, facecolors="none",
                       edgecolors="#CC3311", linewidth=0.9, depthshade=False, zorder=3)
+
+    # A compact XY inset separates the four short comparator routes that overlap
+    # in perspective. It redraws the saved coordinates without smoothing.
+    inset = None
+    if integrated_only:
+        inset = single_fig.add_axes([0.055, 0.665, 0.34, 0.225])
+        inset.set_facecolor((1, 1, 1, 0.94))
+        for key, _, color, linestyle in methods:
+            route = np.loadtxt(run_dir / audit_by_key[key]["route_csv"], delimiter=",")
+            if route.ndim == 1:
+                route = route[None, :]
+            inset.plot(route[:, 1], route[:, 2], color=color, linestyle=linestyle,
+                       linewidth=1.35 if key == "lstm" else 1.05)
+        inset.set_xlim(0.5, 9.5)
+        inset.set_ylim(0.5, 12.5)
+        inset.set_xticks([])
+        inset.set_yticks([])
+        inset.grid(True, color="#D6DCE1", linewidth=0.35, alpha=0.8)
+        for spine in inset.spines.values():
+            spine.set_linewidth(0.55)
     short_labels = {
         "standalone_dwa_cv": "DWA-CV",
         "standalone_mpc_cv": "MPC-CV",
@@ -670,15 +704,15 @@ def main() -> None:
         "lstm": "Shared LSTM",
         "static": "Position hold",
     }
-    for handle, (key, _, _, _) in zip(single_handles, METHODS):
+    for handle, (key, _, _, _) in zip(single_handles, methods):
         handle.set_label(short_labels[key])
     single_fig.legend(
         handles=single_handles, loc="center", bbox_to_anchor=(0.50, 0.095),
-        ncol=3, frameon=False, fontsize=6.1, handlelength=1.45,
+        ncol=3, frameon=False, fontsize=7.1, handlelength=1.45,
         handletextpad=0.38, columnspacing=0.72, labelspacing=0.50,
     )
     single_stem = (
-        f"route_comparison_seven_method_scene{selected_scene}_seed{selected_seed}_singlecol"
+        f"route_comparison_{scope}_scene{selected_scene}_seed{selected_seed}_singlecol"
     )
     single_alignment = require_matplotlib_panel_alignment(
         single_fig,
@@ -686,6 +720,7 @@ def main() -> None:
         overlay_svg=QA / f"{single_stem}.alignment.svg",
         tolerance_pt=1.5,
         gutter_tolerance_pt=1.5,
+        exclude_axes=([inset] if inset is not None else []),
         strict=True,
     )
     single_fig.savefig(FIGURES / f"{single_stem}.pdf", facecolor="white")
@@ -702,7 +737,11 @@ def main() -> None:
             "source": run_dir.relative_to(PROJECT).as_posix(),
             "selection_scene": selected_scene,
             "sampling_seed": selected_seed,
-            "coordinate_frame": "all seven original saved XYZ routes in one 3-D scene",
+            "coordinate_frame": (
+                "five integrated original saved XYZ routes in one 3-D scene"
+                if integrated_only else
+                "all seven original saved XYZ routes in one 3-D scene"
+            ),
             "target_canvas_inches": [3.40, 3.16],
             "route_states": "all original saved states through each true terminal; no path changes",
             "source_endpoint_audit": endpoint_audit_path.name,
@@ -710,7 +749,10 @@ def main() -> None:
             "methods": endpoint_audit,
             "exports": [f"{single_stem}.{ext}" for ext in ("pdf", "svg", "png", "tiff")],
         }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"Saved seven-method 3D route figure and endpoint audit from {run_dir}.")
+    print(
+        f"Saved {'integrated five-method' if integrated_only else 'seven-method'} "
+        f"3D route figure and endpoint audit from {run_dir}."
+    )
 
 
 if __name__ == "__main__":

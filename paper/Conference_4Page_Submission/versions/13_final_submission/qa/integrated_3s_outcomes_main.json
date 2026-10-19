@@ -1,0 +1,92 @@
+{
+  "core_conclusion": "Within the 3-s integrated MPC-DWA comparison, shared LSTM improves safe arrival over position hold. Differences from coupled CV and one-layer LSTM injection remain uncertain.",
+  "source": "paper/Conference_4Page_Submission/versions/13_final_submission/03_supplementary/integrated_3s_figure_source.csv",
+  "episodes_per_method": 300,
+  "independent_unit": "scene; three matched seeds averaged within scene",
+  "absolute_intervals": "scene-bootstrap percentile 95% intervals",
+  "paired_intervals": "simultaneous max-|t| 95% scene-cluster intervals",
+  "alignment": {
+    "schema_version": 1,
+    "applicable": true,
+    "auditable": true,
+    "verdict": "PASS",
+    "backend": "python-matplotlib",
+    "summary": {
+      "fail": 0,
+      "warn": 0,
+      "comparisons": 1,
+      "exemptions": 0
+    },
+    "tolerances": {
+      "alignment_pt": 1.5,
+      "gutter_pt": 1.5
+    },
+    "layout": {
+      "schema_version": 1,
+      "backend": "python-matplotlib",
+      "figure": {
+        "width_pt": 246.24,
+        "height_pt": 219.6
+      },
+      "panels": [
+        {
+          "id": "a",
+          "bbox_pt": [
+            83.72160000000001,
+            134.00476586815873,
+            236.3904,
+            206.42399999999998
+          ],
+          "grid_id": "matplotlib-grid-1",
+          "row_start": 0,
+          "row_stop": 1,
+          "col_start": 0,
+          "col_stop": 1,
+          "panel_label": "a",
+          "panel_label_anchor_pt": [
+            37.92096000000002,
+            208.23448085329602
+          ]
+        },
+        {
+          "id": "b",
+          "bbox_pt": [
+            83.72160000000001,
+            26.351999999999975,
+            236.3904,
+            89.32524707116626
+          ],
+          "grid_id": "matplotlib-grid-1",
+          "row_start": 1,
+          "row_stop": 2,
+          "col_start": 0,
+          "col_stop": 1,
+          "panel_label": "b",
+          "panel_label_anchor_pt": [
+            37.92096000000002,
+            90.89957824794541
+          ]
+        }
+      ],
+      "row_groups": [],
+      "column_groups": [
+        {
+          "id": "column-1",
+          "panels": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "boundary_groups": [],
+      "exemptions": []
+    },
+    "findings": []
+  },
+  "exports": [
+    "integrated_3s_outcomes_main.pdf",
+    "integrated_3s_outcomes_main.svg",
+    "integrated_3s_outcomes_main.png",
+    "integrated_3s_outcomes_main.tiff"
+  ]
+}
