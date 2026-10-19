@@ -615,8 +615,10 @@ def main() -> None:
     # Native single-column candidate: render directly at the intended print
     # width. It is an additional export so the paper can retain the panoramic
     # version if seven coincident routes cannot be read in one column.
-    single_fig = plt.figure(figsize=(3.40, 3.16), constrained_layout=False)
-    ax_single = single_fig.add_axes([0.005, 0.285, 0.93, 0.705], projection="3d")
+    # Use a slightly taller single-column canvas so coincident 3-D routes remain
+    # legible at print size and the final manuscript page balances naturally.
+    single_fig = plt.figure(figsize=(3.40, 3.46), constrained_layout=False)
+    ax_single = single_fig.add_axes([0.005, 0.265, 0.93, 0.725], projection="3d")
     # Expose the DWA-CV detour while retaining the vertical separation of the
     # six central routes at the native single-column size.
     ax_single.view_init(elev=27, azim=-58)
@@ -630,8 +632,8 @@ def main() -> None:
     # mplot3d's native z-label falls outside a narrow column even when the
     # plotted box fits. Place the same axis label inside the figure margin.
     ax_single.set_zlabel("")
-    single_fig.text(0.975, 0.70, "z (m)", rotation=90, rotation_mode="anchor",
-                    ha="center", va="center",
+    single_fig.text(0.925, 0.965, "z (m)",
+                    ha="center", va="top",
                     fontsize=7.6, color="#253746")
     ax_single.set_xticks([0, 10, 20])
     ax_single.set_yticks([0, 10, 20])
@@ -711,7 +713,11 @@ def main() -> None:
         inset.set_ylim(4.4, 9.0)
         inset.set_xticks([5, 7, 9])
         inset.set_yticks([5, 7, 9])
-        inset.tick_params(labelsize=5.0, length=1.5, pad=0.7)
+        # Put the inset's x tick labels above the box so they do not compete
+        # with the projected 3-D routes behind this magnified detail.
+        inset.tick_params(axis="x", labeltop=True, labelbottom=False,
+                          labelsize=5.0, length=1.5, pad=0.7)
+        inset.tick_params(axis="y", labelsize=5.0, length=1.5, pad=0.7)
         inset.grid(True, color="#D6DCE1", linewidth=0.35, alpha=0.8)
         for spine in inset.spines.values():
             spine.set_linewidth(0.55)
@@ -762,7 +768,7 @@ def main() -> None:
                 if integrated_only else
                 "all seven original saved XYZ routes in one 3-D scene"
             ),
-            "target_canvas_inches": [3.40, 3.16],
+            "target_canvas_inches": [3.40, 3.46],
             "route_states": "all original saved states through each true terminal; no path changes",
             "inset": (
                 "comparator-only XY terminal detail using the same saved coordinates; "
