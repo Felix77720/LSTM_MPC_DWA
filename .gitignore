@@ -23,21 +23,22 @@ env/
 
 # Machine-local credentials, MATLAB preferences, cluster jobs and render caches.
 # Keep these directories on the workstation, but never include them in releases.
-/.codex-tmp/
 /.matlab_prefs*/
 /local_cluster_jobs/
 /tmp/
 
-# All experiment outputs, models, figures and run logs are archived separately.
+# Experiment outputs are local-only; the paper package carries bounded summaries.
+/experiments/results/
+/experiments/archive/
 /results/
 
 # The Zenodo data-package staging area is intentionally not part of the code repo.
 /reproducibility_release_v1.0.0/
 
-# Local manuscript, result and AI/debug working archive.
+# Workstation-only manuscript and result archive.
 /_local_archive/
 
-# Locally retained AI-generated review, release-planning and status records.
+# Local release metadata and transient status records are not part of the code release.
 /release/
 /REVISION_STATUS.md
 

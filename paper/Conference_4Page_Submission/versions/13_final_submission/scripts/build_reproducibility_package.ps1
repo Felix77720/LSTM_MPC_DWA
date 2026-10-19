@@ -69,42 +69,6 @@ function Copy-RequiredFile {
     Copy-Item -LiteralPath $Source -Destination $destination -Force
 }
 
-function Get-HistoricalReviewRecords {
-    $records = @()
-    foreach ($version in $historicalReviewVersionAllowlist) {
-        $sourceReviewRoot = [System.IO.Path]::GetFullPath((Join-Path (Join-Path $historicalSourceRoot $version) '04_review'))
-        $archiveVersionRoot = [System.IO.Path]::GetFullPath((Join-Path $historicalTraceRoot $version))
-        Assert-PathWithin -Path $sourceReviewRoot -Root $historicalSourceRoot -Purpose 'historical review source read'
-        Assert-PathWithin -Path $archiveVersionRoot -Root $historicalTraceRoot -Purpose 'historical review archive read'
-        Assert-RequiredDirectory -Path $sourceReviewRoot
-        Assert-RequiredDirectory -Path $archiveVersionRoot
-        $sourceFiles = @(Get-ChildItem -LiteralPath $sourceReviewRoot -File -Filter '*.md' |
-            Where-Object { $_.Name -match $historicalReviewNamePattern } | Sort-Object Name)
-        $archiveFiles = @(Get-ChildItem -LiteralPath $archiveVersionRoot -File -Filter '*.md' | Sort-Object Name)
-        if ($sourceFiles.Count -ne $archiveFiles.Count -or
-            (Compare-Object @($sourceFiles.Name) @($archiveFiles.Name)).Count -ne 0) {
-            throw "The historical review archive file list does not match source version $version"
-        }
-        foreach ($sourceFile in $sourceFiles) {
-            $archiveFile = Join-Path $archiveVersionRoot $sourceFile.Name
-            $sourceHash = (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-            $archiveHash = (Get-FileHash -LiteralPath $archiveFile -Algorithm SHA256).Hash.ToLowerInvariant()
-            if ($sourceHash -ne $archiveHash) { throw "Historical review archive hash mismatch: $version/$($sourceFile.Name)" }
-            $records += [PSCustomObject]@{
-                Version = $version
-                Name = $sourceFile.Name
-                SHA256 = $sourceHash
-                ArchivePath = $archiveFile
-                PackageRelativePath = Join-Path $historicalTraceRelativeRoot (Join-Path $version $sourceFile.Name)
-                DeliveryRelativePath = "../../../agent_conversations/historical_versions/$version/$($sourceFile.Name)"
-            }
-        }
-    }
-    if ($records.Count -ne 183) { throw "Expected 183 preserved historical review records; found $($records.Count)" }
-    Assert-RequiredFile -Path $historicalTraceReadme
-    return $records
-}
-
 function Assert-Unlocked {
     param([Parameter(Mandatory)][string]$LockPath, [Parameter(Mandatory)][string]$StageName)
     if (Test-Path -LiteralPath $LockPath) {
@@ -251,47 +215,8 @@ $resultsRoot = Join-Path $projectRoot 'results'
 $supplementRoot = Join-Path $revisionRoot '03_supplementary'
 $revisionPackagePath = 'paper\Conference_4Page_Submission\versions\13_final_submission'
 $revisionZipPath = $revisionPackagePath.Replace('\', '/')
-$agentTraceRelativeRoot = 'paper\agent_conversations\v13_final_submission'
-$agentTraceRoot = Join-Path $projectRoot $agentTraceRelativeRoot
-$historicalTraceRelativeRoot = 'paper\agent_conversations\historical_versions'
-$historicalTraceRoot = Join-Path $projectRoot $historicalTraceRelativeRoot
-$historicalTraceReadme = Join-Path $historicalTraceRoot 'README.md'
-$historicalSourceRoot = Join-Path $projectRoot 'paper\Conference_4Page_Submission\versions'
-$historicalReviewVersionAllowlist = @(
-    '08_reviewer_revision', '09_final_submission', '10_final_submission',
-    '11_final_submission', '12_redesigned_submission'
-)
-$historicalReviewNamePattern = 'reviewer|referee|synthesis|self.review|revision.response|post.review|review.packet|revision.actions'
-$agentConversationRoot = Join-Path $projectRoot 'paper\agent_conversations'
-$agentConversationReadme = Join-Path $agentConversationRoot 'README.md'
 $projectDocumentRoot = Join-Path $projectRoot 'paper'
 $projectDocumentAllowlist = @('DOCUMENT_INDEX.md')
-$agentTraceAllowlist = @(
-    'README.md',
-    'final_referee_A.md', 'final_referee_B.md', 'final_referee_C.md',
-    'final_review_synthesis.md', 'main_paper_self_review.md',
-    'post_revision_assessment_round6_historical.md', 'post_revision_assessment.md',
-    'review_report.md', 'review_round2_referee_A.md', 'review_round2_referee_B.md',
-    'review_round2_referee_C.md', 'review_round2_synthesis.md',
-    'review_round3_referee_A.md', 'review_round3_referee_B.md',
-    'review_round3_referee_C.md', 'review_round3_synthesis.md',
-    'review_round4_referee_A.md', 'review_round4_referee_B.md',
-    'review_round4_referee_C.md', 'review_round4_synthesis.md',
-    'review_round5_referee_A.md', 'review_round5_referee_B.md',
-    'review_round5_referee_C.md', 'review_round5_synthesis.md',
-    'review_round6_synthesis.md', 'review_round7_synthesis.md',
-    'revision_response.md', 'round10_post_review_synthesis.md',
-    'round10_reviewer_1.md', 'round10_reviewer_2.md', 'round10_reviewer_3.md',
-    'round11_author_revision_check.md', 'round12_author_revision_check.md',
-    'round12_post_review_synthesis.md', 'round12_reviewer_1.md',
-    'round12_reviewer_2.md', 'round12_reviewer_3.md',
-    'round14_author_revision_check.md', 'round15_author_revision_check.md',
-    'round16_author_revision_check.md', 'round3_revision_actions.md',
-    'round4_revision_actions.md', 'table_redesign_self_review.md',
-    'historical_final_referee_A_revision09.md', 'historical_final_referee_B_revision09.md',
-    'historical_final_referee_C_revision09.md', 'historical_final_review_synthesis_revision09.md',
-    'review_round10_packet.md'
-)
 $stage1PackageRelativePath = 'results\v12a_pooled_weight_development_inclusive_dev48_20261012'
 $stage1ArchivePath = $stage1PackageRelativePath.Replace('\', '/')
 $heldoutPackageRelativePath = 'results\v13_seven_method_100scene_exploratory_20261015'
@@ -456,10 +381,8 @@ if ($confirmedBilingualAssetAllowlist.Count -eq 0) {
 }
 
 $revisionRequiredFiles = @(
-    'README.md', 'REVISION_STATUS.md',
+    'README.md',
     '02_source\main.pdf', '02_source\main.tex', '02_source\references.bib',
-    '04_review\AI_TRACE_ARCHIVE.md',
-    '04_review\v13_final_submission_audit_20261017.md',
     '04_review\v13_final_submission_audit_20261018.md',
     '04_review\publication_assessment_v13_20261017.md',
     'scripts\generate_main_manuscript_figures.py',
@@ -659,13 +582,11 @@ $stage1SourceFiles = @(
     'confirmatory_revision\confirmatory_48scenes_20261005_050804\scene002_seed01_lstm.mat',
     'v12_trust_weight_tuning_dev48_20261006\tuning_bundle.mat'
 )
-$frozenParentProtocolRelativePath = 'paper\Conference_4Page_Submission\versions\12_redesigned_submission\04_review\redesigned_comparison_protocol.md'
+$frozenParentProtocolRelativePath = 'paper\Conference_4Page_Submission\versions\13_final_submission\04_review\frozen_parent_redesigned_comparison_protocol_v12.md'
 $deliveryRelativePaths = @(
-    'README.md', 'REVISION_STATUS.md',
+    'README.md',
     '02_source/main.pdf', '02_source/main.tex', '02_source/references.bib',
-    '04_review/v13_final_submission_audit_20261017.md',
     '04_review/v13_final_submission_audit_20261018.md',
-    '04_review/AI_TRACE_ARCHIVE.md',
     '04_review/publication_assessment_v13_20261017.md',
     'scripts/generate_main_manuscript_figures.py',
     'qa/main_result_figure_contract.md',
@@ -831,14 +752,9 @@ $deliveryRelativePaths = @(
 foreach ($relativePath in $revisionRequiredFiles) {
     Assert-RequiredFile -Path (Join-Path $revisionRoot $relativePath)
 }
-foreach ($name in $agentTraceAllowlist) {
-    Assert-RequiredFile -Path (Join-Path $agentTraceRoot $name)
-}
 foreach ($name in $projectDocumentAllowlist) {
     Assert-RequiredFile -Path (Join-Path $projectDocumentRoot $name)
 }
-Assert-RequiredFile -Path $agentConversationReadme
-$historicalReviewRecords = @(Get-HistoricalReviewRecords)
 Assert-CsvRecordCount -Path (Join-Path $supplementRoot 'confirmatory_raw.csv') `
     -ExpectedCount 3000 -Description '500-scene paired contrast raw records'
 Assert-CsvRecordCount -Path (Join-Path $supplementRoot 'confirmatory_method_summary.csv') `
@@ -910,26 +826,10 @@ try {
         Copy-RequiredFile -Source (Join-Path $revisionRoot $relativePath) `
             -DestinationRoot $packageRevisionRoot -RelativePath $relativePath
     }
-    foreach ($name in $agentTraceAllowlist) {
-        $relativePath = Join-Path $agentTraceRelativeRoot $name
-        Copy-RequiredFile -Source (Join-Path $agentTraceRoot $name) `
-            -DestinationRoot $packageRoot -RelativePath $relativePath
-    }
     foreach ($name in $projectDocumentAllowlist) {
         $relativePath = Join-Path 'paper' $name
         Copy-RequiredFile -Source (Join-Path $projectDocumentRoot $name) `
             -DestinationRoot $packageRoot -RelativePath $relativePath
-    }
-    Copy-RequiredFile -Source $agentConversationReadme -DestinationRoot $packageRoot `
-        -RelativePath (Join-Path 'paper\agent_conversations' 'README.md')
-    Copy-RequiredFile -Source $historicalTraceReadme -DestinationRoot $packageRoot `
-        -RelativePath (Join-Path $historicalTraceRelativeRoot 'README.md')
-    foreach ($record in $historicalReviewRecords) {
-        Copy-RequiredFile -Source $record.ArchivePath -DestinationRoot $packageRoot `
-            -RelativePath $record.PackageRelativePath
-        $packagedPath = Join-Path $packageRoot $record.PackageRelativePath
-        $packagedHash = (Get-FileHash -LiteralPath $packagedPath -Algorithm SHA256).Hash.ToLowerInvariant()
-        if ($packagedHash -ne $record.SHA256) { throw "Packaged historical review hash mismatch: $($record.Version)/$($record.Name)" }
     }
     foreach ($relativePath in $confirmedFigureAllowlist) {
         Copy-RequiredFile -Source (Join-Path $revisionRoot $relativePath) `
@@ -1097,13 +997,8 @@ try {
             'LSTM_MPC_DWA/SHA256SUMS.txt', 'LSTM_MPC_DWA/PACKAGE_CONTENTS.txt',
             'LSTM_MPC_DWA/OMITTED_ARTIFACTS_SHA256.csv',
             'LSTM_MPC_DWA/paper/DOCUMENT_INDEX.md',
-            'LSTM_MPC_DWA/paper/agent_conversations/README.md',
-            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/README.md',
-            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/08_reviewer_revision/main_paper_self_review.md',
-            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/09_final_submission/final_referee_A.md',
-            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/10_final_submission/historical_final_referee_A_revision09.md',
-            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/11_final_submission/final_review_synthesis.md',
-            'LSTM_MPC_DWA/paper/agent_conversations/historical_versions/12_redesigned_submission/final_referee_A.md',
+            "LSTM_MPC_DWA/$revisionZipPath/04_review/v13_final_submission_audit_20261018.md",
+            "LSTM_MPC_DWA/$revisionZipPath/04_review/reference_verification_v13.md",
             "LSTM_MPC_DWA/$revisionZipPath/qa/historical_scene2_route_endpoint_audit.json",
             "LSTM_MPC_DWA/$revisionZipPath/qa/seven_method_route_endpoint_audit.json",
             "LSTM_MPC_DWA/$revisionZipPath/qa/seven_method_figure_collision_audit.json",
@@ -1136,7 +1031,6 @@ try {
             "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/seven_method_outcomes_main.pdf",
             "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/route_comparison_seven_method_scene72_seed2_singlecol.pdf",
             "LSTM_MPC_DWA/$revisionZipPath/02_source/figures/route_comparison_seven_method_scene72_seed2.pdf",
-            "LSTM_MPC_DWA/$revisionZipPath/04_review/v13_final_submission_audit_20261017.md",
             "LSTM_MPC_DWA/$revisionZipPath/04_review/v13_final_submission_audit_20261018.md",
             "LSTM_MPC_DWA/$revisionZipPath/04_review/publication_assessment_v13_20261017.md",
             "LSTM_MPC_DWA/$revisionZipPath/qa/algorithm_main_pseudocode.collision-audit.json",
@@ -1260,19 +1154,12 @@ try {
     $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
     [System.IO.File]::WriteAllText($zipHashPath, "$zipHash  reproducibility_package.zip`n", [System.Text.Encoding]::ASCII)
 
-    # Hash top-level deliverables, explicitly confirmed reader assets, and the
-    # explicit AI-review archive allowlist. No whole-directory sweep is used.
+    # Hash top-level deliverables and explicitly confirmed reader assets.
     $deliveryRelativePaths += $confirmedFigureAllowlist | ForEach-Object { $_.Replace('\', '/') }
     $deliveryRelativePaths += $confirmedBilingualAssetAllowlist | ForEach-Object { $_.Replace('\', '/') }
-    $deliveryRelativePaths += $agentTraceAllowlist | ForEach-Object {
-        '../../../agent_conversations/v13_final_submission/' + $_
-    }
     $deliveryRelativePaths += $projectDocumentAllowlist | ForEach-Object {
         '../../../' + $_
     }
-    $deliveryRelativePaths += '../../../agent_conversations/historical_versions/README.md'
-    $deliveryRelativePaths += '../../../agent_conversations/README.md'
-    $deliveryRelativePaths += $historicalReviewRecords | ForEach-Object { $_.DeliveryRelativePath }
     $deliveryRelativePaths = @($deliveryRelativePaths | Sort-Object -Unique)
     $deliveryManifestLines = @(
         '# Independent SHA-256 manifest for final v13 delivery artifacts.',
@@ -1281,17 +1168,8 @@ try {
     foreach ($relativePath in $deliveryRelativePaths) {
         $normalized = $relativePath.Replace('/', '\')
         $filePath = [System.IO.Path]::GetFullPath((Join-Path $revisionRoot $normalized))
-        if ($relativePath.StartsWith('../../../agent_conversations/v13_final_submission/', [System.StringComparison]::OrdinalIgnoreCase)) {
-            Assert-PathWithin -Path $filePath -Root $agentTraceRoot -Purpose 'AI review record delivery hash'
-        }
-        elseif ($relativePath -eq '../../../DOCUMENT_INDEX.md') {
+        if ($relativePath -eq '../../../DOCUMENT_INDEX.md') {
             Assert-PathWithin -Path $filePath -Root $projectDocumentRoot -Purpose 'paper index delivery hash'
-        }
-        elseif ($relativePath -eq '../../../agent_conversations/README.md') {
-            Assert-PathWithin -Path $filePath -Root $agentConversationRoot -Purpose 'AI archive index delivery hash'
-        }
-        elseif ($relativePath.StartsWith('../../../agent_conversations/historical_versions/', [System.StringComparison]::OrdinalIgnoreCase)) {
-            Assert-PathWithin -Path $filePath -Root $historicalTraceRoot -Purpose 'historical AI review record delivery hash'
         }
         else {
             Assert-PathWithin -Path $filePath -Root $revisionRoot -Purpose 'delivery hash'
