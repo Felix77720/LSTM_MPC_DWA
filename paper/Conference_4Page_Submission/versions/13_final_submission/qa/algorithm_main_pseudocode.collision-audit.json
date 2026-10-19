@@ -1,17 +1,17 @@
 {
-  "pdf": "paper\\Conference_4Page_Submission\\versions\\13_final_submission\\02_source\\figures\\algorithm_main_pseudocode.pdf",
+  "pdf": "LSTM_MPC_DWA\\paper\\Conference_4Page_Submission\\versions\\13_final_submission\\02_source\\figures\\algorithm_main_pseudocode.pdf",
   "auditable": true,
   "verdict": "PASS",
   "page_count": 1,
-  "visible_text_box_count": 28,
-  "text_trace_count": 28,
+  "visible_text_box_count": 26,
+  "text_trace_count": 26,
   "stroke_path_count": 36,
   "filled_region_count": 28,
   "image_region_count": 0,
   "summary": {
     "fail": 0,
     "warn": 0,
-    "contained_fill_overlays": 26,
+    "contained_fill_overlays": 23,
     "contained_image_overlays": 0
   },
   "thresholds": {

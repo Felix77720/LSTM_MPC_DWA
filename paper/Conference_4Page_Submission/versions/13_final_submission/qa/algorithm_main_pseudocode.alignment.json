@@ -21,7 +21,7 @@
     "backend": "python-matplotlib",
     "figure": {
       "width_pt": 248.4,
-      "height_pt": 244.79999999999998
+      "height_pt": 236.16
     },
     "panels": [
       {
@@ -30,7 +30,7 @@
           0.0,
           0.0,
           248.4,
-          244.79999999999998
+          236.16
         ],
         "grid_id": "matplotlib-grid-1",
         "row_start": 0,

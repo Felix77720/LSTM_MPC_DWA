@@ -61,9 +61,9 @@ def generate_pseudocode() -> dict:
     """Render the shared-forecast receding-horizon algorithm as modular pseudocode."""
     FIGURES.mkdir(parents=True, exist_ok=True)
     QA.mkdir(parents=True, exist_ok=True)
-    # Draw close to the final IEEE column width so exported type remains legible
-    # after the small scale change applied by LaTeX.
-    width, height = 3.45, 3.40
+    # Draw at the final IEEE column width so the type and arrow labels are
+    # judged at their submitted size rather than enlarged on screen.
+    width, height = 3.45, 3.28
     fig, ax = plt.subplots(figsize=(width, height), dpi=300)
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
     ax.set_xlim(0, 3.80)
@@ -71,12 +71,12 @@ def generate_pseudocode() -> dict:
     ax.set_axis_off()
 
     def module(x: float, y: float, w: float, h: float, title: str,
-               lines: tuple[str, ...], accent: str, *, body_size: float = 7.25,
-               title_size: float = 7.75, title_inset: float = 0.095,
-               body_inset: float = 0.215) -> None:
+               lines: tuple[str, ...], accent: str, *, body_size: float = 7.05,
+               title_size: float = 7.55, title_inset: float = 0.095,
+               body_inset: float = 0.215, facecolor: str = "white") -> None:
         ax.add_patch(FancyBboxPatch(
             (x, y), w, h, boxstyle="round,pad=0.012,rounding_size=0.035",
-            linewidth=0.60, edgecolor=accent, facecolor="white", zorder=2,
+            linewidth=0.62, edgecolor=accent, facecolor=facecolor, zorder=2,
         ))
         ax.add_patch(plt.Rectangle((x, y), 0.045, h, color=accent,
                                    linewidth=0, zorder=2))
@@ -88,76 +88,73 @@ def generate_pseudocode() -> dict:
                     ha="left", va="center", fontsize=body_size,
                     color=INK, zorder=3)
 
-    ax.text(0.43, 3.33, "SHARED-FORECAST PLANNER  |  UPDATE LOOP",
-            ha="left", va="top", fontsize=8.30, fontweight="bold", color=INK)
+    ax.text(0.43, 3.22, "SHARED-FORECAST MPC--DWA  |  ONE UPDATE",
+            ha="left", va="top", fontsize=8.15, fontweight="bold", color=INK)
+    ax.text(0.43, 3.06, "ONE FUTURE  |  TWO TIME SCALES  |  SCREENED EXECUTION",
+            ha="left", va="top", fontsize=6.35, fontweight="bold", color=SHARED)
 
-    # Step 3 separates the route guide from local action screening. The gate
-    # below exposes normal and emergency behavior without implying a guarantee.
-    module(0.43, 2.88, 3.20, 0.31, "1  OBSERVE + INITIALIZE",
-           ("Read UAV state, goal, 10 observations and previous route.",),
-           "#425466", body_size=7.25, title_size=7.75)
-    module(0.43, 2.37, 3.20, 0.42, "2  PREDICT ONCE, SHARE",
-           ("Causal LSTM predicts 30 time-aligned obstacle positions (3 s).",
-            "Broadcast this same forecast to MPC and DWA."), SHARED,
-           body_size=7.25, title_size=7.75)
-    module(0.43, 1.55, 1.49, 0.64, "3a  MPC | ROUTE GUIDE",
-           ("First update: solve route.",
-            "Later: shift prior route;",
-            "set guide + trust."), "#4B729D", body_size=7.05, title_size=7.55,
-           title_inset=0.125, body_inset=0.245)
-    module(2.14, 1.55, 1.49, 0.64, "3b  DWA | SCREEN",
-           ("Sample reachable controls",
-            "screen all 30 steps using",
-            "forecast + guide; score."), "#A86C20", body_size=7.05, title_size=7.35,
-           title_inset=0.125, body_inset=0.245)
+    module(0.43, 2.59, 3.20, 0.32, "1  OBSERVE",
+           ("Read UAV state, goal, 10 obstacle observations and prior route.",),
+           "#425466", body_size=7.10, title_size=7.60)
+    module(0.43, 2.10, 3.20, 0.40, "2  PREDICT ONCE + BROADCAST",
+           ("LSTM predicts 30 time-aligned obstacle positions over 3 s.",
+            "The identical sequence enters MPC and every DWA rollout."), SHARED,
+           body_size=7.05, title_size=7.55, facecolor="#F5FBFA")
+    module(0.43, 1.36, 1.49, 0.59, "3a  MPC | LOOK AHEAD",
+           ("Optimize a 30-step route.",
+            "Penalize future encounters;",
+            "set guide + trust."), "#4B729D", body_size=6.90, title_size=7.30,
+           title_inset=0.120, body_inset=0.235, facecolor="#F7FAFD")
+    module(2.14, 1.36, 1.49, 0.59, "3b  DWA | ACT NOW",
+           ("Sample reachable controls.",
+            "Screen 30-step rollouts;",
+            "score survivors."), "#A86C20", body_size=6.90, title_size=7.30,
+           title_inset=0.120, body_inset=0.235, facecolor="#FFFBF5")
 
     ax.add_patch(FancyBboxPatch(
-        (0.43, 1.29), 3.20, 0.17,
+        (0.43, 1.10), 3.20, 0.17,
         boxstyle="round,pad=0.008,rounding_size=0.025",
         linewidth=0.55, edgecolor="#526573", facecolor="#EEF2F4", zorder=2,
     ))
-    ax.text(2.03, 1.375, "4  GATE: IS THE NORMAL DWA SAFE SET NONEMPTY?",
+    ax.text(2.03, 1.185, "4  GATE  |  IS THE NORMAL DWA SAFE SET NONEMPTY?",
             ha="center", va="center", fontsize=6.78, fontweight="bold",
             color=INK, zorder=3)
-    module(0.43, 0.56, 1.56, 0.65, "YES  |  NORMAL",
-           ("Choose screened action;",
-            "send ranges to MPC.",
-            "Optional recentering:",
-            "re-screen or revert."), "#16877D",
-            body_size=7.05, title_size=7.45)
-    module(2.07, 0.56, 1.56, 0.65, "NO  |  EMERGENCY",
-           ("Screen emergency actions;",
-            "use one only if it passes.",
+    module(0.43, 0.51, 1.56, 0.50, "YES  |  NORMAL",
+           ("Choose best screened action.",
+            "Re-screen any recentering."), "#16877D",
+            body_size=6.90, title_size=7.30, facecolor="#F5FBFA")
+    module(2.07, 0.51, 1.56, 0.50, "NO  |  EMERGENCY",
+           ("Screen emergency actions.",
             "If none passes, stop."), "#A45B4A",
-            body_size=7.05, title_size=7.45)
-    module(0.43, 0.08, 3.20, 0.38, "5  PLAN NEXT + EXECUTE",
-           ("Solve the next MPC route with the screened bound if available.",
-            "Execute one verified action for 0.1 s; observe and repeat."),
-           "#425466", body_size=7.00, title_size=7.55)
+            body_size=6.90, title_size=7.30, facecolor="#FFF8F6")
+    module(0.43, 0.06, 3.20, 0.38, "5  FEEDBACK + EXECUTE",
+           ("Bound next MPC input with safe DWA ranges; execute 0.1 s.",
+            "Observe the scene and repeat."),
+           "#425466", body_size=6.70, title_size=7.35, body_inset=0.195)
 
     arrow = dict(arrowstyle="-|>", color="#71818D", lw=0.65, mutation_scale=6.5)
-    ax.annotate("", xy=(2.03, 2.79), xytext=(2.03, 2.88), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.03, 2.50), xytext=(2.03, 2.59), arrowprops=arrow, zorder=1)
     # Fan the single forecast to both planners.
-    ax.annotate("", xy=(2.03, 2.27), xytext=(2.03, 2.37), arrowprops=arrow, zorder=1)
-    ax.plot([1.175, 2.885], [2.27, 2.27], color="#71818D", lw=0.55, zorder=1)
-    ax.annotate("", xy=(1.175, 2.19), xytext=(1.175, 2.27), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(2.885, 2.19), xytext=(2.885, 2.27), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.03, 2.01), xytext=(2.03, 2.10), arrowprops=arrow, zorder=1)
+    ax.plot([1.175, 2.885], [2.01, 2.01], color="#71818D", lw=0.55, zorder=1)
+    ax.annotate("", xy=(1.175, 1.95), xytext=(1.175, 2.01), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.885, 1.95), xytext=(2.885, 2.01), arrowprops=arrow, zorder=1)
     # The MPC guide is an additional input to DWA.
-    ax.annotate("", xy=(2.14, 1.87), xytext=(1.92, 1.87), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(2.03, 1.46), xytext=(2.03, 1.55), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.14, 1.67), xytext=(1.92, 1.67), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.03, 1.27), xytext=(2.03, 1.36), arrowprops=arrow, zorder=1)
     # Gate fans into mutually exclusive normal and emergency branches.
-    ax.annotate("", xy=(1.21, 1.21), xytext=(1.21, 1.29), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(2.85, 1.21), xytext=(2.85, 1.29), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(1.21, 1.01), xytext=(1.21, 1.10), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.85, 1.01), xytext=(2.85, 1.10), arrowprops=arrow, zorder=1)
     # Merge branch outputs before executing exactly one screened action.
-    ax.annotate("", xy=(1.21, 0.51), xytext=(1.21, 0.56), arrowprops=arrow, zorder=1)
-    ax.annotate("", xy=(2.85, 0.51), xytext=(2.85, 0.56), arrowprops=arrow, zorder=1)
-    ax.plot([1.21, 2.85], [0.51, 0.51], color="#71818D", lw=0.55, zorder=1)
-    ax.annotate("", xy=(2.03, 0.46), xytext=(2.03, 0.51), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(1.21, 0.46), xytext=(1.21, 0.51), arrowprops=arrow, zorder=1)
+    ax.annotate("", xy=(2.85, 0.46), xytext=(2.85, 0.51), arrowprops=arrow, zorder=1)
+    ax.plot([1.21, 2.85], [0.46, 0.46], color="#71818D", lw=0.55, zorder=1)
+    ax.annotate("", xy=(2.03, 0.41), xytext=(2.03, 0.46), arrowprops=arrow, zorder=1)
     # Return arrow marks the receding-horizon loop.
-    ax.plot([0.25, 0.25], [0.23, 2.98], color="#98A6B2", lw=0.55, zorder=1)
+    ax.plot([0.25, 0.25], [0.23, 2.74], color="#98A6B2", lw=0.55, zorder=1)
     ax.plot([0.25, 0.43], [0.23, 0.23], color="#98A6B2", lw=0.55, zorder=1)
-    ax.annotate("", xy=(0.43, 2.98), xytext=(0.25, 2.98), arrowprops=arrow, zorder=1)
-    ax.text(0.16, 1.60, "repeat every 0.1 s", ha="center", va="center",
+    ax.annotate("", xy=(0.43, 2.74), xytext=(0.25, 2.74), arrowprops=arrow, zorder=1)
+    ax.text(0.16, 1.48, "receding-horizon loop", ha="center", va="center",
             rotation=90, rotation_mode="anchor", fontsize=7.30, color=BODY)
 
     fig.canvas.draw()

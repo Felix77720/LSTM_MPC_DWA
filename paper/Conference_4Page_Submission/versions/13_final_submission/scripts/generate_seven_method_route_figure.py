@@ -31,11 +31,11 @@ QA = REVISION / "qa"
 ALL_METHODS = [
     ("standalone_dwa_cv", "Standalone DWA-CV", "#E69F00", "-"),
     ("standalone_mpc_cv", "Standalone MPC-CV", "#0072B2", "--"),
-    ("cv", "Coupled MPC-DWA-CV", "#8DA0CB", "-."),
-    ("lstm_mpc_cv_dwa", "MPC-DWA (LSTM to MPC only)", "#C7B9D9", ":"),
-    ("cv_mpc_lstm_dwa", "MPC-DWA (LSTM to DWA only)", "#D9A0AE", (0, (6, 2, 1, 2))),
-    ("lstm", "MPC-DWA (shared LSTM)", "#4B2E83", (0, (3, 1, 1, 1))),
-    ("static", "MPC-DWA: position hold", "#9AA0A6", (0, (1, 1))),
+    ("cv", "Coupled MPC-DWA-CV", "#4477AA", "-."),
+    ("lstm_mpc_cv_dwa", "MPC-DWA (LSTM to MPC only)", "#8064A2", (0, (5, 1.5))),
+    ("cv_mpc_lstm_dwa", "MPC-DWA (LSTM to DWA only)", "#CC6677", (0, (7, 2, 1, 2))),
+    ("lstm", "MPC-DWA (shared LSTM)", "#0F766E", "-"),
+    ("static", "MPC-DWA: position hold", "#59636D", (0, (1, 1))),
 ]
 INTEGRATED_METHOD_KEYS = {
     "cv", "lstm_mpc_cv_dwa", "cv_mpc_lstm_dwa", "lstm", "static"
@@ -656,10 +656,17 @@ def main() -> None:
             raise ValueError(f"Single-column route does not match endpoint audit for {key}.")
         stride = max(1, int(np.ceil((len(xyz) - 1) / 12)))
         shared = key == "lstm"
+        # A thin white casing keeps coincident coloured segments separable
+        # without moving, smoothing or otherwise changing any saved point.
+        ax_single.plot(
+            xyz[:, 0], xyz[:, 1], xyz[:, 2], color="white",
+            linestyle=linestyle, linewidth=3.15 if shared else 2.50,
+            alpha=0.90, zorder=6 if shared else 3,
+        )
         line, = ax_single.plot(
             xyz[:, 0], xyz[:, 1], xyz[:, 2], color=color, linestyle=linestyle,
-            linewidth=2.35 if shared else 1.72, alpha=1.0,
-            marker=METHOD_MARKERS[key], markersize=3.15 if shared else 2.65,
+            linewidth=2.15 if shared else 1.72, alpha=1.0,
+            marker=METHOD_MARKERS[key], markersize=3.05 if shared else 2.75,
             markerfacecolor="white", markeredgecolor=color, markeredgewidth=0.58,
             markevery=stride, zorder=7 if shared else 4,
         )
@@ -676,22 +683,35 @@ def main() -> None:
     ax_single.scatter(*goal, marker="*", s=55, facecolors="none",
                       edgecolors="#CC3311", linewidth=0.9, depthshade=False, zorder=3)
 
-    # A compact XY inset separates the four short comparator routes that overlap
-    # in perspective. It redraws the saved coordinates without smoothing.
+    # The inset omits the shared route and magnifies the terminal portion of the
+    # four comparator paths. This reveals coincident geometry without offsetting
+    # any curve or changing any logged endpoint.
     inset = None
     if integrated_only:
-        inset = single_fig.add_axes([0.055, 0.665, 0.34, 0.225])
-        inset.set_facecolor((1, 1, 1, 0.94))
+        inset = single_fig.add_axes([0.045, 0.650, 0.405, 0.255])
+        inset.set_facecolor((1, 1, 1, 0.96))
         for key, _, color, linestyle in methods:
+            if key == "lstm":
+                continue
             route = np.loadtxt(run_dir / audit_by_key[key]["route_csv"], delimiter=",")
             if route.ndim == 1:
                 route = route[None, :]
+            stride = max(1, int(np.ceil((len(route) - 1) / 8)))
+            inset.plot(route[:, 1], route[:, 2], color="white", linestyle=linestyle,
+                       linewidth=2.45, alpha=0.95, zorder=2)
             inset.plot(route[:, 1], route[:, 2], color=color, linestyle=linestyle,
-                       linewidth=1.35 if key == "lstm" else 1.05)
-        inset.set_xlim(0.5, 9.5)
-        inset.set_ylim(0.5, 12.5)
-        inset.set_xticks([])
-        inset.set_yticks([])
+                       linewidth=1.35, marker=METHOD_MARKERS[key], markersize=2.6,
+                       markerfacecolor="white", markeredgewidth=0.55,
+                       markevery=stride, zorder=3)
+            endpoint = route[-1, 1:3]
+            inset.scatter(endpoint[0], endpoint[1], marker=METHOD_MARKERS[key],
+                          s=19, facecolors="white", edgecolors=color,
+                          linewidths=0.75, zorder=5)
+        inset.set_xlim(4.4, 8.8)
+        inset.set_ylim(4.4, 9.0)
+        inset.set_xticks([5, 7, 9])
+        inset.set_yticks([5, 7, 9])
+        inset.tick_params(labelsize=5.0, length=1.5, pad=0.7)
         inset.grid(True, color="#D6DCE1", linewidth=0.35, alpha=0.8)
         for spine in inset.spines.values():
             spine.set_linewidth(0.55)
@@ -744,6 +764,11 @@ def main() -> None:
             ),
             "target_canvas_inches": [3.40, 3.16],
             "route_states": "all original saved states through each true terminal; no path changes",
+            "inset": (
+                "comparator-only XY terminal detail using the same saved coordinates; "
+                "shared route omitted from inset only to expose overlapping comparators"
+                if integrated_only else None
+            ),
             "source_endpoint_audit": endpoint_audit_path.name,
             "alignment": single_alignment,
             "methods": endpoint_audit,

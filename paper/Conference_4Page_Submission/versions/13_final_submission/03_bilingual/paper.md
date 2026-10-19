@@ -68,9 +68,9 @@ Zhenhui Fu*, Beijing University of Chemical Technology, Beijing 100029, China. *
 <a id="S004"></a>
 **Source:** 02_source/main.tex, Introduction
 
-**Original:** Unmanned aerial vehicles (UAVs) must choose safe motion before a moving obstacle reaches the same space. Recent positions are poor guides when an obstacle turns, accelerates or pauses. Model predictive control (MPC) can plan a short future route, while the dynamic window approach (DWA) can select an action that the vehicle can reach immediately [1, 2]. Forecast-based UAV planners have used predicted obstacle motion in route optimization [3, 4], but a coupled planner also needs its route and local-action layers to reason about the same future. We address this interface with one 3-s LSTM forecast shared by both layers. MPC uses the forecast to shape its route, DWA uses the same time-aligned positions to screen reachable actions, and the range of screened DWA controls constrains MPC's next first command. A trust score then shifts DWA sampling between the MPC guide and exploration. We formulate this forecast-sharing interface within a coupled MPC--DWA planner and compare it with coupled constant-velocity (CV) prediction, single-layer LSTM injection and latest-position hold.
+**Original:** Unmanned aerial vehicles (UAVs) must choose safe motion before a moving obstacle reaches the same space. Recent positions are poor guides when an obstacle turns, accelerates or pauses. Model predictive control (MPC) can plan a short future route, while the dynamic window approach (DWA) can select an action that the vehicle can reach immediately [1, 2]. Forecast-based UAV planners have used predicted obstacle motion in route optimization [3, 4], but a coupled planner also needs its route and local-action layers to reason about the same future. We therefore treat forecast disagreement, rather than the absence of either planner, as the design problem. One 3-s LSTM forecast supplies both layers with a common future. MPC uses it to shape the route, DWA uses the same time-aligned positions to screen reachable actions, and the screened DWA range constrains MPC's next first command. A trust score shifts DWA sampling between the MPC guide and exploration. We compare this coupled interface with constant-velocity (CV) prediction, single-layer LSTM injection and latest-position hold.
 
-**中文:** 无人机（UAV）必须在移动障碍物到达同一空间之前选出安全动作。障碍物转向、加速或暂停时，近期位置并不能可靠代表下一步运动。模型预测控制（MPC）可以规划一段短期未来路线，动态窗口法（DWA）则可以选择飞行器当前能够达到的动作 [1, 2]。已有预测式无人机规划器会在路线优化中使用障碍物运动预测 [3, 4]，但耦合规划器还需要让路线层和局部动作层依据同一个未来作出判断。我们用两个规划层共享的一条 3 s LSTM 预测来解决这个接口问题。MPC 用预测调整路线，DWA 用相同的时间对齐位置筛选可达动作，通过筛选的 DWA 控制范围再约束 MPC 下一次规划的首个指令。信任评分则在靠近 MPC 引导路线的采样与其他方向的探索采样之间分配预算。本文把这一共享预测接口放入耦合 MPC–DWA 规划器，并与耦合恒速（CV）预测、单层 LSTM 注入和最新位置保持进行比较。
+**中文:** 无人机（UAV）必须在移动障碍物到达同一空间之前选出安全动作。障碍物转向、加速或暂停时，近期位置并不能可靠代表下一步运动。模型预测控制（MPC）可以规划一段短期未来路线，动态窗口法（DWA）则可以选择飞行器当前能够达到的动作 [1, 2]。已有预测式无人机规划器会在路线优化中使用障碍物运动预测 [3, 4]，但耦合规划器还需要让路线层和局部动作层依据同一个未来作出判断。因此，本文把“两个规划层对障碍物未来判断不一致”而非“缺少某个规划器”作为设计问题。一条 3 s LSTM 预测向两个层提供共同的未来信息。MPC 用它调整路线，DWA 用相同的时间对齐位置筛选可达动作，通过筛查的 DWA 控制范围再约束 MPC 下一次规划的首个指令。信任评分在靠近 MPC 引导路线的采样与其他方向的探索采样之间分配预算。本文将该耦合接口与恒速（CV）预测、单层 LSTM 注入和最新位置保持进行比较。
 
 ## II. Problem Formulation / 问题建模
 
@@ -96,9 +96,9 @@ Zhenhui Fu*, Beijing University of Chemical Technology, Beijing 100029, China. *
 <a id="S006"></a>
 **Source:** 02_source/main.tex, Planning Method, introductory paragraph
 
-**Original:** Figure 2 follows one planning update. The LSTM first converts recent obstacle states into a time-aligned 3-s sequence. At startup, MPC uses this sequence to create an initial route; later updates shift the preceding MPC solution forward as the new guide. The guide sets a trust score, which divides DWA samples between controls near the guide and controls that explore other directions. DWA rolls each sample forward for 3 s, rejects candidates that violate clearance, corridor or braking checks, and scores the survivors. The safe candidates also send information back to MPC. Their component-wise control ranges form a box that constrains only the first command of the new MPC plan; the box itself does not certify every command inside it. The new plan guides the next update, while the separately screened best DWA action is executed now. If optional lateral recentering changes that action, the modified rollout is screened again. If the normal set is empty, emergency actions pass a second safety check; the simulator stops when none passes. Thus an unchecked MPC or emergency command is never applied.
+**Original:** The architecture follows from a specific failure mechanism: a forward route and its next local action can conflict when they assume different obstacle futures. This observation led to three design choices. First, one predictor supplies a common future to both layers. Second, MPC retains the long-horizon task of starting detours early, while DWA retains authority over the next reachable action. Third, the MPC guide and screened DWA ranges pass in opposite directions, coupling the time scales without letting the LSTM issue commands. Figure 2 follows one planning update. The LSTM converts recent obstacle states into a time-aligned 3-s sequence. At startup, MPC uses it to create an initial route; later updates shift the preceding solution forward as the new guide. The guide sets a trust score that divides DWA samples between controls near the route and controls exploring other directions. DWA rolls each sample forward for 3 s, rejects candidates that violate clearance, corridor or braking checks, and scores the survivors. The safe candidates also send information back to MPC. Their component-wise control ranges form a box that constrains only the first command of the new MPC plan; the box itself does not certify every command inside it. The new plan guides the next update, while the separately screened best DWA action is executed now. If optional lateral recentering changes that action, the modified rollout is screened again. If the normal set is empty, emergency actions pass a second safety check; the simulator stops when none passes. Thus an unchecked MPC or emergency command is never applied.
 
-**中文:** 图 2 展示一次规划更新。LSTM 先把近期障碍物状态转换为按时间对齐的 3 s 序列。启动时，MPC 用该序列生成初始路线；之后每次更新把上一轮 MPC 解向前平移，作为新的引导路线。引导路线产生信任评分，用来在靠近引导路线的 DWA 控制采样与其他方向的探索采样之间分配数量。DWA 将每个样本向前滚动 3 s，剔除不满足间隙、走廊或制动条件的候选，再对剩余候选评分。安全候选还会把信息反馈给 MPC。各控制分量的取值范围组成一个控制盒，只约束新 MPC 计划的首个指令；这个控制盒本身并不保证其中每个组合都安全。新计划用于引导下一次更新，而当前真正执行的是单独筛查后得分最高的 DWA 动作。如果可选的横向重居中修改了该动作，修改后的滚动轨迹必须再次通过筛查。如果常规安全集为空，应急动作还要经过第二次安全检查；没有任何应急动作通过时，仿真停止。因此，未经检查的 MPC 或应急指令不会被执行。
+**中文:** 该架构源于一个明确的失效原因：如果前瞻路线与下一步局部动作依据不同的障碍物未来位置，两者就可能发生冲突。由此形成三个设计选择。第一，只预测一次，并把同一个未来序列交给两个规划层。第二，MPC 保留提前启动绕行的长时域任务，DWA 保留选择下一条可达动作的执行权。第三，MPC 引导与经过筛查的 DWA 控制范围沿相反方向传递，在耦合两个时间尺度的同时，不让 LSTM 直接发出控制指令。图 2 展示一次规划更新。LSTM 把近期障碍物状态转换为按时间对齐的 3 s 序列。启动时，MPC 用该序列生成初始路线；之后每次更新把上一轮解向前平移，作为新的引导路线。引导路线产生信任评分，用来在靠近路线的 DWA 控制采样与其他方向的探索采样之间分配数量。DWA 将每个样本向前滚动 3 s，剔除不满足间隙、走廊或制动条件的候选，再对剩余候选评分。安全候选还会把信息反馈给 MPC。各控制分量的取值范围组成一个控制盒，只约束新 MPC 计划的首个指令；这个控制盒本身并不保证其中每个组合都安全。新计划用于引导下一次更新，而当前真正执行的是单独筛查后得分最高的 DWA 动作。如果可选的横向重居中修改了该动作，修改后的滚动轨迹必须再次通过筛查。如果常规安全集为空，应急动作还要经过第二次安全检查；没有任何应急动作通过时，仿真停止。因此，未经检查的 MPC 或应急指令不会被执行。
 
 ### Core equations / 核心公式
 
@@ -254,9 +254,9 @@ $$
 ![Main-text pseudocode for the shared-forecast MPC–DWA update](../02_source/figures/algorithm_main_pseudocode.png)
 
 <a id="C006"></a>
-**Original caption:** Five modules in one 0.1-s planning update. One 3-s LSTM forecast feeds the MPC route plan and DWA rollout screen. The MPC guide shapes DWA sampling, and the screened DWA set bounds MPC's next first command. Normal, recentered and emergency actions are screened before execution.
+**Original caption:** Five modules in one 0.1-s update. One 3-s LSTM forecast feeds both the long-horizon MPC route and the reachable-action DWA screen. The MPC guide shapes DWA sampling, while screened DWA ranges bound MPC's next first command. Normal, recentered and emergency actions are screened before execution.
 
-**中文图注：** 一次 0.1 s 规划更新中的五个模块。同一条 3 s LSTM 预测同时进入 MPC 路线规划和 DWA 滚动轨迹筛查。MPC 引导决定 DWA 的采样分配，通过筛查的 DWA 集合约束 MPC 下一次规划的首个指令。普通、重居中和应急动作都必须先通过筛查再执行。
+**中文图注：** 一次 0.1 s 更新中的五个模块。同一条 3 s LSTM 预测同时进入长时域 MPC 路线规划和可达动作 DWA 筛查。MPC 引导改变 DWA 的采样分配，经过筛查的 DWA 控制范围则约束 MPC 下一次规划的首个指令。普通、重居中和应急动作都必须先通过筛查再执行。
 
 #### Algorithm S1 / 算法 S1：共享预测的 MPC–DWA 循环
 
@@ -280,20 +280,6 @@ $$
 
 **中文:** 共享 LSTM 在 300 次运行中有 221 次安全到达（73.7%）。最新位置保持为 172/300（57.3%），因此共享预测高 16.3 个百分点（95% CI：5.1–27.6）。耦合 CV 为 204/300（68.0%），共享方法的点估计高 5.7 个百分点（−3.4–14.7）。仅 MPC 使用 LSTM 为 219/300（73.0%），仅 DWA 使用 LSTM 为 224/300（74.7%）；它们相对共享方法的差异分别为 +0.7 个百分点（−9.0–10.3）和 −1.0 个百分点（−4.8–2.8）。因此，共享 LSTM 相对位置保持提高了无碰撞到达率；现有区间不能证明它优于耦合 CV 或任一单层 LSTM 方法（图 3）。
 
-### Table 1 / 表 1：3 s 集成方法结果
-
-**Original caption:** Integrated 3-s outcomes. Safe arrival requires no swept contact.
-
-**中文表注：** 3 s 集成方法结果。安全到达要求整条扫掠路径无接触。
-
-| Method / 方法 | Safe arrival / 安全到达 | Swept contact / 扫掠接触 |
-|---|---:|---:|
-| Position hold / 位置保持 | 172/300 (57.3%) | 50 |
-| Coupled CV / 耦合 CV | 204/300 (68.0%) | 0 |
-| LSTM to MPC / LSTM 仅输入 MPC | 219/300 (73.0%) | 0 |
-| LSTM to DWA / LSTM 仅输入 DWA | 224/300 (74.7%) | 0 |
-| Shared LSTM / 共享 LSTM | 221/300 (73.7%) | 0 |
-
 <a id="F007"></a>
 ### Figure 3 / 图 3：3 s 集成控制器结果
 
@@ -307,9 +293,9 @@ $$
 <a id="S026"></a>
 **Source:** 02_source/main.tex, illustrative integrated-route paragraph
 
-**Original:** Figure 4 shows one matched case selected post hoc for outcome and route visibility. Only shared LSTM reached safely among the five integrated methods.
+**Original:** Figure 4 shows one matched case selected post hoc for outcome and route visibility. Only shared LSTM reached safely among the five integrated methods. The inset redraws the four comparator paths without the shared path so their overlapping terminal geometry remains visible; no coordinates are moved.
 
-**中文:** 图 4 展示一个为结果与路线可见性而事后选择的匹配示例。在五种集成方法中，只有共享 LSTM 安全到达。
+**中文:** 图 4 展示一个为结果与路线可见性而事后选择的匹配示例。在五种集成方法中，只有共享 LSTM 安全到达。插图不绘制共享方法，只重绘四条比较方法的真实记录点，从而显示它们相互重叠的末段几何形状；所有坐标保持不变。
 
 <a id="F002"></a>
 ### Figure 4 / 图 4：五种集成方法的匹配路线示例
@@ -317,9 +303,9 @@ $$
 ![Five integrated controller paths overlaid in scene 72, seed 2.](../02_source/figures/route_comparison_integrated_five_method_scene72_seed2_singlecol.png)
 
 <a id="C002"></a>
-**Original caption:** Five integrated paths in one matched case (scene 72, seed 2); the inset enlarges early XY motion. The black triangle and red star mark the start and goal. Only shared LSTM reached safely; coupled CV and the two one-layer LSTM variants stopped without contact, while position hold had a swept contact. Lines stop at logged endpoints. The circle, squares and cross mark safe arrival, other non-arrival and a contact episode; the cross reports the outcome, not the contact location.
+**Original caption:** Five integrated paths in one matched case (scene 72, seed 2). The main view contains all five paths; the XY inset magnifies the logged terminal segments of the four comparators only. The black triangle and red star mark the start and goal. Only shared LSTM reached safely; coupled CV and the two one-layer LSTM variants stopped without contact, while position hold had a swept contact. Every line stops at its recorded endpoint. The circle, squares and cross mark safe arrival, other non-arrival and a contact episode; the cross reports the outcome, not the contact location.
 
-**中文图注：** 场景 72、种子 2 中五种集成方法的匹配路线；插图放大路线早期的 XY 平面运动。黑色三角形和红色星形分别标出起点与目标。只有共享 LSTM 安全到达；耦合 CV 与两种单层 LSTM 方法均无接触停止，位置保持则发生扫掠接触。每条线截止于日志终点。圆形、方形和叉号分别表示安全到达、其他未到达和发生过接触的运行；叉号只报告运行结果，不表示接触位置。
+**中文图注：** 场景 72、种子 2 中五种集成方法的匹配路线。主视图包含全部五条路线；XY 插图只放大四条比较方法在日志中记录的末段。黑色三角形和红色星形分别标出起点与目标。只有共享 LSTM 安全到达；耦合 CV 与两种单层 LSTM 方法均无接触停止，位置保持则发生扫掠接触。每条线截止于真实记录终点。圆形、方形和叉号分别表示安全到达、其他未到达和发生过接触的运行；叉号只报告运行结果，不表示接触位置。
 
 <a id="T001"></a>
 ### Supplementary Table S11 / 补充表 S11：七方法探索性结果
@@ -367,15 +353,11 @@ $$
 
 **Source:** 02_source/main.tex, Discussion, paragraph 1
 
-**Original:** The two control layers solve different parts of the same encounter. MPC looks far enough ahead to bend the route before a predicted conflict, while DWA checks whether the next reachable action passes local safety gates. Giving them the same 3-s obstacle sequence removes an avoidable source of disagreement. The expanded component-wise box constrains MPC's next first command using the ranges of screened DWA controls; it does not certify every command inside, and the separately screened DWA action remains the one executed.
-
-This division also keeps each module's role explicit. The LSTM estimates obstacle motion once per update but does not choose a vehicle command. MPC turns those estimates into an anticipatory route, and DWA tests what the UAV can reach immediately. Returning only the range of screened controls lets local feasibility shape the next route optimization while the selected DWA action remains the command that is executed. The interface can therefore be inspected at the forecast, route, candidate and executed-action stages.
+**Original:** The architecture aligns information without collapsing the two control roles. MPC anticipates a conflict and bends the route, while DWA checks what the UAV can reach immediately. Sharing the 3-s obstacle sequence removes forecast disagreement between these decisions. Returning screened control ranges lets local feasibility shape MPC's next first command, while the separately screened DWA action remains the command executed. The interface can therefore be inspected at the forecast, route, candidate and execution stages. The component-wise box narrows the MPC search; it does not certify every command inside it.
 
 The outcome pattern is consistent with this design. Position hold supplies no obstacle motion, so both layers can act on a rapidly outdated picture; sharing the forecast removes that limitation and improved collision-free arrival. Coupled CV already represents motion, and each one-layer LSTM variant still gives one planning layer a learned forecast, so the remaining point differences were smaller. In the tested scenes, their intervals did not establish an additional arrival benefit from supplying LSTM forecasts to both layers. The method was evaluated with prescribed obstacle tracks, point forecasts and simulator-recorded motion features. Prediction uncertainty, unseen motion families and real flight remain the next validation steps.
 
-**中文:** 两个控制层负责同一次相遇中的不同任务。MPC 看得更远，使路线能够在预测冲突前提前弯折；DWA 则检查下一条可达动作能否通过局部安全条件。让两层使用同一条 3 s 障碍物序列，可以消除本可避免的未来判断分歧。扩展后的分量级控制盒利用已通过 DWA 筛查的控制范围约束 MPC 下一次规划的首个指令；它并不保证盒内每个控制组合都已通过筛查，当前实际执行的仍是单独通过检查的 DWA 动作。
-
-这种分工也使每个模块的职责清楚可查。LSTM 每次更新只预测一次障碍物运动，并不直接选择飞行指令；MPC 把预测转化为提前避让的路线，DWA 再检查无人机当前能够到达的动作。仅把已筛查控制的范围反馈给 MPC，可使局部可行性影响下一次路线优化，同时实际执行的仍是 DWA 选中的动作。因此，从预测、路线、候选动作到最终执行指令，每一级都可以单独检查。
+**中文:** 该架构对齐两个层使用的信息，同时保留它们不同的控制职责。MPC 提前判断冲突并调整路线，DWA 则检查无人机当前能够到达的动作。共享同一条 3 s 障碍物序列，消除了两种决策之间的未来判断分歧。把经过筛查的控制范围反馈给 MPC，使局部可行性影响其下一次规划的首个指令，而当前实际执行的仍是单独通过检查的 DWA 动作。因此，从预测、路线、候选动作到最终执行，每一级都可以单独检查。分量级控制盒只缩小 MPC 的搜索范围，并不保证盒内每个指令都安全。
 
 结果模式与这一设计相符。位置保持不描述障碍物运动，使两层都可能依据迅速过时的场景作出决策；共享预测消除了这一缺陷，并提高了无碰撞到达率。耦合 CV 已能表示运动，而每种单层 LSTM 方案也让其中一个规划层获得了学习预测，因此其余点估计差异较小。在测试场景中，相应区间未能证明同时向两层提供 LSTM 会产生额外到达收益。本方法在预设障碍物轨迹、点预测和仿真器记录的运动特征下完成评估；下一步需要检验预测不确定性、未见过的运动类型以及真实飞行表现。
 
